@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Settings — Admin</title>
+<link rel="stylesheet" href="/css/main.css">
+<link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+<div class="admin-shell">
+  <aside class="sidebar">
+    <div class="sidebar-brand"><span>🍽</span><div><div class="brand-name">La Maison</div><div class="brand-role">Admin Panel</div></div></div>
+    <nav class="sidebar-nav">
+      <a href="/admin/dashboard.html" class="nav-item"><span>📊</span> Dashboard</a>
+      <a href="/admin/orders.html" class="nav-item"><span>📋</span> Orders</a>
+      <a href="/admin/menu-manage.html" class="nav-item"><span>🍛</span> Menu</a>
+      <a href="/admin/users.html" class="nav-item"><span>👥</span> Users</a>
+      <a href="/admin/tables.html" class="nav-item"><span>🪑</span> Tables & QR</a>
+      <a href="/admin/reports.html" class="nav-item"><span>📈</span> Reports</a>
+      <a href="/admin/settings.html" class="nav-item active"><span>⚙️</span> Settings</a>
+    </nav>
+    <div class="sidebar-footer"><button class="btn btn-ghost btn-sm btn-block" onclick="logout()">Sign Out</button></div>
+  </aside>
+  <main class="admin-main">
+    <div class="admin-topbar">
+      <div><h1 class="admin-page-title">Restaurant Settings</h1><p class="admin-page-sub">Configure geolocation, restaurant info, and system options</p></div>
+    </div>
+
+    <div style="padding:24px 28px;max-width:720px;">
+      <!-- Restaurant Info -->
+      <div class="card card-padded" style="margin-bottom:24px;">
+        <h2 style="font-size:1.1rem;font-weight:600;margin-bottom:20px;">🍽 Restaurant Information</h2>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Restaurant Name</label><input type="text" id="s-name" class="form-control"></div>
+          <div class="form-group"><label class="form-label">Phone</label><input type="text" id="s-phone" class="form-control" placeholder="+63 912 345 6789"></div>
+        </div>
+        <div class="form-group"><label class="form-label">Address</label><input type="text" id="s-address" class="form-control"></div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Open Hours</label><input type="text" id="s-hours" class="form-control" placeholder="10:00 AM - 10:00 PM"></div>
+          <div class="form-group"><label class="form-label">Currency Symbol</label><input type="text" id="s-currency" class="form-control" placeholder="₱" maxlength="3"></div>
+        </div>
+      </div>
+
+      <!-- Geolocation -->
+      <div class="card card-padded" style="margin-bottom:24px;">
+        <h2 style="font-size:1.1rem;font-weight:600;margin-bottom:8px;">📍 Geolocation & Access Control</h2>
+        <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:20px;">Set the restaurant's GPS coordinates and the allowed radius. Customers outside this radius will be denied access.</p>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Latitude</label><input type="number" id="s-lat" class="form-control" step="0.00001" placeholder="e.g. 14.5995"></div>
+          <div class="form-group"><label class="form-label">Longitude</label><input type="number" id="s-lon" class="form-control" step="0.00001" placeholder="e.g. 120.9842"></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Allowed Radius (meters) — Currently: <strong id="radius-display">—</strong>m</label>
+          <input type="range" id="s-radius" min="50" max="2000" step="50" oninput="document.getElementById('radius-display').textContent=this.value" style="width:100%;margin:8px 0;">
+          <div style="display:flex;justify-content:space-between;font-size:0.78rem;color:var(--text-muted);"><span>50m (strict)</span><span>2000m (loose)</span></div>
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="useMyLocation()">📍 Use My Current Location</button>
+        <p style="font-size:0.78rem;color:var(--text-muted);margin-top:8px;">This will auto-fill your current GPS coordinates as the restaurant location.</p>
+      </div>
+
+      <div id="settings-alert" class="alert alert-hidden" style="margin-bottom:16px;"></div>
+      <button class="btn btn-primary btn-lg" onclick="saveSettings()" id="save-btn">💾 Save All Settings</button>
+    </div>
+  </main>
+</div>
+
+<script src="/js/auth.js"></script>
+<script>
+requireRole('admin');
+
+async function loadSettings() {
+  try {
+    const data = await apiFetch('/settings');
+    const s = data.data;
+    document.getElementById('s-name').value     = s.restaurantName || '';
+    document.getElementById('s-phone').value    = s.phone || '';
+    document.getElementById('s-address').value  = s.address || '';
+    document.getElementById('s-hours').value    = s.openHours || '';
+    document.getElementById('s-currency').value = s.currency || '₱';
+    document.getElementById('s-lat').value      = s.latitude || '';
+    document.getElementById('s-lon').value      = s.longitude || '';
+    document.getElementById('s-radius').value   = s.allowedRadiusMeters || 200;
+    document.getElementById('radius-display').textContent = s.allowedRadiusMeters || 200;
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+function useMyLocation() {
+  navigator.geolocation.getCurrentPosition(pos => {
+    document.getElementById('s-lat').value = pos.coords.latitude.toFixed(6);
+    document.getElementById('s-lon').value = pos.coords.longitude.toFixed(6);
+    showToast('Location captured!');
+  }, () => showToast('Could not get location', 'error'));
+}
+
+async function saveSettings() {
+  const btn = document.getElementById('save-btn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Saving...';
+  const alertEl = document.getElementById('settings-alert');
+  try {
+    await apiFetch('/settings', {
+      method: 'PUT',
+      body: JSON.stringify({
+        restaurantName:     document.getElementById('s-name').value.trim(),
+        phone:              document.getElementById('s-phone').value.trim(),
+        address:            document.getElementById('s-address').value.trim(),
+        openHours:          document.getElementById('s-hours').value.trim(),
+        currency:           document.getElementById('s-currency').value.trim(),
+        latitude:           parseFloat(document.getElementById('s-lat').value),
+        longitude:          parseFloat(document.getElementById('s-lon').value),
+        allowedRadiusMeters:parseInt(document.getElementById('s-radius').value)
+      })
+    });
+    alertEl.className = 'alert alert-success';
+    alertEl.textContent = '✅ Settings saved successfully!';
+    showToast('Settings saved!');
+  } catch(e) {
+    alertEl.className = 'alert alert-error';
+    alertEl.textContent = '❌ ' + e.message;
+  }
+  btn.disabled = false; btn.innerHTML = '💾 Save All Settings';
+}
+
+document.addEventListener('DOMContentLoaded', loadSettings);
+</script>
+</body>
+</html>

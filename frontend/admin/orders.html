@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Orders — Admin</title>
+<link rel="stylesheet" href="/css/main.css">
+<link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+<div class="admin-shell">
+  <aside class="sidebar">
+    <div class="sidebar-brand"><span>🍽</span><div><div class="brand-name">La Maison</div><div class="brand-role">Admin Panel</div></div></div>
+    <nav class="sidebar-nav">
+      <a href="/admin/dashboard.html" class="nav-item"><span>📊</span> Dashboard</a>
+      <a href="/admin/orders.html" class="nav-item active"><span>📋</span> Orders</a>
+      <a href="/admin/menu-manage.html" class="nav-item"><span>🍛</span> Menu</a>
+      <a href="/admin/users.html" class="nav-item"><span>👥</span> Users</a>
+      <a href="/admin/tables.html" class="nav-item"><span>🪑</span> Tables & QR</a>
+      <a href="/admin/reports.html" class="nav-item"><span>📈</span> Reports</a>
+      <a href="/admin/settings.html" class="nav-item"><span>⚙️</span> Settings</a>
+    </nav>
+    <div class="sidebar-footer"><button class="btn btn-ghost btn-sm btn-block" onclick="logout()">Sign Out</button></div>
+  </aside>
+
+  <main class="admin-main">
+    <div class="admin-topbar">
+      <div><h1 class="admin-page-title">All Orders</h1><p class="admin-page-sub">View and manage every order</p></div>
+      <button class="btn btn-outline btn-sm" onclick="loadOrders()">↻ Refresh</button>
+    </div>
+
+    <div class="admin-table-wrap" style="padding-top:24px;">
+      <div class="table-toolbar">
+        <div class="search-input-wrap">
+          <span>🔍</span>
+          <input type="text" id="search-orders" placeholder="Search order # or table..." oninput="filterOrders()">
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <select class="sort-select" id="status-filter" onchange="filterOrders()">
+            <option value="">All Statuses</option>
+            <option value="pending">Pending</option>
+            <option value="preparing">Preparing</option>
+            <option value="ready">Ready</option>
+            <option value="served">Served</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+          <select class="sort-select" id="type-filter" onchange="filterOrders()">
+            <option value="">All Types</option>
+            <option value="dine-in">Dine-In</option>
+            <option value="take-out">Take-Out</option>
+          </select>
+          <input type="date" id="date-filter" class="sort-select" onchange="filterOrders()" style="min-width:140px;">
+        </div>
+        <span id="order-count" style="font-size:0.85rem;color:var(--text-muted);white-space:nowrap;"></span>
+      </div>
+
+      <div class="table-wrap">
+        <table id="orders-table">
+          <thead>
+            <tr>
+              <th>Order #</th>
+              <th>Type</th>
+              <th>Table</th>
+              <th>Items</th>
+              <th>Total</th>
+              <th>Status</th>
+              <th>Time</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="orders-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Order detail modal -->
+<div class="modal-overlay" id="order-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="order-modal-title">Order Details</h2>
+      <button class="modal-close" onclick="closeOrderModal()">✕</button>
+    </div>
+    <div class="modal-body" id="order-modal-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeOrderModal()">Close</button>
+      <select id="status-update-sel" class="form-control" style="width:auto;">
+        <option value="">Change Status...</option>
+        <option value="pending">Pending</option>
+        <option value="preparing">Preparing</option>
+        <option value="ready">Ready</option>
+        <option value="served">Served</option>
+        <option value="cancelled">Cancelled</option>
+      </select>
+      <button class="btn btn-primary" onclick="applyStatusChange()">Apply</button>
+    </div>
+  </div>
+</div>
+
+<script src="/js/auth.js"></script>
+<script>
+requireRole('admin');
+let allOrders = [], currentOrderId = null;
+
+async function loadOrders() {
+  try {
+    const status = document.getElementById('status-filter').value;
+    const type = document.getElementById('type-filter').value;
+    const date = document.getElementById('date-filter').value;
+    let url = '/orders?';
+    if (status) url += `&status=${status}`;
+    if (type) url += `&orderType=${type}`;
+    if (date) url += `&date=${date}`;
+    const data = await apiFetch(url);
+    allOrders = data.data;
+    filterOrders();
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+function filterOrders() {
+  const q = document.getElementById('search-orders').value.toLowerCase();
+  let items = allOrders;
+  if (q) items = items.filter(o =>
+    o.orderNumber?.toLowerCase().includes(q) ||
+    String(o.tableNumber).includes(q) ||
+    o.customer?.name?.toLowerCase().includes(q)
+  );
+  document.getElementById('order-count').textContent = `${items.length} order${items.length !== 1 ? 's' : ''}`;
+  renderTable(items);
+}
+
+function renderTable(orders) {
+  document.getElementById('orders-tbody').innerHTML = orders.length === 0
+    ? `<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text-muted);">No orders found</td></tr>`
+    : orders.map(o => `
+      <tr>
+        <td><strong style="color:var(--primary);">${o.orderNumber}</strong></td>
+        <td><span class="badge ${o.orderType==='dine-in'?'badge-primary':'badge-accent'}">${o.orderType==='dine-in'?'🪑 Dine-In':'🥡 Take-Out'}</span></td>
+        <td>${o.tableNumber ? `Table ${o.tableNumber}` : '—'}</td>
+        <td style="color:var(--text-muted);font-size:0.82rem;">${o.items.length} item${o.items.length!==1?'s':''}</td>
+        <td><strong>${formatCurrency(o.totalAmount)}</strong></td>
+        <td>${statusBadge(o.status)}</td>
+        <td style="font-size:0.8rem;color:var(--text-muted);">${formatDate(o.createdAt)}</td>
+        <td>
+          <button class="btn btn-ghost btn-sm" onclick="viewOrder('${o._id}')">View</button>
+        </td>
+      </tr>`).join('');
+}
+
+async function viewOrder(id) {
+  currentOrderId = id;
+  const data = await apiFetch(`/orders/${id}`);
+  const o = data.data;
+  document.getElementById('order-modal-title').textContent = `Order #${o.orderNumber}`;
+  document.getElementById('order-modal-body').innerHTML = `
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px;">
+      ${statusBadge(o.status)}
+      <span class="badge ${o.orderType==='dine-in'?'badge-primary':'badge-accent'}">${o.orderType}</span>
+      ${o.tableNumber ? `<span class="badge badge-accent">Table ${o.tableNumber}</span>` : ''}
+    </div>
+    <div style="margin-bottom:16px;">
+      <div class="form-label">Customer</div>
+      <div>${o.customer?.name || 'Guest'} ${o.customer?.email ? `(${o.customer.email})` : ''}</div>
+    </div>
+    <div style="margin-bottom:16px;">
+      <div class="form-label" style="margin-bottom:8px;">Items Ordered</div>
+      ${o.items.map(i => `<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:0.88rem;"><span>${i.quantity}× ${i.name}</span><span>${formatCurrency(i.price * i.quantity)}</span></div>`).join('')}
+      <div style="display:flex;justify-content:space-between;padding:10px 0;font-weight:700;"><span>Total</span><span style="color:var(--primary);">${formatCurrency(o.totalAmount)}</span></div>
+    </div>
+    ${o.specialRequests ? `<div class="alert alert-warning">📝 ${o.specialRequests}</div>` : ''}
+    <div style="font-size:0.8rem;color:var(--text-muted);margin-top:12px;">Placed: ${formatDate(o.createdAt)}</div>`;
+  document.getElementById('status-update-sel').value = '';
+  document.getElementById('order-modal').classList.add('active');
+}
+
+async function applyStatusChange() {
+  const status = document.getElementById('status-update-sel').value;
+  if (!status || !currentOrderId) return;
+  try {
+    await apiFetch(`/orders/${currentOrderId}/status`, { method: 'PATCH', body: JSON.stringify({ status }) });
+    showToast(`Status updated to ${status}`);
+    closeOrderModal();
+    loadOrders();
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+function closeOrderModal() { document.getElementById('order-modal').classList.remove('active'); }
+
+document.addEventListener('DOMContentLoaded', () => {
+  // Set today as default date filter
+  document.getElementById('date-filter').value = new Date().toISOString().split('T')[0];
+  loadOrders();
+  setInterval(loadOrders, 15000);
+});
+</script>
+</body>
+</html>

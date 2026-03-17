@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Order Status — La Maison</title>
+<link rel="stylesheet" href="/css/main.css">
+<style>
+body { background: var(--bg); }
+.status-page { max-width: 600px; margin: 0 auto; padding: 24px 20px; }
+.order-card { background: var(--bg-card); border-radius: var(--radius-lg); border: 1px solid var(--border); padding: 32px; text-align: center; box-shadow: var(--shadow); margin-bottom: 20px; }
+.order-number { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 4px; }
+.order-id-display { font-family: var(--font-display); font-size: 1.5rem; color: var(--primary); margin-bottom: 24px; }
+
+/* Progress Steps */
+.progress-steps { display: flex; align-items: flex-start; justify-content: center; gap: 0; margin: 28px 0; position: relative; }
+.progress-steps::before { content:''; position:absolute; top: 24px; left: 10%; right: 10%; height: 3px; background: var(--border); z-index: 0; }
+.progress-track { position:absolute; top: 24px; left: 10%; height: 3px; background: var(--primary); z-index: 1; transition: width 0.6s ease; }
+.step { display: flex; flex-direction: column; align-items: center; gap: 8px; flex: 1; position: relative; z-index: 2; }
+.step-circle {
+  width: 48px; height: 48px; border-radius: 50%;
+  border: 3px solid var(--border); background: var(--bg-card);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.3rem; transition: all 0.4s;
+}
+.step-circle.active { border-color: var(--primary); background: rgba(200,68,10,0.1); }
+.step-circle.done { border-color: var(--success); background: var(--success); color: white; }
+.step-label { font-size: 0.75rem; color: var(--text-muted); font-weight: 500; text-align: center; }
+.step-label.active { color: var(--primary); font-weight: 700; }
+.step-label.done { color: var(--success); }
+
+.status-hero { font-size: 3rem; margin-bottom: 8px; }
+.status-text { font-family: var(--font-display); font-size: 1.4rem; margin-bottom: 8px; }
+.status-sub { color: var(--text-muted); font-size: 0.88rem; }
+.timer-display { margin: 20px 0; padding: 16px; background: #F8F2EC; border-radius: var(--radius-sm); }
+.timer-label { font-size: 0.78rem; color: var(--text-muted); margin-bottom: 4px; }
+.timer-value { font-size: 1.8rem; font-weight: 700; color: var(--text); font-family: var(--font-display); }
+
+.items-list { text-align: left; }
+.items-list h4 { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.05em; }
+.order-item-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 0.88rem; }
+.order-item-row:last-child { border-bottom: none; }
+
+.action-bar { display: flex; gap: 12px; margin-top: 20px; }
+.refresh-btn { display: flex; align-items: center; gap: 6px; }
+.refresh-icon { display: inline-block; transition: transform 0.5s; }
+.refresh-icon.spinning { animation: spin 1s linear infinite; }
+
+.pulse-ready { animation: pulse-ready 2s infinite; }
+@keyframes pulse-ready {
+  0%,100% { box-shadow: 0 0 0 0 rgba(46,125,79,0.4); }
+  50% { box-shadow: 0 0 0 12px rgba(46,125,79,0); }
+}
+</style>
+</head>
+<body>
+<nav class="navbar">
+  <div class="navbar-brand"><span>🍽</span> La Maison</div>
+  <div style="display:flex;gap:12px;align-items:center;">
+    <button class="btn btn-ghost btn-sm" onclick="window.location.href='/menu.html'">+ New Order</button>
+    <div id="nav-user"></div>
+  </div>
+</nav>
+
+<div class="status-page">
+  <div id="loading" style="text-align:center;padding:60px 20px;">
+    <div class="spinner" style="width:40px;height:40px;margin:0 auto 16px;"></div>
+    <p style="color:var(--text-muted);">Loading your order...</p>
+  </div>
+
+  <div id="order-content" style="display:none;">
+    <div class="order-card">
+      <div class="order-number">Order Number</div>
+      <div class="order-id-display" id="order-num-display"></div>
+
+      <!-- Status Icon & Text -->
+      <div class="status-hero" id="status-hero"></div>
+      <div class="status-text" id="status-text"></div>
+      <div class="status-sub" id="status-sub"></div>
+
+      <!-- Progress Steps -->
+      <div class="progress-steps">
+        <div class="progress-track" id="prog-track"></div>
+        <div class="step" id="step-pending">
+          <div class="step-circle" id="sc-pending">📋</div>
+          <div class="step-label">Pending</div>
+        </div>
+        <div class="step" id="step-preparing">
+          <div class="step-circle" id="sc-preparing">👨‍🍳</div>
+          <div class="step-label">Preparing</div>
+        </div>
+        <div class="step" id="step-ready">
+          <div class="step-circle" id="sc-ready">✅</div>
+          <div class="step-label">Ready</div>
+        </div>
+        <div class="step" id="step-served">
+          <div class="step-circle" id="sc-served">🎉</div>
+          <div class="step-label">Served</div>
+        </div>
+      </div>
+
+      <div class="timer-display">
+        <div class="timer-label">Time since order placed</div>
+        <div class="timer-value" id="timer-val">0:00</div>
+      </div>
+    </div>
+
+    <!-- Order details -->
+    <div class="card card-padded">
+      <div class="items-list">
+        <h4>Your Items</h4>
+        <div id="items-detail"></div>
+        <div style="display:flex;justify-content:space-between;padding-top:12px;font-weight:700;font-size:0.95rem;">
+          <span>Total Paid</span>
+          <span id="total-display" style="color:var(--primary);"></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="action-bar">
+      <button class="btn btn-outline btn-block refresh-btn" onclick="refreshOrder()">
+        <span class="refresh-icon" id="refresh-icon">↻</span> Refresh Status
+      </button>
+      <button class="btn btn-ghost btn-block" onclick="window.location.href='/menu.html'">Order More</button>
+    </div>
+  </div>
+</div>
+
+<script src="/js/auth.js"></script>
+<script>
+let orderId = Session.getOrderId();
+let orderCreatedAt = null;
+let timerInterval;
+
+const STATUS_CONFIG = {
+  pending:   { hero: '📋', text: 'Order Received', sub: 'Your order has been sent to the kitchen. Hang tight!', trackPct: '0%' },
+  preparing: { hero: '👨‍🍳', text: 'Cooking in Progress', sub: 'Our chefs are preparing your delicious meal!', trackPct: '33%' },
+  ready:     { hero: '🔔', text: 'Order Ready!', sub: 'Your food is ready! Our staff will bring it to you shortly.', trackPct: '66%' },
+  served:    { hero: '🎉', text: 'Enjoy Your Meal!', sub: 'Your order has been served. Bon appétit!', trackPct: '100%' },
+  cancelled: { hero: '❌', text: 'Order Cancelled', sub: 'This order was cancelled. Please contact staff for assistance.', trackPct: '0%' }
+};
+
+const STEPS = ['pending', 'preparing', 'ready', 'served'];
+
+document.addEventListener('DOMContentLoaded', async () => {
+  if (!orderId) {
+    const params = new URLSearchParams(location.search);
+    orderId = params.get('id');
+  }
+  if (!orderId) { window.location.href = '/menu.html'; return; }
+  await loadOrder();
+  setInterval(loadOrder, 12000);
+});
+
+async function loadOrder() {
+  try {
+    const data = await apiFetch(`/orders/${orderId}`);
+    const order = data.data;
+    orderCreatedAt = order.createdAt;
+    renderOrder(order);
+    startTimer();
+  } catch (e) {
+    document.getElementById('loading').innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><h3>Could not load order</h3><p>${e.message}</p></div>`;
+  }
+}
+
+function renderOrder(order) {
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('order-content').style.display = 'block';
+
+  document.getElementById('order-num-display').textContent = order.orderNumber;
+  const cfg = STATUS_CONFIG[order.status] || STATUS_CONFIG.pending;
+  document.getElementById('status-hero').textContent = cfg.hero;
+  document.getElementById('status-text').textContent = cfg.text;
+  document.getElementById('status-sub').textContent = cfg.sub;
+  document.getElementById('prog-track').style.width = cfg.trackPct;
+
+  // Update step circles
+  const statusIdx = STEPS.indexOf(order.status);
+  STEPS.forEach((s, i) => {
+    const circle = document.getElementById(`sc-${s}`);
+    const label = document.querySelector(`#step-${s} .step-label`);
+    if (i < statusIdx) { circle.className = 'step-circle done'; circle.textContent = '✓'; label.className = 'step-label done'; }
+    else if (i === statusIdx) { circle.className = 'step-circle active'; label.className = 'step-label active'; }
+    else { circle.className = 'step-circle'; label.className = 'step-label'; }
+  });
+
+  // Ready pulse
+  if (order.status === 'ready') {
+    document.querySelector('.order-card').classList.add('pulse-ready');
+  }
+
+  // Items
+  document.getElementById('items-detail').innerHTML = order.items.map(i =>
+    `<div class="order-item-row"><span>${i.quantity}× ${i.name}</span><span>${formatCurrency(i.price * i.quantity)}</span></div>`
+  ).join('');
+  document.getElementById('total-display').textContent = formatCurrency(order.totalAmount);
+}
+
+function startTimer() {
+  if (timerInterval) clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    if (!orderCreatedAt) return;
+    const diff = Math.floor((Date.now() - new Date(orderCreatedAt)) / 1000);
+    const m = Math.floor(diff / 60), s = diff % 60;
+    document.getElementById('timer-val').textContent = `${m}:${s.toString().padStart(2, '0')}`;
+  }, 1000);
+}
+
+async function refreshOrder() {
+  const icon = document.getElementById('refresh-icon');
+  icon.classList.add('spinning');
+  await loadOrder();
+  setTimeout(() => icon.classList.remove('spinning'), 800);
+}
+</script>
+</body>
+</html>

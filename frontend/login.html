@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sign In — La Maison</title>
+<link rel="stylesheet" href="/css/main.css">
+<style>
+body {
+  min-height: 100vh; display: flex;
+  background: linear-gradient(135deg, #1C1008 0%, #3D1F0A 50%, #2A1005 100%);
+  position: relative; overflow: hidden;
+}
+body::before {
+  content: ''; position: absolute; width: 700px; height: 700px;
+  background: radial-gradient(circle, rgba(200,68,10,0.12) 0%, transparent 70%);
+  top: 50%; left: 30%; transform: translate(-50%,-50%);
+}
+.split-left {
+  flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center;
+  padding: 40px; position: relative; z-index: 1;
+}
+.split-right {
+  width: 480px; background: var(--bg-card);
+  display: flex; flex-direction: column; justify-content: center;
+  padding: 48px 44px;
+  box-shadow: -20px 0 60px rgba(0,0,0,0.4);
+}
+.brand-big { font-family: var(--font-display); font-size: 3.5rem; font-weight: 700; color: white; margin-bottom: 12px; line-height: 1; }
+.brand-tag  { color: rgba(255,255,255,0.6); font-size: 1.1rem; line-height: 1.5; max-width: 320px; }
+.features { margin-top: 40px; display: flex; flex-direction: column; gap: 16px; }
+.feature { display: flex; align-items: center; gap: 14px; color: rgba(255,255,255,0.8); font-size: 0.9rem; }
+.feature-icon { width: 40px; height: 40px; background: rgba(245,166,35,0.15); border-radius: 10px; display:flex;align-items:center;justify-content:center; font-size: 1.2rem; flex-shrink: 0; }
+
+.login-title { font-size: 1.8rem; margin-bottom: 6px; color: var(--text); }
+.login-sub { color: var(--text-muted); font-size: 0.88rem; margin-bottom: 36px; }
+
+.role-selector { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 24px; }
+.role-btn {
+  padding: 14px 10px; border-radius: var(--radius-sm);
+  border: 2px solid var(--border); background: var(--bg);
+  cursor: pointer; text-align: center; transition: all var(--transition);
+  font-family: var(--font-body);
+}
+.role-btn:hover { border-color: var(--primary); background: rgba(200,68,10,0.04); }
+.role-btn.active { border-color: var(--primary); background: rgba(200,68,10,0.08); }
+.role-btn .role-icon { font-size: 1.6rem; margin-bottom: 4px; }
+.role-btn .role-name { font-size: 0.82rem; font-weight: 600; color: var(--text); }
+.role-btn .role-desc { font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; }
+
+.divider { display: flex; align-items: center; gap: 12px; margin: 20px 0; color: var(--text-light); font-size: 0.82rem; }
+.divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+.demo-accounts { background: #F8F2EC; border-radius: var(--radius-sm); padding: 12px 14px; }
+.demo-accounts p { font-size: 0.78rem; color: var(--text-muted); font-weight: 600; margin-bottom: 8px; }
+.demo-item { font-size: 0.76rem; color: var(--text-muted); padding: 3px 0; cursor: pointer; transition: color var(--transition); }
+.demo-item:hover { color: var(--primary); }
+.demo-item code { background: white; padding: 1px 5px; border-radius: 3px; font-size: 0.75rem; }
+
+@media (max-width: 768px) {
+  .split-left { display: none; }
+  .split-right { width: 100%; padding: 32px 24px; }
+}
+</style>
+</head>
+<body>
+<div class="split-left">
+  <div>
+    <div class="brand-big">🍽<br>La Maison</div>
+    <div class="brand-tag">Experience authentic Filipino cuisine. Scan, order, and enjoy — all from your table.</div>
+    <div class="features">
+      <div class="feature"><div class="feature-icon">📱</div>QR-based table ordering</div>
+      <div class="feature"><div class="feature-icon">🤖</div>AI-powered food recommendations</div>
+      <div class="feature"><div class="feature-icon">⚡</div>Real-time order tracking</div>
+      <div class="feature"><div class="feature-icon">📊</div>Live kitchen & staff dashboards</div>
+    </div>
+  </div>
+</div>
+
+<div class="split-right">
+  <h1 class="login-title">Welcome back</h1>
+  <p class="login-sub">Select your role and sign in to continue</p>
+
+  <div class="role-selector">
+    <div class="role-btn active" data-role="customer" onclick="selectRole(this)">
+      <div class="role-icon">👤</div>
+      <div class="role-name">Customer</div>
+      <div class="role-desc">Browse & order food</div>
+    </div>
+    <div class="role-btn" data-role="staff" onclick="selectRole(this)">
+      <div class="role-icon">🧑‍💼</div>
+      <div class="role-name">Staff</div>
+      <div class="role-desc">Manage service</div>
+    </div>
+    <div class="role-btn" data-role="kitchen" onclick="selectRole(this)">
+      <div class="role-icon">👨‍🍳</div>
+      <div class="role-name">Kitchen</div>
+      <div class="role-desc">Cook & prepare</div>
+    </div>
+    <div class="role-btn" data-role="admin" onclick="selectRole(this)">
+      <div class="role-icon">⚙️</div>
+      <div class="role-name">Admin</div>
+      <div class="role-desc">Full control</div>
+    </div>
+  </div>
+
+  <div id="alert-box" class="alert alert-error alert-hidden" style="margin-bottom:16px;"></div>
+
+  <div class="form-group">
+    <label class="form-label">Email address</label>
+    <input type="email" id="email" class="form-control" placeholder="Enter your email" autocomplete="email">
+  </div>
+  <div class="form-group">
+    <label class="form-label">Password</label>
+    <input type="password" id="password" class="form-control" placeholder="Enter your password" autocomplete="current-password">
+  </div>
+
+  <button class="btn btn-primary btn-block btn-lg" id="login-btn" onclick="doLogin()">Sign In</button>
+
+  <div class="divider">Test Accounts</div>
+  <div class="demo-accounts">
+    <p>Click to auto-fill:</p>
+    <div class="demo-item" onclick="fillDemo('admin@restaurant.com','password123','admin')">⚙️ Admin — <code>admin@restaurant.com</code></div>
+    <div class="demo-item" onclick="fillDemo('kitchen@restaurant.com','password123','kitchen')">👨‍🍳 Kitchen — <code>kitchen@restaurant.com</code></div>
+    <div class="demo-item" onclick="fillDemo('staff@restaurant.com','password123','staff')">🧑‍💼 Staff — <code>staff@restaurant.com</code></div>
+    <div class="demo-item" onclick="fillDemo('customer@restaurant.com','password123','customer')">👤 Customer — <code>customer@restaurant.com</code></div>
+  </div>
+</div>
+
+<script src="/js/auth.js"></script>
+<script>
+let selectedRole = 'customer';
+
+function selectRole(el) {
+  document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  selectedRole = el.dataset.role;
+}
+
+function fillDemo(email, pass, role) {
+  document.getElementById('email').value = email;
+  document.getElementById('password').value = pass;
+  document.querySelectorAll('.role-btn').forEach(b => {
+    b.classList.remove('active');
+    if (b.dataset.role === role) b.classList.add('active');
+  });
+  selectedRole = role;
+}
+
+async function doLogin() {
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  const alertBox = document.getElementById('alert-box');
+  const btn = document.getElementById('login-btn');
+
+  alertBox.className = 'alert alert-hidden';
+  if (!email || !password) {
+    alertBox.className = 'alert alert-error';
+    alertBox.textContent = 'Please enter email and password.';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Signing in...';
+
+  try {
+    const data = await apiFetch('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password, role: selectedRole })
+    });
+    Session.setAuth(data.token, data.user);
+    const routes = { customer: '/order-type.html', staff: '/staff.html', kitchen: '/kitchen.html', admin: '/admin/dashboard.html' };
+    showToast(`Welcome back, ${data.user.name}!`);
+    setTimeout(() => { window.location.href = routes[data.user.role] || '/login.html'; }, 500);
+  } catch (err) {
+    alertBox.className = 'alert alert-error';
+    alertBox.textContent = err.message;
+    btn.disabled = false;
+    btn.innerHTML = 'Sign In';
+  }
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+</script>
+</body>
+</html>

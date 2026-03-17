@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard — La Maison</title>
+<link rel="stylesheet" href="/css/main.css">
+<link rel="stylesheet" href="/css/admin.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<div class="admin-shell">
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <span>🍽</span>
+      <div>
+        <div class="brand-name">La Maison</div>
+        <div class="brand-role">Admin Panel</div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="/admin/dashboard.html" class="nav-item active"><span>📊</span> Dashboard</a>
+      <a href="/admin/orders.html" class="nav-item"><span>📋</span> Orders</a>
+      <a href="/admin/menu-manage.html" class="nav-item"><span>🍛</span> Menu</a>
+      <a href="/admin/users.html" class="nav-item"><span>👥</span> Users</a>
+      <a href="/admin/tables.html" class="nav-item"><span>🪑</span> Tables & QR</a>
+      <a href="/admin/reports.html" class="nav-item"><span>📈</span> Reports</a>
+      <a href="/admin/settings.html" class="nav-item"><span>⚙️</span> Settings</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div id="sidebar-user"></div>
+      <button class="btn btn-ghost btn-sm btn-block" onclick="logout()" style="margin-top:10px;">Sign Out</button>
+    </div>
+  </aside>
+
+  <!-- Main content -->
+  <main class="admin-main">
+    <div class="admin-topbar">
+      <div>
+        <h1 class="admin-page-title">Dashboard</h1>
+        <p class="admin-page-sub">Welcome back! Here's what's happening today.</p>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;">
+        <span id="last-updated" style="font-size:0.78rem;color:var(--text-muted);"></span>
+        <button class="btn btn-outline btn-sm" onclick="loadDashboard()">↻ Refresh</button>
+      </div>
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="kpi-grid" id="kpi-grid">
+      <div class="kpi-card skeleton" style="height:100px;"></div>
+      <div class="kpi-card skeleton" style="height:100px;"></div>
+      <div class="kpi-card skeleton" style="height:100px;"></div>
+      <div class="kpi-card skeleton" style="height:100px;"></div>
+      <div class="kpi-card skeleton" style="height:100px;"></div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="charts-row">
+      <div class="chart-card">
+        <div class="chart-card-header">
+          <h3>7-Day Revenue</h3>
+          <span id="revenue-total" class="badge badge-primary"></span>
+        </div>
+        <div style="position:relative;height:220px;">
+          <canvas id="salesChart"></canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-card-header">
+          <h3>Top Menu Items</h3>
+        </div>
+        <div style="position:relative;height:220px;">
+          <canvas id="itemsChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Status Breakdown + Recent Orders -->
+    <div class="lower-grid">
+      <div class="card card-padded">
+        <h3 style="margin-bottom:20px;font-size:1rem;font-weight:600;">Order Status Overview</h3>
+        <div id="status-breakdown"></div>
+      </div>
+      <div class="card card-padded">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+          <h3 style="font-size:1rem;font-weight:600;">Recent Orders</h3>
+          <a href="/admin/orders.html" class="btn btn-ghost btn-sm">View All →</a>
+        </div>
+        <div id="recent-orders"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="/js/auth.js"></script>
+<script>
+requireRole('admin');
+
+// Sidebar user
+const u = Session.getUser();
+if (u) {
+  const initials = u.name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+  document.getElementById('sidebar-user').innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div style="width:36px;height:36px;background:var(--primary);color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:0.85rem;">${initials}</div>
+      <div><div style="font-weight:600;font-size:0.88rem;">${u.name}</div><div style="font-size:0.75rem;color:var(--text-muted);">Admin</div></div>
+    </div>`;
+}
+
+let salesChart, itemsChart;
+
+async function loadDashboard() {
+  try {
+    const data = await apiFetch('/admin/stats');
+    const d = data.data;
+
+    // KPIs
+    document.getElementById('kpi-grid').innerHTML = `
+      <div class="kpi-card"><div class="kpi-icon">📋</div><div class="kpi-body"><div class="kpi-num">${d.todayOrders}</div><div class="kpi-label">Today's Orders</div></div></div>
+      <div class="kpi-card"><div class="kpi-icon">💰</div><div class="kpi-body"><div class="kpi-num">${formatCurrency(d.todayRevenue)}</div><div class="kpi-label">Today's Revenue</div></div></div>
+      <div class="kpi-card"><div class="kpi-icon">📦</div><div class="kpi-body"><div class="kpi-num">${d.totalOrders}</div><div class="kpi-label">Total Orders</div></div></div>
+      <div class="kpi-card"><div class="kpi-icon">💵</div><div class="kpi-body"><div class="kpi-num">${formatCurrency(d.totalRevenue)}</div><div class="kpi-label">Total Revenue</div></div></div>
+      <div class="kpi-card"><div class="kpi-icon">👥</div><div class="kpi-body"><div class="kpi-num">${d.totalCustomers}</div><div class="kpi-label">Customers</div></div></div>
+    `;
+
+    document.getElementById('last-updated').textContent = 'Updated: ' + new Date().toLocaleTimeString();
+    document.getElementById('revenue-total').textContent = formatCurrency(d.dailySales.reduce((s,x)=>s+x.revenue,0)) + ' (7 days)';
+
+    // Sales chart
+    const salesCtx = document.getElementById('salesChart').getContext('2d');
+    if (salesChart) salesChart.destroy();
+    salesChart = new Chart(salesCtx, {
+      type: 'bar',
+      data: {
+        labels: d.dailySales.map(x => x.date),
+        datasets: [{
+          label: 'Revenue (₱)',
+          data: d.dailySales.map(x => x.revenue),
+          backgroundColor: 'rgba(200,68,10,0.7)',
+          borderRadius: 6, borderSkipped: false
+        }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } }, x: { grid: { display: false } } } }
+    });
+
+    // Top items chart
+    const itemsCtx = document.getElementById('itemsChart').getContext('2d');
+    if (itemsChart) itemsChart.destroy();
+    itemsChart = new Chart(itemsCtx, {
+      type: 'doughnut',
+      data: {
+        labels: d.topItems.map(x => x.name.length > 18 ? x.name.slice(0,16)+'...' : x.name),
+        datasets: [{ data: d.topItems.map(x => x.count), backgroundColor: ['#C8440A','#F5A623','#2E7D4F','#1E40AF','#9333EA'], borderWidth: 0, hoverOffset: 4 }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { size: 11 }, padding: 12 } } } }
+    });
+
+    // Status breakdown
+    const sc = d.statusCounts;
+    const total = Object.values(sc).reduce((a,b)=>a+b,0)||1;
+    document.getElementById('status-breakdown').innerHTML = Object.entries(sc).map(([s,n]) => `
+      <div style="margin-bottom:14px;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:0.85rem;">
+          <span>${statusBadge(s)}</span><span style="font-weight:600;">${n}</span>
+        </div>
+        <div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden;">
+          <div style="height:100%;width:${Math.round(n/total*100)}%;background:var(--primary);border-radius:3px;transition:width 0.5s;"></div>
+        </div>
+      </div>`).join('');
+
+    // Recent orders
+    const recentData = await apiFetch('/orders?status=pending,preparing,ready');
+    const recent = recentData.data.slice(0, 6);
+    document.getElementById('recent-orders').innerHTML = recent.length === 0
+      ? '<div class="empty-state" style="padding:20px;"><div class="icon">✨</div><h3>No active orders</h3></div>'
+      : recent.map(o => `
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">
+          <div>
+            <div style="font-weight:600;font-size:0.88rem;">#${o.orderNumber}</div>
+            <div style="font-size:0.78rem;color:var(--text-muted);">${o.items.length} items · ${formatDate(o.createdAt)}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span>${formatCurrency(o.totalAmount)}</span>
+            ${statusBadge(o.status)}
+          </div>
+        </div>`).join('');
+  } catch (e) { console.error(e); }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  loadDashboard();
+  setInterval(loadDashboard, 30000);
+});
+</script>
+</body>
+</html>

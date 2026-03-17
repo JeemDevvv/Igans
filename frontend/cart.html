@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Checkout — La Maison</title>
+<link rel="stylesheet" href="/css/main.css">
+<style>
+.checkout-layout { max-width: 900px; margin: 0 auto; padding: 24px 20px; display: grid; grid-template-columns: 1fr 380px; gap: 24px; }
+.order-summary-card, .checkout-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; }
+.section-title { font-family: var(--font-display); font-size: 1.2rem; margin-bottom: 20px; color: var(--text); display: flex; align-items: center; gap: 8px; }
+.order-row { display: flex; align-items: center; gap: 14px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+.order-row:last-child { border-bottom: none; }
+.order-row-img { width: 52px; height: 52px; border-radius: var(--radius-sm); object-fit: cover; background: #F0E0D0; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
+.order-row-name { flex: 1; font-weight: 600; font-size: 0.9rem; }
+.order-row-qty { font-size: 0.82rem; color: var(--text-muted); margin-top: 2px; }
+.order-row-price { font-weight: 700; color: var(--primary); font-size: 0.95rem; }
+.qty-control { display: flex; align-items: center; gap: 6px; }
+.qty-btn { width: 28px; height: 28px; border-radius: 50%; border: 1.5px solid var(--border); background: none; cursor: pointer; font-size: 1rem; display: flex; align-items: center; justify-content: center; font-weight: 700; transition: all var(--transition); }
+.qty-btn:hover { border-color: var(--primary); color: var(--primary); }
+.del-btn { background: none; border: none; cursor: pointer; color: var(--text-light); font-size: 1.1rem; padding: 4px; transition: color var(--transition); }
+.del-btn:hover { color: var(--danger); }
+
+.summary-row { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 0.9rem; color: var(--text-muted); }
+.summary-row.total { font-size: 1.1rem; font-weight: 700; color: var(--text); border-top: 1px solid var(--border); padding-top: 12px; margin-top: 4px; }
+.summary-row.total span:last-child { font-family: var(--font-display); color: var(--primary); font-size: 1.3rem; }
+
+.info-chip { display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: #F8F2EC; border-radius: var(--radius-sm); margin-bottom: 16px; font-size: 0.85rem; }
+
+.confirm-btn { margin-top: 20px; }
+
+@media (max-width: 768px) { .checkout-layout { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<nav class="navbar">
+  <div class="navbar-brand"><span>🍽</span> La Maison</div>
+  <div style="display:flex;gap:12px;align-items:center;">
+    <button class="btn btn-ghost btn-sm" onclick="window.location.href='/menu.html'">← Back to Menu</button>
+    <div id="nav-user"></div>
+  </div>
+</nav>
+
+<div class="page-header">
+  <h1>Review Your Order</h1>
+  <p>Check everything looks right before placing your order</p>
+</div>
+
+<div class="checkout-layout">
+  <!-- Order items -->
+  <div class="order-summary-card">
+    <h2 class="section-title">🛒 Order Items</h2>
+    <div id="order-items"></div>
+    <div style="margin-top:20px;">
+      <label class="form-label">Special requests / allergies</label>
+      <textarea class="form-control" id="special-req" placeholder="Any allergies or special instructions..." rows="2"></textarea>
+    </div>
+  </div>
+
+  <!-- Checkout summary -->
+  <div>
+    <div class="checkout-card">
+      <h2 class="section-title">📋 Order Summary</h2>
+
+      <div id="order-info"></div>
+
+      <div id="price-breakdown"></div>
+
+      <button class="btn btn-primary btn-block btn-lg confirm-btn" id="place-btn" onclick="placeOrder()">
+        ✅ Place Order
+      </button>
+      <p style="font-size:0.78rem;color:var(--text-light);text-align:center;margin-top:10px;">Orders cannot be cancelled once placed in the kitchen.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Success overlay -->
+<div id="success-overlay" class="modal-overlay">
+  <div class="modal" style="text-align:center;padding:48px 32px;">
+    <div style="font-size:4rem;margin-bottom:16px;">✅</div>
+    <h2 style="font-family:var(--font-display);font-size:1.8rem;margin-bottom:10px;">Order Placed!</h2>
+    <p style="color:var(--text-muted);margin-bottom:8px;">Your order has been sent to the kitchen.</p>
+    <div id="order-number-display" style="background:#F8F2EC;padding:12px 20px;border-radius:var(--radius-sm);font-family:var(--font-display);font-size:1.2rem;color:var(--primary);margin:16px auto;max-width:240px;"></div>
+    <button class="btn btn-primary btn-lg" onclick="window.location.href='/order-status.html'" style="margin-top:16px;">Track My Order →</button>
+  </div>
+</div>
+
+<script src="/js/auth.js"></script>
+<script>
+requireRole('customer');
+
+document.addEventListener('DOMContentLoaded', () => {
+  const cart = Cart.get();
+  if (cart.length === 0) { window.location.href = '/menu.html'; return; }
+  document.getElementById('special-req').value = sessionStorage.getItem('specialRequests') || '';
+  renderItems(cart);
+  renderSummary(cart);
+});
+
+function renderItems(cart) {
+  document.getElementById('order-items').innerHTML = cart.length === 0
+    ? '<div class="empty-state"><div class="icon">🛒</div><h3>Cart is empty</h3></div>'
+    : cart.map(item => `
+      <div class="order-row">
+        <div class="order-row-img">${item.image ? `<img src="${item.image}" style="width:52px;height:52px;object-fit:cover;border-radius:8px;" onerror="this.outerHTML='🍛'">` : '🍛'}</div>
+        <div style="flex:1;">
+          <div class="order-row-name">${item.name}</div>
+          <div class="order-row-qty">₱${item.price} each</div>
+        </div>
+        <div class="qty-control">
+          <button class="qty-btn" onclick="changeQty('${item._id}',${item.quantity-1})">−</button>
+          <span style="width:24px;text-align:center;font-weight:700;">${item.quantity}</span>
+          <button class="qty-btn" onclick="changeQty('${item._id}',${item.quantity+1})">+</button>
+        </div>
+        <div class="order-row-price">${formatCurrency(item.price * item.quantity)}</div>
+        <button class="del-btn" onclick="removeItem('${item._id}')">🗑</button>
+      </div>`).join('');
+}
+
+function renderSummary(cart) {
+  const orderType = Session.getOrderType() || 'dine-in';
+  const tableNum = Session.getTable();
+  const subtotal = Cart.total();
+  const tax = subtotal * 0.12;
+  const total = subtotal + tax;
+
+  document.getElementById('order-info').innerHTML = `
+    <div class="info-chip">🪑 ${orderType === 'dine-in' ? `Dine-In ${tableNum ? '— Table ' + tableNum : ''}` : 'Take-Out'}</div>`;
+
+  document.getElementById('price-breakdown').innerHTML = `
+    <div class="summary-row"><span>Subtotal (${Cart.count()} items)</span><span>${formatCurrency(subtotal)}</span></div>
+    <div class="summary-row"><span>VAT (12%)</span><span>${formatCurrency(tax)}</span></div>
+    <div class="summary-row total"><span>Total</span><span>${formatCurrency(total)}</span></div>`;
+}
+
+function changeQty(id, qty) {
+  Cart.updateQty(id, qty);
+  const cart = Cart.get();
+  if (cart.length === 0) { window.location.href = '/menu.html'; return; }
+  renderItems(cart); renderSummary(cart);
+}
+function removeItem(id) {
+  Cart.remove(id);
+  const cart = Cart.get();
+  if (cart.length === 0) { window.location.href = '/menu.html'; return; }
+  renderItems(cart); renderSummary(cart);
+}
+
+async function placeOrder() {
+  const cart = Cart.get();
+  if (cart.length === 0) return;
+  const btn = document.getElementById('place-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Placing order...';
+
+  const subtotal = Cart.total();
+  const total = subtotal * 1.12;
+  const items = cart.map(i => ({ menuItem: i._id, name: i.name, price: i.price, quantity: i.quantity, image: i.image || '' }));
+
+  try {
+    const data = await apiFetch('/orders', {
+      method: 'POST',
+      body: JSON.stringify({
+        tableNumber: parseInt(Session.getTable()) || null,
+        orderType: Session.getOrderType() || 'dine-in',
+        sessionId: Session.getSessionId(),
+        items,
+        totalAmount: parseFloat(total.toFixed(2)),
+        specialRequests: document.getElementById('special-req').value
+      })
+    });
+    Session.setOrderId(data.data._id);
+    Cart.clear();
+    document.getElementById('order-number-display').textContent = data.data.orderNumber;
+    document.getElementById('success-overlay').classList.add('active');
+  } catch (e) {
+    showToast(e.message, 'error');
+    btn.disabled = false;
+    btn.innerHTML = '✅ Place Order';
+  }
+}
+</script>
+</body>
+</html>

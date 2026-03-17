@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Staff Dashboard — La Maison</title>
+<link rel="stylesheet" href="/css/main.css">
+<style>
+.staff-layout { max-width: 1200px; margin: 0 auto; padding: 20px; }
+.stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+.stat-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; text-align: center; }
+.stat-num { font-family: var(--font-display); font-size: 2rem; font-weight: 700; line-height: 1; }
+.stat-label { font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.05em; }
+.stat-num.pending-c { color: var(--warning); }
+.stat-num.prep-c { color: var(--info); }
+.stat-num.ready-c { color: var(--success); }
+.stat-num.total-c { color: var(--primary); }
+
+.filter-tabs { display: flex; gap: 6px; margin-bottom: 20px; flex-wrap: wrap; }
+.ftab { padding: 8px 18px; border-radius: 20px; border: 1.5px solid var(--border); background: var(--bg); cursor: pointer; font-size: 0.85rem; font-weight: 500; color: var(--text-muted); transition: all var(--transition); }
+.ftab:hover { border-color: var(--primary); color: var(--primary); }
+.ftab.active { border-color: var(--primary); background: var(--primary); color: white; }
+
+.orders-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+.staff-order-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; transition: box-shadow var(--transition); }
+.staff-order-card:hover { box-shadow: var(--shadow); }
+.soc-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.soc-id { font-weight: 700; color: var(--primary); font-size: 0.9rem; }
+.soc-time { font-size: 0.78rem; color: var(--text-muted); }
+.soc-meta { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+.soc-items { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px; line-height: 1.7; }
+.soc-total { font-weight: 700; color: var(--text); font-size: 0.9rem; }
+.soc-actions { display: flex; gap: 8px; margin-top: 12px; }
+
+.refresh-indicator { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: var(--text-muted); }
+.live-dot { width: 8px; height: 8px; background: var(--success); border-radius: 50%; animation: pulse-dot 2s infinite; }
+</style>
+</head>
+<body>
+<nav class="navbar">
+  <div class="navbar-brand"><span>🍽</span> La Maison <span style="font-family:var(--font-body);font-size:0.8rem;font-weight:400;color:var(--text-muted);margin-left:6px;">Staff</span></div>
+  <div style="display:flex;align-items:center;gap:12px;">
+    <div class="refresh-indicator"><div class="live-dot"></div>Live updates</div>
+    <div id="nav-user"></div>
+    <button class="btn btn-ghost btn-sm" onclick="logout()">Sign Out</button>
+  </div>
+</nav>
+
+<div class="page-header">
+  <h1>Staff Dashboard</h1>
+  <p>Monitor and manage all orders in real-time</p>
+</div>
+
+<div class="staff-layout">
+  <div class="stats-row">
+    <div class="stat-card"><div class="stat-num pending-c" id="s-pending">0</div><div class="stat-label">Pending</div></div>
+    <div class="stat-card"><div class="stat-num prep-c" id="s-preparing">0</div><div class="stat-label">Preparing</div></div>
+    <div class="stat-card"><div class="stat-num ready-c" id="s-ready">0</div><div class="stat-label">Ready to Serve</div></div>
+    <div class="stat-card"><div class="stat-num total-c" id="s-served">0</div><div class="stat-label">Served Today</div></div>
+  </div>
+
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
+    <div class="filter-tabs">
+      <div class="ftab active" onclick="setFilter('all',this)">All Active</div>
+      <div class="ftab" onclick="setFilter('pending',this)">📋 Pending</div>
+      <div class="ftab" onclick="setFilter('preparing',this)">🔥 Preparing</div>
+      <div class="ftab" onclick="setFilter('ready',this)">✅ Ready</div>
+      <div class="ftab" onclick="setFilter('served',this)">🎉 Served</div>
+    </div>
+    <button class="btn btn-outline btn-sm" onclick="loadOrders()">↻ Refresh</button>
+  </div>
+
+  <div id="orders-grid" class="orders-grid"></div>
+  <div id="empty-staff" class="empty-state" style="display:none;">
+    <div class="icon">🎉</div><h3>All caught up!</h3><p>No orders in this category right now.</p>
+  </div>
+</div>
+
+<script src="/js/auth.js"></script>
+<script>
+requireRole('staff', 'admin');
+let currentFilter = 'all';
+let allOrders = [];
+
+async function loadOrders() {
+  try {
+    const url = currentFilter === 'all' || currentFilter === 'All Active'
+      ? '/orders?status=pending,preparing,ready'
+      : currentFilter === 'served'
+      ? '/orders?status=served'
+      : `/orders?status=${currentFilter}`;
+    const data = await apiFetch(url);
+    allOrders = data.data;
+    renderOrders(allOrders);
+    updateStats(allOrders);
+  } catch (e) { showToast(e.message, 'error'); }
+}
+
+async function loadStats() {
+  try {
+    const today = new Date().toISOString().split('T')[0];
+    const served = await apiFetch(`/orders?status=served&date=${today}`);
+    document.getElementById('s-served').textContent = served.count || 0;
+  } catch(e) {}
+}
+
+function renderOrders(orders) {
+  const grid = document.getElementById('orders-grid');
+  const empty = document.getElementById('empty-staff');
+  if (orders.length === 0) { grid.innerHTML = ''; empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+  grid.innerHTML = orders.map(order => {
+    const itemsSummary = order.items.map(i => `${i.quantity}× ${i.name}`).join(', ');
+    const actions = order.status === 'ready'
+      ? `<button class="btn btn-success btn-sm" onclick="markServed('${order._id}')">🎉 Mark Served</button>`
+      : order.status === 'pending'
+      ? `<button class="btn btn-outline btn-sm" onclick="markStatus('${order._id}','preparing')">→ Preparing</button>`
+      : '';
+    return `<div class="staff-order-card fade-in">
+      <div class="soc-header">
+        <span class="soc-id">#${order.orderNumber}</span>
+        <span class="soc-time">${formatDate(order.createdAt)}</span>
+      </div>
+      <div class="soc-meta">
+        ${statusBadge(order.status)}
+        <span class="badge ${order.orderType==='dine-in'?'badge-primary':'badge-accent'}">${order.orderType==='dine-in'?'🪑 Dine-In':'🥡 Take-Out'}</span>
+        ${order.tableNumber ? `<span class="badge badge-accent">Table ${order.tableNumber}</span>` : ''}
+      </div>
+      <div class="soc-items">${itemsSummary}</div>
+      ${order.specialRequests ? `<div style="font-size:0.8rem;color:var(--warning);background:var(--warning-bg);padding:6px 10px;border-radius:6px;margin-bottom:8px;">📝 ${order.specialRequests}</div>` : ''}
+      <div class="soc-total">${formatCurrency(order.totalAmount)}</div>
+      <div class="soc-actions">
+        ${actions}
+        <button class="btn btn-ghost btn-sm" onclick="viewOrder('${order._id}')">View Details</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function updateStats(orders) {
+  document.getElementById('s-pending').textContent   = orders.filter(o => o.status === 'pending').length;
+  document.getElementById('s-preparing').textContent = orders.filter(o => o.status === 'preparing').length;
+  document.getElementById('s-ready').textContent     = orders.filter(o => o.status === 'ready').length;
+}
+
+function setFilter(f, el) {
+  currentFilter = f;
+  document.querySelectorAll('.ftab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  loadOrders();
+}
+
+async function markServed(id) {
+  try {
+    await apiFetch(`/orders/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status: 'served' }) });
+    showToast('Order marked as served!');
+    loadOrders(); loadStats();
+  } catch (e) { showToast(e.message, 'error'); }
+}
+
+async function markStatus(id, status) {
+  try {
+    await apiFetch(`/orders/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) });
+    showToast(`Order updated to ${status}`);
+    loadOrders();
+  } catch (e) { showToast(e.message, 'error'); }
+}
+
+function viewOrder(id) { window.open(`/order-status.html?id=${id}`, '_blank'); }
+
+document.addEventListener('DOMContentLoaded', () => {
+  loadOrders();
+  loadStats();
+  setInterval(loadOrders, 10000);
+  setInterval(loadStats, 30000);
+});
+</script>
+</body>
+</html>

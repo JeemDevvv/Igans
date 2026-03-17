@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reports — Admin</title>
+<link rel="stylesheet" href="/css/main.css">
+<link rel="stylesheet" href="/css/admin.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<div class="admin-shell">
+  <aside class="sidebar">
+    <div class="sidebar-brand"><span>🍽</span><div><div class="brand-name">La Maison</div><div class="brand-role">Admin Panel</div></div></div>
+    <nav class="sidebar-nav">
+      <a href="/admin/dashboard.html" class="nav-item"><span>📊</span> Dashboard</a>
+      <a href="/admin/orders.html" class="nav-item"><span>📋</span> Orders</a>
+      <a href="/admin/menu-manage.html" class="nav-item"><span>🍛</span> Menu</a>
+      <a href="/admin/users.html" class="nav-item"><span>👥</span> Users</a>
+      <a href="/admin/tables.html" class="nav-item"><span>🪑</span> Tables & QR</a>
+      <a href="/admin/reports.html" class="nav-item active"><span>📈</span> Reports</a>
+      <a href="/admin/settings.html" class="nav-item"><span>⚙️</span> Settings</a>
+    </nav>
+    <div class="sidebar-footer"><button class="btn btn-ghost btn-sm btn-block" onclick="logout()">Sign Out</button></div>
+  </aside>
+  <main class="admin-main">
+    <div class="admin-topbar">
+      <div><h1 class="admin-page-title">Reports & Analytics</h1><p class="admin-page-sub">Sales performance and order insights</p></div>
+      <button class="btn btn-outline btn-sm" onclick="loadReports()">↻ Refresh</button>
+    </div>
+
+    <div style="padding:24px 28px;">
+      <!-- Summary KPIs -->
+      <div class="kpi-grid" id="report-kpis" style="padding:0;margin-bottom:24px;"></div>
+
+      <!-- Charts -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px;">
+        <div class="chart-card">
+          <div class="chart-card-header"><h3>📊 7-Day Sales Revenue</h3></div>
+          <div style="position:relative;height:260px;"><canvas id="revenueChart"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-header"><h3>📦 Order Count by Day</h3></div>
+          <div style="position:relative;height:260px;"><canvas id="countChart"></canvas></div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:20px;">
+        <div class="chart-card">
+          <div class="chart-card-header"><h3>🏆 Top 5 Most Ordered Items</h3></div>
+          <div style="position:relative;height:260px;"><canvas id="topChart"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-header"><h3>🔄 Order Status Breakdown</h3></div>
+          <div style="position:relative;height:260px;"><canvas id="statusChart"></canvas></div>
+        </div>
+      </div>
+
+      <!-- Top items table -->
+      <div class="card card-padded" style="margin-top:20px;">
+        <h3 style="margin-bottom:16px;font-size:1rem;font-weight:600;">🏆 Top Menu Items Leaderboard</h3>
+        <div class="table-wrap">
+          <table><thead><tr><th>#</th><th>Item</th><th>Orders</th><th>Rank Bar</th></tr></thead>
+          <tbody id="top-table"></tbody></table>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="/js/auth.js"></script>
+<script>
+requireRole('admin');
+let charts = {};
+
+function destroyChart(id) { if (charts[id]) { charts[id].destroy(); delete charts[id]; } }
+
+async function loadReports() {
+  const data = await apiFetch('/admin/stats');
+  const d = data.data;
+
+  // KPIs
+  document.getElementById('report-kpis').innerHTML = `
+    <div class="kpi-card"><div class="kpi-icon">💵</div><div class="kpi-body"><div class="kpi-num">${formatCurrency(d.todayRevenue)}</div><div class="kpi-label">Today's Revenue</div></div></div>
+    <div class="kpi-card"><div class="kpi-icon">📋</div><div class="kpi-body"><div class="kpi-num">${d.todayOrders}</div><div class="kpi-label">Today's Orders</div></div></div>
+    <div class="kpi-card"><div class="kpi-icon">💰</div><div class="kpi-body"><div class="kpi-num">${formatCurrency(d.totalRevenue)}</div><div class="kpi-label">All-Time Revenue</div></div></div>
+    <div class="kpi-card"><div class="kpi-icon">📦</div><div class="kpi-body"><div class="kpi-num">${d.totalOrders}</div><div class="kpi-label">Total Orders</div></div></div>
+    <div class="kpi-card"><div class="kpi-icon">👥</div><div class="kpi-body"><div class="kpi-num">${d.totalCustomers}</div><div class="kpi-label">Customers</div></div></div>`;
+
+  const labels = d.dailySales.map(x => x.date);
+  const revenues = d.dailySales.map(x => x.revenue);
+  const counts = d.dailySales.map(x => x.count);
+  const colors = ['#C8440A','#F5A623','#2E7D4F','#1E40AF','#9333EA'];
+
+  destroyChart('revenue');
+  charts['revenue'] = new Chart(document.getElementById('revenueChart'), {
+    type: 'bar',
+    data: { labels, datasets: [{ label: 'Revenue (₱)', data: revenues, backgroundColor: 'rgba(200,68,10,0.75)', borderRadius: 6, borderSkipped: false }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { callback: v => '₱' + v.toLocaleString() }, grid: { color: 'rgba(0,0,0,0.04)' } }, x: { grid: { display: false } } } }
+  });
+
+  destroyChart('count');
+  charts['count'] = new Chart(document.getElementById('countChart'), {
+    type: 'line',
+    data: { labels, datasets: [{ label: 'Orders', data: counts, borderColor: '#1E40AF', backgroundColor: 'rgba(30,64,175,0.08)', tension: 0.4, fill: true, pointBackgroundColor: '#1E40AF', pointRadius: 5 }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.04)' } }, x: { grid: { display: false } } } }
+  });
+
+  destroyChart('top');
+  charts['top'] = new Chart(document.getElementById('topChart'), {
+    type: 'bar',
+    data: {
+      labels: d.topItems.map(x => x.name.length > 20 ? x.name.slice(0,18)+'...' : x.name),
+      datasets: [{ label: 'Orders', data: d.topItems.map(x => x.count), backgroundColor: colors, borderRadius: 6, borderSkipped: false }]
+    },
+    options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.04)' } }, y: { grid: { display: false } } } }
+  });
+
+  const sc = d.statusCounts;
+  destroyChart('status');
+  charts['status'] = new Chart(document.getElementById('statusChart'), {
+    type: 'doughnut',
+    data: {
+      labels: Object.keys(sc).map(s => s.charAt(0).toUpperCase()+s.slice(1)),
+      datasets: [{ data: Object.values(sc), backgroundColor: ['#F59E0B','#3B82F6','#10B981','#6B7280','#EF4444'], borderWidth: 0, hoverOffset: 4 }]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { size: 11 }, padding: 10 } } } }
+  });
+
+  // Top table
+  const maxCount = Math.max(...d.topItems.map(x => x.count), 1);
+  document.getElementById('top-table').innerHTML = d.topItems.map((item, i) => `
+    <tr>
+      <td style="font-weight:700;color:${i<3?'#C8440A':'var(--text-muted)'};">${i+1}</td>
+      <td style="font-weight:600;">${item.name}</td>
+      <td><strong>${item.count}</strong> orders</td>
+      <td style="width:200px;">
+        <div style="height:8px;background:var(--border);border-radius:4px;overflow:hidden;">
+          <div style="height:100%;width:${Math.round(item.count/maxCount*100)}%;background:${colors[i]||'#888'};border-radius:4px;transition:width 0.6s;"></div>
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+document.addEventListener('DOMContentLoaded', loadReports);
+</script>
+</body>
+</html>
