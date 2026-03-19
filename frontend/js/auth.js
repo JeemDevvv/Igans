@@ -44,6 +44,15 @@ async function apiFetch(path, options = {}) {
 // ── Role guard ────────────────────────────────────────────────────────────
 function requireRole(...roles) {
   const user = Session.getUser();
+  
+  // Special case: Allow guest customers without login
+  if (roles.includes('customer') && !user) {
+    // Set a guest user session to avoid errors in other parts of the code
+    const guestUser = { name: 'Guest Customer', role: 'customer', isGuest: true };
+    sessionStorage.setItem('user', JSON.stringify(guestUser));
+    return true;
+  }
+
   if (!user) { window.location.href = getRootPath('login.html'); return false; }
   if (!roles.includes(user.role)) { window.location.href = getRootPath('login.html'); return false; }
   return true;
@@ -113,10 +122,11 @@ function renderNavUser() {
   if (!user) return;
   const el = document.getElementById('nav-user');
   if (el) {
-    const initials = user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    const isGuest = user.isGuest;
+    const initials = isGuest ? 'GC' : user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
     el.innerHTML = `<div class="navbar-user">
       <div class="navbar-user-avatar">${initials}</div>
-      <span class="hide-mobile">${user.name}</span>
+      <span class="hide-mobile">${isGuest ? 'Guest Customer' : user.name}</span>
       <span class="badge badge-primary" style="font-size:0.7rem;">${user.role}</span>
     </div>`;
   }

@@ -6,19 +6,31 @@ Ang file na ito ay naglalarawan ng layout, structure, at flow ng system para sa 
 
 ## 1. Customer/Client Side
 
-### **A. Landing / Login Page (`login.html`)**
+### **A. QR Verification / Entry (`verify.html`)**
 ```text
 +------------------------------------------+
 |            🔥 Igan's Logo                |
-|           [ SIGN IN FORM ]               |
-|      (Email) [_________________]         |
-|      (Pass)  [_________________]         |
-|             [ LOGIN BTN ]                |
-|          [ Register Link ]               |
+|        [ LOCATION VERIFICATION ]          |
+|                                          |
+|             [ VERIFY BTN ]               |
+|                                          |
+| (Redirects to Order Type after success)  |
 +------------------------------------------+
 ```
 
-### **B. Menu Page (`menu.html`)**
+### **B. Order Type Page (`order-type.html`)**
+```text
++------------------------------------------+
+|            Welcome!                      |
+|   How would you like to enjoy your meal? |
+|                                          |
+|  [ Dine In Card ]    [ Take Out Card ]   |
+|                                          |
+|           [ BROWSE MENU BTN ]            |
++------------------------------------------+
+```
+
+### **C. Menu Page (`menu.html`)**
 ```text
 +------------------------------------------+
 | [🔥 LOGO]   [🔍 Search...]   [🛒 Cart(0)]|
@@ -36,7 +48,7 @@ Ang file na ito ay naglalarawan ng layout, structure, at flow ng system para sa 
 +------------------------------------------+
 ```
 
-### **C. Cart / Checkout (`cart.html`)**
+### **D. Cart / Checkout (`cart.html`)**
 ```text
 +------------------------------------------+
 | [← BACK TO MENU]         [User Profile]  |
@@ -55,7 +67,7 @@ Ang file na ito ay naglalarawan ng layout, structure, at flow ng system para sa 
 +------------------------------------------+
 ```
 
-### **D. Order Status (`order-status.html`)**
+### **E. Order Status (`order-status.html`)**
 ```text
 +------------------------------------------+
 | [🔥 LOGO]                [User Profile]  |

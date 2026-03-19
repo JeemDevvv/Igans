@@ -11,7 +11,7 @@
   const table = new URLSearchParams(location.search).get('table');
   if (table) { window.location.href = `verify.html?table=${table}`; }
   else if (user) {
-    const routes = { customer: 'menu.html', staff: 'staff.html', kitchen: 'kitchen.html', admin: 'admin/dashboard.html' };
+    const routes = { customer: 'order-type.html', staff: 'staff.html', kitchen: 'kitchen.html', admin: 'admin/dashboard.html' };
     window.location.href = routes[user.role] || 'login.html';
   } else { window.location.href = 'login.html'; }
 </script>

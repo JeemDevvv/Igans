@@ -178,7 +178,7 @@ async function startVerification() {
         if (dist <= allowedRadiusMeters) {
           setProgress(100);
           showStatus('success', '✅', `Location verified! You are ${distM}m from ${restaurantName}. Redirecting...`);
-          setTimeout(() => { window.location.href = 'login.html'; }, 1500);
+          setTimeout(() => { window.location.href = 'order-type.html'; }, 1500);
         } else {
           setProgress(100);
           showStatus('error', '🚫', `Access denied. You are ${distM}m away from the restaurant (max: ${allowedRadiusMeters}m). You must be inside the restaurant to use this ordering system.`);
@@ -195,7 +195,7 @@ async function startVerification() {
 
         // DEV MODE: bypass for testing
         if (confirm('DEV MODE: Location blocked. Bypass for testing?')) {
-          window.location.href = 'login.html';
+          window.location.href = 'order-type.html';
         }
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }

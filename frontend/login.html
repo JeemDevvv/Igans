@@ -82,28 +82,23 @@ body {
 
 <div class="split-right">
   <h1 class="login-title">Welcome back</h1>
-  <p class="login-sub">Select your role and sign in to continue</p>
+  <p class="login-sub">Staff and administrator portal</p>
 
-  <div class="role-selector">
-    <div class="role-btn active" data-role="customer" onclick="selectRole(this)">
-      <div class="role-icon">👤</div>
-      <div class="role-name">Customer</div>
-      <div class="role-desc">Browse & order food</div>
-    </div>
-    <div class="role-btn" data-role="staff" onclick="selectRole(this)">
+  <div class="role-selector" style="grid-template-columns: repeat(3, 1fr);">
+    <div class="role-btn active" data-role="staff" onclick="selectRole(this)">
       <div class="role-icon">🧑‍💼</div>
       <div class="role-name">Staff</div>
-      <div class="role-desc">Manage service</div>
+      <div class="role-desc">Service</div>
     </div>
     <div class="role-btn" data-role="kitchen" onclick="selectRole(this)">
       <div class="role-icon">👨‍🍳</div>
       <div class="role-name">Kitchen</div>
-      <div class="role-desc">Cook & prepare</div>
+      <div class="role-desc">Kitchen</div>
     </div>
     <div class="role-btn" data-role="admin" onclick="selectRole(this)">
       <div class="role-icon">⚙️</div>
       <div class="role-name">Admin</div>
-      <div class="role-desc">Full control</div>
+      <div class="role-desc">Admin</div>
     </div>
   </div>
 
@@ -126,13 +121,12 @@ body {
     <div class="demo-item" onclick="fillDemo('admin@restaurant.com','password123','admin')">⚙️ Admin — <code>admin@restaurant.com</code></div>
     <div class="demo-item" onclick="fillDemo('kitchen@restaurant.com','password123','kitchen')">👨‍🍳 Kitchen — <code>kitchen@restaurant.com</code></div>
     <div class="demo-item" onclick="fillDemo('staff@restaurant.com','password123','staff')">🧑‍💼 Staff — <code>staff@restaurant.com</code></div>
-    <div class="demo-item" onclick="fillDemo('customer@restaurant.com','password123','customer')">👤 Customer — <code>customer@restaurant.com</code></div>
   </div>
 </div>
 
 <script src="js/auth.js"></script>
 <script>
-let selectedRole = 'customer';
+let selectedRole = 'staff';
 
 function selectRole(el) {
   document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
