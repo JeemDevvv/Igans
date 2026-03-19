@@ -3,40 +3,58 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/jpeg" href="css/favicon.jpg">
 <title>Checkout — La Maison</title>
-<link rel="stylesheet" href="/css/main.css">
+<link rel="stylesheet" href="css/main.css">
 <style>
-.checkout-layout { max-width: 900px; margin: 0 auto; padding: 24px 20px; display: grid; grid-template-columns: 1fr 380px; gap: 24px; }
-.order-summary-card, .checkout-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; }
-.section-title { font-family: var(--font-display); font-size: 1.2rem; margin-bottom: 20px; color: var(--text); display: flex; align-items: center; gap: 8px; }
-.order-row { display: flex; align-items: center; gap: 14px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+.checkout-layout { max-width: 1100px; margin: 0 auto; padding: 40px 24px; display: grid; grid-template-columns: 1fr 420px; gap: 32px; }
+.order-summary-card, .checkout-card { 
+  background: rgba(255, 255, 255, 0.05); 
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border: 1px solid var(--border); 
+  border-radius: var(--radius); 
+  padding: 32px; 
+}
+.section-title { font-family: var(--font-display); font-size: 1.4rem; margin-bottom: 24px; color: var(--accent); display: flex; align-items: center; gap: 10px; }
+.order-row { display: flex; align-items: center; gap: 16px; padding: 16px 0; border-bottom: 1px solid var(--border); }
 .order-row:last-child { border-bottom: none; }
-.order-row-img { width: 52px; height: 52px; border-radius: var(--radius-sm); object-fit: cover; background: #F0E0D0; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
-.order-row-name { flex: 1; font-weight: 600; font-size: 0.9rem; }
-.order-row-qty { font-size: 0.82rem; color: var(--text-muted); margin-top: 2px; }
-.order-row-price { font-weight: 700; color: var(--primary); font-size: 0.95rem; }
-.qty-control { display: flex; align-items: center; gap: 6px; }
-.qty-btn { width: 28px; height: 28px; border-radius: 50%; border: 1.5px solid var(--border); background: none; cursor: pointer; font-size: 1rem; display: flex; align-items: center; justify-content: center; font-weight: 700; transition: all var(--transition); }
-.qty-btn:hover { border-color: var(--primary); color: var(--primary); }
-.del-btn { background: none; border: none; cursor: pointer; color: var(--text-light); font-size: 1.1rem; padding: 4px; transition: color var(--transition); }
+.order-row-img { width: 64px; height: 64px; border-radius: var(--radius-sm); object-fit: cover; background: rgba(0,0,0,0.2); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; }
+.order-row-name { flex: 1; font-weight: 700; font-size: 1rem; color: #FFF; }
+.order-row-qty { font-size: 0.85rem; color: var(--text-muted); margin-top: 4px; }
+.order-row-price { font-weight: 700; color: var(--accent); font-size: 1.1rem; }
+.qty-control { display: flex; align-items: center; gap: 10px; }
+.qty-btn { width: 32px; height: 32px; border-radius: 50%; border: 1.5px solid var(--border); background: rgba(255,255,255,0.05); color: #FFF; cursor: pointer; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; font-weight: 700; transition: all var(--transition); }
+.qty-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(233,196,106,0.1); }
+.del-btn { background: none; border: none; cursor: pointer; color: var(--text-light); font-size: 1.2rem; padding: 6px; transition: color var(--transition); }
 .del-btn:hover { color: var(--danger); }
 
-.summary-row { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 0.9rem; color: var(--text-muted); }
-.summary-row.total { font-size: 1.1rem; font-weight: 700; color: var(--text); border-top: 1px solid var(--border); padding-top: 12px; margin-top: 4px; }
-.summary-row.total span:last-child { font-family: var(--font-display); color: var(--primary); font-size: 1.3rem; }
+.summary-row { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 0.95rem; color: var(--text-muted); }
+.summary-row.total { font-size: 1.2rem; font-weight: 800; color: #FFF; border-top: 1px solid var(--border); padding-top: 16px; margin-top: 8px; }
+.summary-row.total span:last-child { font-family: var(--font-display); color: var(--accent); font-size: 1.5rem; }
 
-.info-chip { display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: #F8F2EC; border-radius: var(--radius-sm); margin-bottom: 16px; font-size: 0.85rem; }
+.info-chip { display: flex; align-items: center; gap: 10px; padding: 14px 18px; background: rgba(233,196,106,0.1); border: 1px solid rgba(233,196,106,0.2); border-radius: var(--radius-sm); margin-bottom: 24px; font-size: 0.9rem; color: var(--accent); font-weight: 600; }
 
-.confirm-btn { margin-top: 20px; }
+.confirm-btn { margin-top: 24px; }
 
-@media (max-width: 768px) { .checkout-layout { grid-template-columns: 1fr; } }
+@media (max-width: 992px) { 
+  .checkout-layout { grid-template-columns: 1fr; padding: 24px 16px; gap: 24px; } 
+}
+@media (max-width: 600px) {
+  .order-row { position: relative; display: grid; grid-template-columns: 80px 1fr; grid-template-rows: auto auto; gap: 12px 16px; padding: 20px 0; }
+  .order-row-img { grid-row: span 2; width: 80px; height: 80px; }
+  .order-row-name { font-size: 0.95rem; padding-right: 32px; }
+  .qty-control { grid-column: 2; margin-top: 4px; }
+  .order-row-price { position: absolute; bottom: 20px; right: 0; font-size: 1rem; }
+  .del-btn { position: absolute; top: 16px; right: 0; padding: 4px; }
+}
 </style>
 </head>
 <body>
 <nav class="navbar">
-  <div class="navbar-brand"><span>🍽</span> La Maison</div>
+  <div class="navbar-brand"><span>🔥</span> Igan's Budbod House</div>
   <div style="display:flex;gap:12px;align-items:center;">
-    <button class="btn btn-ghost btn-sm" onclick="window.location.href='/menu.html'">← Back to Menu</button>
+    <button class="btn btn-ghost btn-sm" onclick="window.location.href='menu.html'">← Back to Menu</button>
     <div id="nav-user"></div>
   </div>
 </nav>
@@ -81,17 +99,17 @@
     <h2 style="font-family:var(--font-display);font-size:1.8rem;margin-bottom:10px;">Order Placed!</h2>
     <p style="color:var(--text-muted);margin-bottom:8px;">Your order has been sent to the kitchen.</p>
     <div id="order-number-display" style="background:#F8F2EC;padding:12px 20px;border-radius:var(--radius-sm);font-family:var(--font-display);font-size:1.2rem;color:var(--primary);margin:16px auto;max-width:240px;"></div>
-    <button class="btn btn-primary btn-lg" onclick="window.location.href='/order-status.html'" style="margin-top:16px;">Track My Order →</button>
+    <button class="btn btn-primary btn-lg" onclick="window.location.href='order-status.html'" style="margin-top:16px;">Track My Order →</button>
   </div>
 </div>
 
-<script src="/js/auth.js"></script>
+<script src="js/auth.js"></script>
 <script>
 requireRole('customer');
 
 document.addEventListener('DOMContentLoaded', () => {
   const cart = Cart.get();
-  if (cart.length === 0) { window.location.href = '/menu.html'; return; }
+  if (cart.length === 0) { window.location.href = 'menu.html'; return; }
   document.getElementById('special-req').value = sessionStorage.getItem('specialRequests') || '';
   renderItems(cart);
   renderSummary(cart);
@@ -136,13 +154,13 @@ function renderSummary(cart) {
 function changeQty(id, qty) {
   Cart.updateQty(id, qty);
   const cart = Cart.get();
-  if (cart.length === 0) { window.location.href = '/menu.html'; return; }
+  if (cart.length === 0) { window.location.href = 'menu.html'; return; }
   renderItems(cart); renderSummary(cart);
 }
 function removeItem(id) {
   Cart.remove(id);
   const cart = Cart.get();
-  if (cart.length === 0) { window.location.href = '/menu.html'; return; }
+  if (cart.length === 0) { window.location.href = 'menu.html'; return; }
   renderItems(cart); renderSummary(cart);
 }
 

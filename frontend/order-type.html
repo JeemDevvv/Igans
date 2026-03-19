@@ -3,77 +3,84 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Order Type — La Maison</title>
-<link rel="stylesheet" href="/css/main.css">
+<link rel="icon" type="image/jpeg" href="css/favicon.jpg">
+<title>Order Type — Igan's Budbod House</title>
+<link rel="stylesheet" href="css/main.css">
 <style>
 body {
-  min-height: 100vh; display: flex; flex-direction: column;
-  background: var(--bg);
+  height: 100vh; display: flex; flex-direction: column;
+  background: var(--bg); overflow: hidden;
 }
 .hero {
   background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
-  padding: 48px 24px; text-align: center; color: white;
+  padding: 24px 20px; text-align: center; color: white;
+  flex-shrink: 0;
 }
-.hero h1 { font-size: 2.4rem; color: white; margin-bottom: 8px; }
-.hero p { opacity: 0.8; font-size: 1rem; }
+.hero h1 { font-size: 1.8rem; color: white; margin-bottom: 4px; }
+.hero p { opacity: 0.8; font-size: 0.9rem; }
 .table-badge {
-  display: inline-flex; align-items: center; gap: 8px;
+  display: inline-flex; align-items: center; gap: 6px;
   background: rgba(255,255,255,0.15); color: white;
-  padding: 6px 16px; border-radius: 20px; font-size: 0.85rem;
-  margin-top: 16px; font-weight: 500;
+  padding: 4px 12px; border-radius: 20px; font-size: 0.8rem;
+  margin-top: 10px; font-weight: 500;
 }
 
 .choices-section {
   flex: 1; display: flex; align-items: center; justify-content: center;
-  padding: 40px 20px;
+  padding: 20px; overflow: hidden;
 }
 .choices-grid {
   display: grid; grid-template-columns: 1fr 1fr;
-  gap: 24px; max-width: 640px; width: 100%;
+  gap: 20px; max-width: 600px; width: 100%;
 }
 .choice-card {
-  background: var(--bg-card); border: 2.5px solid var(--border);
-  border-radius: 20px; padding: 48px 28px; text-align: center;
+  background: rgba(255, 255, 255, 0.05); 
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 2px solid var(--border);
+  border-radius: 16px; padding: 24px 20px; text-align: center;
   cursor: pointer; transition: all 0.25s;
   position: relative; overflow: hidden;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
 }
-.choice-card::before {
-  content: ''; position: absolute; inset: 0;
-  background: linear-gradient(135deg, rgba(200,68,10,0.06), transparent);
-  opacity: 0; transition: opacity 0.25s;
-}
-.choice-card:hover { border-color: var(--primary); transform: translateY(-4px); box-shadow: 0 12px 32px rgba(200,68,10,0.15); }
-.choice-card:hover::before { opacity: 1; }
-.choice-card.selected { border-color: var(--primary); background: rgba(200,68,10,0.05); transform: translateY(-4px); box-shadow: 0 12px 32px rgba(200,68,10,0.2); }
-.choice-card.selected::before { opacity: 1; }
+.choice-card:hover { border-color: var(--accent); background: rgba(255, 255, 255, 0.08); transform: translateY(-2px); }
+.choice-card.selected { border-color: var(--accent); background: rgba(233, 196, 106, 0.1); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
 .choice-card.selected::after {
-  content: '✓'; position: absolute; top: 16px; right: 16px;
-  width: 28px; height: 28px; background: var(--primary); color: white;
+  content: '✓'; position: absolute; top: 12px; right: 12px;
+  width: 24px; height: 24px; background: var(--accent); color: #1C1008;
   border-radius: 50%; display: flex; align-items: center; justify-content: center;
-  font-size: 0.85rem; font-weight: 700; line-height: 28px;
+  font-size: 0.8rem; font-weight: 800;
 }
-.choice-icon { font-size: 4rem; margin-bottom: 20px; display: block; line-height: 1; }
-.choice-title { font-family: var(--font-display); font-size: 1.5rem; font-weight: 700; color: var(--text); margin-bottom: 10px; }
-.choice-desc { font-size: 0.85rem; color: var(--text-muted); line-height: 1.6; }
+.choice-icon { font-size: 3rem; margin-bottom: 12px; display: block; line-height: 1; }
+.choice-title { font-family: var(--font-display); font-size: 1.3rem; font-weight: 700; color: #FFF; margin-bottom: 6px; }
+.choice-desc { font-size: 0.8rem; color: var(--text-muted); line-height: 1.4; }
 .choice-tag {
-  display: inline-block; margin-top: 14px;
-  background: rgba(200,68,10,0.1); color: var(--primary);
-  padding: 4px 12px; border-radius: 12px; font-size: 0.78rem; font-weight: 600;
+  display: inline-block; margin-top: 10px;
+  background: rgba(233,196,106,0.1); color: var(--accent);
+  padding: 3px 10px; border-radius: 10px; font-size: 0.72rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.5px;
 }
 
-.proceed-area { text-align: center; padding: 0 20px 40px; }
-#proceed-btn { min-width: 240px; transition: all 0.3s; }
+.proceed-area { text-align: center; padding: 0 20px 32px; flex-shrink: 0; }
+#proceed-btn { min-width: 260px; transition: all 0.3s; box-shadow: 0 4px 15px rgba(214,40,40,0.3); }
 
 @media (max-width: 520px) {
-  .choices-grid { grid-template-columns: 1fr; max-width: 320px; }
-  .hero h1 { font-size: 1.8rem; }
+  .choices-grid { grid-template-columns: 1fr; max-width: 280px; gap: 12px; }
+  .choice-card { padding: 16px 12px; }
+  .choice-icon { font-size: 2.2rem; margin-bottom: 8px; }
+  .choice-title { font-size: 1.1rem; margin-bottom: 4px; }
+  .choice-desc { font-size: 0.75rem; }
+  .hero { padding: 20px 16px; }
+  .hero h1 { font-size: 1.5rem; }
+  .proceed-area { padding-bottom: 24px; }
+  #proceed-btn { font-size: 0.9rem; padding: 12px 20px; }
 }
 </style>
 </head>
 <body>
 <div class="hero">
-  <h1>How would you like to order?</h1>
-  <p>Choose your dining preference to get started</p>
+  <h1>Welcome!</h1>
+  <p>How would you like to enjoy your meal today?</p>
   <div id="table-badge" class="table-badge" style="display:none;">🪑 Seated at Table <strong id="table-display"></strong></div>
 </div>
 
@@ -101,7 +108,7 @@ body {
   <p style="margin-top:12px;font-size:0.82rem;color:var(--text-light);">Select an option above to continue</p>
 </div>
 
-<script src="/js/auth.js"></script>
+<script src="js/auth.js"></script>
 <script>
 requireRole('customer');
 let selectedType = null;
@@ -129,7 +136,7 @@ function selectType(type, card) {
 function proceed() {
   if (!selectedType) return;
   sessionStorage.setItem('orderType', selectedType);
-  window.location.href = '/menu.html';
+  window.location.href = 'menu.html';
 }
 </script>
 </body>

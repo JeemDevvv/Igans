@@ -3,30 +3,32 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin Dashboard — La Maison</title>
-<link rel="stylesheet" href="/css/main.css">
-<link rel="stylesheet" href="/css/admin.css">
+<link rel="icon" type="image/jpeg" href="../css/favicon.jpg">
+<title>Admin Dashboard — Igan's Budbod House</title>
+<link rel="stylesheet" href="../css/main.css">
+<link rel="stylesheet" href="../css/admin.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
 <div class="admin-shell">
+  <div class="mobile-nav-toggle" onclick="toggleSidebar()">☰</div>
   <!-- Sidebar -->
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-brand">
-      <span>🍽</span>
+      <span>🔥</span>
       <div>
-        <div class="brand-name">La Maison</div>
+        <div class="brand-name">Igan's<br><span>Budbod House</span></div>
         <div class="brand-role">Admin Panel</div>
       </div>
     </div>
     <nav class="sidebar-nav">
-      <a href="/admin/dashboard.html" class="nav-item active"><span>📊</span> Dashboard</a>
-      <a href="/admin/orders.html" class="nav-item"><span>📋</span> Orders</a>
-      <a href="/admin/menu-manage.html" class="nav-item"><span>🍛</span> Menu</a>
-      <a href="/admin/users.html" class="nav-item"><span>👥</span> Users</a>
-      <a href="/admin/tables.html" class="nav-item"><span>🪑</span> Tables & QR</a>
-      <a href="/admin/reports.html" class="nav-item"><span>📈</span> Reports</a>
-      <a href="/admin/settings.html" class="nav-item"><span>⚙️</span> Settings</a>
+      <a href="dashboard.html" class="nav-item active"><span>📊</span> Dashboard</a>
+      <a href="orders.html" class="nav-item"><span>📋</span> Orders</a>
+      <a href="menu-manage.html" class="nav-item"><span>🍛</span> Menu</a>
+      <a href="users.html" class="nav-item"><span>👥</span> Users</a>
+      <a href="tables.html" class="nav-item"><span>🪑</span> Tables & QR</a>
+      <a href="reports.html" class="nav-item"><span>📈</span> Reports</a>
+      <a href="settings.html" class="nav-item"><span>⚙️</span> Settings</a>
     </nav>
     <div class="sidebar-footer">
       <div id="sidebar-user"></div>
@@ -86,7 +88,7 @@
       <div class="card card-padded">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
           <h3 style="font-size:1rem;font-weight:600;">Recent Orders</h3>
-          <a href="/admin/orders.html" class="btn btn-ghost btn-sm">View All →</a>
+          <a href="orders.html" class="btn btn-ghost btn-sm">View All →</a>
         </div>
         <div id="recent-orders"></div>
       </div>
@@ -94,7 +96,7 @@
   </main>
 </div>
 
-<script src="/js/auth.js"></script>
+<script src="../js/auth.js"></script>
 <script>
 requireRole('admin');
 
@@ -193,6 +195,10 @@ document.addEventListener('DOMContentLoaded', () => {
   loadDashboard();
   setInterval(loadDashboard, 30000);
 });
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
 </script>
 </body>
 </html>

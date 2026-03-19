@@ -3,8 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Verify Location — La Maison</title>
-<link rel="stylesheet" href="/css/main.css">
+<link rel="icon" type="image/jpeg" href="css/favicon.jpg">
+<title>Verifying...</title>
+<link rel="stylesheet" href="css/main.css">
 <style>
 body {
   min-height: 100vh;
@@ -98,8 +99,8 @@ body::after  { width: 400px; height: 400px; bottom: -150px; left: -100px; }
 </head>
 <body>
 <div class="verify-card">
-  <div class="restaurant-logo">🍽 La Maison</div>
-  <div class="restaurant-subtitle">Fine Filipino Dining Experience</div>
+  <div class="restaurant-logo">🔥 Igan's Budbod House</div>
+  <div class="restaurant-subtitle">Authentic Filipino Comfort Food</div>
 
   <div class="location-icon-wrap">
     <div class="location-pulse"></div>
@@ -177,7 +178,7 @@ async function startVerification() {
         if (dist <= allowedRadiusMeters) {
           setProgress(100);
           showStatus('success', '✅', `Location verified! You are ${distM}m from ${restaurantName}. Redirecting...`);
-          setTimeout(() => { window.location.href = '/login.html'; }, 1500);
+          setTimeout(() => { window.location.href = 'login.html'; }, 1500);
         } else {
           setProgress(100);
           showStatus('error', '🚫', `Access denied. You are ${distM}m away from the restaurant (max: ${allowedRadiusMeters}m). You must be inside the restaurant to use this ordering system.`);
@@ -194,7 +195,7 @@ async function startVerification() {
 
         // DEV MODE: bypass for testing
         if (confirm('DEV MODE: Location blocked. Bypass for testing?')) {
-          window.location.href = '/login.html';
+          window.location.href = 'login.html';
         }
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }

@@ -3,16 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/jpeg" href="css/favicon.jpg">
 <title>La Maison Restaurant</title>
 <script>
   // If user already has a session, redirect based on role
   const user = JSON.parse(sessionStorage.getItem('user') || 'null');
   const table = new URLSearchParams(location.search).get('table');
-  if (table) { window.location.href = `/verify.html?table=${table}`; }
+  if (table) { window.location.href = `verify.html?table=${table}`; }
   else if (user) {
-    const routes = { customer: '/menu.html', staff: '/staff.html', kitchen: '/kitchen.html', admin: '/admin/dashboard.html' };
-    window.location.href = routes[user.role] || '/login.html';
-  } else { window.location.href = '/login.html'; }
+    const routes = { customer: 'menu.html', staff: 'staff.html', kitchen: 'kitchen.html', admin: 'admin/dashboard.html' };
+    window.location.href = routes[user.role] || 'login.html';
+  } else { window.location.href = 'login.html'; }
 </script>
 </head>
 <body></body>

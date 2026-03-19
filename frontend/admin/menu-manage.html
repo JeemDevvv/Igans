@@ -3,22 +3,30 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/jpeg" href="../css/favicon.jpg">
 <title>Menu Management — Admin</title>
-<link rel="stylesheet" href="/css/main.css">
-<link rel="stylesheet" href="/css/admin.css">
+<link rel="stylesheet" href="../css/main.css">
+<link rel="stylesheet" href="../css/admin.css">
 </head>
 <body>
 <div class="admin-shell">
-  <aside class="sidebar">
-    <div class="sidebar-brand"><span>🍽</span><div><div class="brand-name">La Maison</div><div class="brand-role">Admin Panel</div></div></div>
+  <div class="mobile-nav-toggle" onclick="toggleSidebar()">☰</div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <span>🔥</span>
+      <div>
+        <div class="brand-name">Igan's<br><span>Budbod House</span></div>
+        <div class="brand-role">Admin Panel</div>
+      </div>
+    </div>
     <nav class="sidebar-nav">
-      <a href="/admin/dashboard.html" class="nav-item"><span>📊</span> Dashboard</a>
-      <a href="/admin/orders.html" class="nav-item"><span>📋</span> Orders</a>
-      <a href="/admin/menu-manage.html" class="nav-item active"><span>🍛</span> Menu</a>
-      <a href="/admin/users.html" class="nav-item"><span>👥</span> Users</a>
-      <a href="/admin/tables.html" class="nav-item"><span>🪑</span> Tables & QR</a>
-      <a href="/admin/reports.html" class="nav-item"><span>📈</span> Reports</a>
-      <a href="/admin/settings.html" class="nav-item"><span>⚙️</span> Settings</a>
+      <a href="dashboard.html" class="nav-item"><span>📊</span> Dashboard</a>
+      <a href="orders.html" class="nav-item"><span>📋</span> Orders</a>
+      <a href="menu-manage.html" class="nav-item active"><span>🍛</span> Menu</a>
+      <a href="users.html" class="nav-item"><span>👥</span> Users</a>
+      <a href="tables.html" class="nav-item"><span>🪑</span> Tables & QR</a>
+      <a href="reports.html" class="nav-item"><span>📈</span> Reports</a>
+      <a href="settings.html" class="nav-item"><span>⚙️</span> Settings</a>
     </nav>
     <div class="sidebar-footer"><button class="btn btn-ghost btn-sm btn-block" onclick="logout()">Sign Out</button></div>
   </aside>
@@ -147,7 +155,7 @@
   </div>
 </div>
 
-<script src="/js/auth.js"></script>
+<script src="../js/auth.js"></script>
 <script>
 requireRole('admin');
 
@@ -317,6 +325,10 @@ async function saveCategory() {
     closeCatModal();
     await loadCategories();
   } catch(e) { showToast(e.message, 'error'); }
+}
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
 }
 
 document.addEventListener('DOMContentLoaded', init);

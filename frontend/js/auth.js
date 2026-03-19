@@ -1,6 +1,16 @@
 // ── Shared auth & API utilities ──────────────────────────────────────────────
 const API = 'http://localhost:5000/api';
 
+// Helper to get root-relative path (works regardless of subfolder depth)
+function getRootPath(path) {
+  // If we are in the admin subfolder, we need to go up one level
+  const isAdmin = window.location.pathname.includes('/admin/');
+  if (isAdmin) {
+    return '../' + path.replace(/^\//, '');
+  }
+  return path.replace(/^\//, '');
+}
+
 // ── Session helpers ────────────────────────────────────────────────────────
 const Session = {
   getToken: () => sessionStorage.getItem('token'),
@@ -34,13 +44,13 @@ async function apiFetch(path, options = {}) {
 // ── Role guard ────────────────────────────────────────────────────────────
 function requireRole(...roles) {
   const user = Session.getUser();
-  if (!user) { window.location.href = '/login.html'; return false; }
-  if (!roles.includes(user.role)) { window.location.href = '/login.html'; return false; }
+  if (!user) { window.location.href = getRootPath('login.html'); return false; }
+  if (!roles.includes(user.role)) { window.location.href = getRootPath('login.html'); return false; }
   return true;
 }
 
 function requireAuth() {
-  if (!Session.getToken()) { window.location.href = '/login.html'; return false; }
+  if (!Session.getToken()) { window.location.href = getRootPath('login.html'); return false; }
   return true;
 }
 
@@ -115,7 +125,7 @@ function renderNavUser() {
 // ── Logout ────────────────────────────────────────────────────────────────
 function logout() {
   Session.clear();
-  window.location.href = '/login.html';
+  window.location.href = getRootPath('login.html');
 }
 
 // ── Format helpers ────────────────────────────────────────────────────────
