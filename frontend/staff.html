@@ -39,7 +39,7 @@
 </head>
 <body>
 <nav class="navbar">
-  <div class="navbar-brand"><span>🍽</span> La Maison <span style="font-family:var(--font-body);font-size:0.8rem;font-weight:400;color:var(--text-muted);margin-left:6px;">Staff</span></div>
+  <div class="navbar-brand">La Maison <span style="font-family:var(--font-body);font-size:0.8rem;font-weight:400;color:var(--text-muted);margin-left:6px;">Staff</span></div>
   <div style="display:flex;align-items:center;gap:12px;">
     <div class="refresh-indicator"><div class="live-dot"></div>Live updates</div>
     <div id="nav-user"></div>
@@ -63,17 +63,21 @@
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
     <div class="filter-tabs">
       <div class="ftab active" onclick="setFilter('all',this)">All Active</div>
-      <div class="ftab" onclick="setFilter('pending',this)">📋 Pending</div>
-      <div class="ftab" onclick="setFilter('preparing',this)">🔥 Preparing</div>
-      <div class="ftab" onclick="setFilter('ready',this)">✅ Ready</div>
-      <div class="ftab" onclick="setFilter('served',this)">🎉 Served</div>
+      <div class="ftab" onclick="setFilter('pending',this)">Pending</div>
+      <div class="ftab" onclick="setFilter('preparing',this)">Preparing</div>
+      <div class="ftab" onclick="setFilter('ready',this)">Ready</div>
+      <div class="ftab" onclick="setFilter('served',this)">Served</div>
     </div>
-    <button class="btn btn-outline btn-sm" onclick="loadOrders()">↻ Refresh</button>
+    <button class="btn btn-outline btn-sm" onclick="loadOrders()">Refresh</button>
   </div>
 
   <div id="orders-grid" class="orders-grid"></div>
   <div id="empty-staff" class="empty-state" style="display:none;">
-    <div class="icon">🎉</div><h3>All caught up!</h3><p>No orders in this category right now.</p>
+    <div class="icon">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--success);"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+    </div>
+    <h3>All caught up!</h3>
+    <p>No orders in this category right now.</p>
   </div>
 </div>
 

@@ -60,12 +60,12 @@ body::after  { width: 400px; height: 400px; bottom: -150px; left: -100px; }
   100% { transform: scale(1.3); opacity: 0; }
 }
 
-.verify-title { font-size: 1.5rem; font-weight: 700; color: var(--text); margin-bottom: 12px; }
-.verify-desc { color: var(--text-muted); font-size: 0.9rem; line-height: 1.6; margin-bottom: 32px; }
+.verify-title { font-size: 1.5rem; font-weight: 700; color: #1C1008; margin-bottom: 12px; }
+.verify-desc { color: #5D4037; font-size: 0.9rem; line-height: 1.6; margin-bottom: 32px; }
 
 .table-chip {
   display: inline-flex; align-items: center; gap: 8px;
-  background: rgba(200,68,10,0.1); color: var(--primary);
+  background: rgba(214,40,40,0.1); color: var(--primary);
   padding: 8px 18px; border-radius: 20px;
   font-weight: 600; font-size: 0.9rem; margin-bottom: 28px;
 }
@@ -99,19 +99,19 @@ body::after  { width: 400px; height: 400px; bottom: -150px; left: -100px; }
 </head>
 <body>
 <div class="verify-card">
-  <div class="restaurant-logo">🔥 Igan's Budbod House</div>
+  <div class="restaurant-logo">Igan's Budbod House</div>
   <div class="restaurant-subtitle">Authentic Filipino Comfort Food</div>
 
   <div class="location-icon-wrap">
     <div class="location-pulse"></div>
     <div class="location-pulse-2"></div>
-    📍
+    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--primary);"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
   </div>
 
   <h2 class="verify-title">Location Verification</h2>
   <p class="verify-desc">To place an order, we need to confirm you're inside the restaurant. Please allow location access when prompted.</p>
 
-  <div id="table-chip" class="table-chip" style="display:none;">🪑 Table <span id="table-num"></span></div>
+  <div id="table-chip" class="table-chip" style="display:none;">Table <span id="table-num"></span></div>
 
   <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
 
@@ -121,11 +121,12 @@ body::after  { width: 400px; height: 400px; bottom: -150px; left: -100px; }
   </div>
 
   <button class="btn btn-primary btn-block btn-lg" id="verify-btn" onclick="startVerification()">
-    📍 Verify My Location
+    Verify My Location
   </button>
   <p style="margin-top:16px; font-size:0.8rem; color:var(--text-light);">Your location data is only used to verify access and is never stored.</p>
 </div>
 
+<script src="js/auth.js"></script>
 <script>
 const tableNum = new URLSearchParams(location.search).get('table');
 if (tableNum) {
@@ -136,11 +137,11 @@ if (tableNum) {
 
 function setProgress(pct) { document.getElementById('progress').style.width = pct + '%'; }
 
-function showStatus(type, icon, msg) {
+function showStatus(type, msg) {
   const box = document.getElementById('status-box');
   box.style.display = 'flex';
   box.className = 'status-message ' + type;
-  box.innerHTML = `<span style="font-size:1.3rem;">${icon}</span><span class="status-msg-text">${msg}</span>`;
+  box.innerHTML = `<span class="status-msg-text">${msg}</span>`;
 }
 
 function haversine(lat1, lon1, lat2, lon2) {
@@ -154,15 +155,15 @@ async function startVerification() {
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span> Checking location...';
   setProgress(20);
-  showStatus('checking', '🔄', 'Requesting location permission...');
+  showStatus('checking', 'Requesting location permission...');
 
   try {
     setProgress(40);
-    const settingsRes = await fetch('/api/settings');
+    const settingsRes = await fetch(`${API}/settings`);
     const settingsData = await settingsRes.json();
     const { latitude, longitude, allowedRadiusMeters, restaurantName } = settingsData.data;
     setProgress(60);
-    showStatus('checking', '📡', 'Getting your GPS coordinates...');
+    showStatus('checking', 'Getting your GPS coordinates...');
 
     navigator.geolocation.getCurrentPosition(
       (pos) => {
@@ -177,21 +178,21 @@ async function startVerification() {
 
         if (dist <= allowedRadiusMeters) {
           setProgress(100);
-          showStatus('success', '✅', `Location verified! You are ${distM}m from ${restaurantName}. Redirecting...`);
+          showStatus('success', `Location verified! You are ${distM}m from ${restaurantName}. Redirecting...`);
           setTimeout(() => { window.location.href = 'order-type.html'; }, 1500);
         } else {
           setProgress(100);
-          showStatus('error', '🚫', `Access denied. You are ${distM}m away from the restaurant (max: ${allowedRadiusMeters}m). You must be inside the restaurant to use this ordering system.`);
+          showStatus('error', `Access denied. You are ${distM}m away from the restaurant (max: ${allowedRadiusMeters}m). You must be inside the restaurant to use this ordering system.`);
           btn.disabled = false;
-          btn.innerHTML = '📍 Try Again';
+          btn.innerHTML = 'Try Again';
         }
       },
       (err) => {
         setProgress(0);
         const msgs = { 1: 'Location permission denied. Please allow location access in your browser settings.', 2: 'Location unavailable. Please try again.', 3: 'Location request timed out. Please try again.' };
-        showStatus('warning', '⚠️', msgs[err.code] || 'Could not get your location.');
+        showStatus('warning', msgs[err.code] || 'Could not get your location.');
         btn.disabled = false;
-        btn.innerHTML = '📍 Try Again';
+        btn.innerHTML = 'Try Again';
 
         // DEV MODE: bypass for testing
         if (confirm('DEV MODE: Location blocked. Bypass for testing?')) {
@@ -201,9 +202,9 @@ async function startVerification() {
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
   } catch (err) {
-    showStatus('error', '❌', 'Server error: ' + err.message);
+    showStatus('error', 'Server error: ' + err.message);
     btn.disabled = false;
-    btn.innerHTML = '📍 Verify My Location';
+    btn.innerHTML = 'Verify My Location';
   }
 }
 </script>

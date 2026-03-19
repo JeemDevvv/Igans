@@ -81,19 +81,23 @@ body {
 <div class="hero">
   <h1>Welcome!</h1>
   <p>How would you like to enjoy your meal today?</p>
-  <div id="table-badge" class="table-badge" style="display:none;">🪑 Seated at Table <strong id="table-display"></strong></div>
+  <div id="table-badge" class="table-badge" style="display:none;">Seated at Table <strong id="table-display"></strong></div>
 </div>
 
 <div class="choices-section">
   <div class="choices-grid">
     <div class="choice-card" id="dine-in-card" onclick="selectType('dine-in', this)">
-      <span class="choice-icon">🪑</span>
+      <div class="choice-icon" style="color:var(--accent);">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path><path d="M12 12m-5 0a5 5 0 1 0 10 0a5 5 0 1 0 -10 0"></path><path d="M12 7v5l3 3"></path></svg>
+      </div>
       <div class="choice-title">Dine In</div>
       <div class="choice-desc">Enjoy your meal at your table. Your order will be brought directly to you.</div>
       <span class="choice-tag">Table Service</span>
     </div>
     <div class="choice-card" id="take-out-card" onclick="selectType('take-out', this)">
-      <span class="choice-icon">🥡</span>
+      <div class="choice-icon" style="color:var(--accent);">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z"></path><path d="M9 10h6"></path><path d="M10 14h4"></path></svg>
+      </div>
       <div class="choice-title">Take Out</div>
       <div class="choice-desc">Order your food to go. Pick it up at the counter when it's ready.</div>
       <span class="choice-tag">Counter Pickup</span>
