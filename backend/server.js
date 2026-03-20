@@ -10,7 +10,6 @@ if (fs.existsSync(configPath)) {
 
 const express = require('express');
 const cors = require('cors');
-const path = require('path');
 const connectDB = require('./config/db');
 
 connectDB();
