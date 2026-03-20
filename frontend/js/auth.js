@@ -1,5 +1,13 @@
 // ── Shared auth & API utilities ──────────────────────────────────────────────
-const API = 'http://localhost:5000/api';
+// Dynamically set API URL based on current host
+const API = (function() {
+  const host = window.location.host;
+  // If we are on localhost, use 5000, otherwise use current host's /api
+  if (host.includes('localhost') || host.includes('127.0.0.1')) {
+    return 'http://localhost:5000/api';
+  }
+  return '/api'; // In production, frontend and backend share the same origin
+})();
 
 // Helper to get root-relative path (works regardless of subfolder depth)
 function getRootPath(path) {
