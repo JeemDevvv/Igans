@@ -1,11 +1,15 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
-const signToken = (user) => jwt.sign(
-  { id: user._id, name: user.name, email: user.email, role: user.role },
-  process.env.JWT_SECRET,
-  { expiresIn: process.env.JWT_EXPIRE }
-);
+const signToken = (user) => {
+  const secret = process.env.JWT_SECRET || 'fallback_secret_for_dev_only';
+  const expire = process.env.JWT_EXPIRE || '7d';
+  return jwt.sign(
+    { id: user._id, name: user.name, email: user.email, role: user.role },
+    secret,
+    { expiresIn: expire }
+  );
+};
 
 exports.register = async (req, res) => {
   try {
