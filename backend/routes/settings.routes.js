@@ -9,11 +9,11 @@ router.get('/', async (req, res) => {
     let settings = await RestaurantSettings.findOne();
     if (!settings) {
       settings = await RestaurantSettings.create({
-        restaurantName: 'La Maison Restaurant',
+        restaurantName: 'Igans Budbod House',
         latitude: 14.5995,
         longitude: 120.9842,
         allowedRadiusMeters: 500,
-        address: '123 Food Street, Manila',
+        address: 'Antipolo, Rizal, Philippines',
         phone: '+63 912 345 6789'
       });
     }
