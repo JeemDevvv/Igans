@@ -27,7 +27,9 @@ app.use('/api/admin',    require('./routes/admin.routes'));
 app.get('/api/health', (req, res) => res.json({ status: 'ok', time: new Date() }));
 
 // Catch-all: serve frontend
-// ...existing code...
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/index.html'));
+});
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
