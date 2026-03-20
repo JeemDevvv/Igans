@@ -39,7 +39,7 @@ app.get('/api/health', (req, res) => res.json({ status: 'ok', time: new Date() }
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`\n🚀 Server running on http://localhost:${PORT}`);
-  console.log(`📁 Frontend served from ../frontend`);
-  console.log(`🗃️  Run 'npm run seed' to populate the database\n`);
+  console.log(`\nServer running on http://localhost:${PORT}`);
+  console.log(`Frontend served from ../frontend`);
+  console.log(`Run 'npm run seed' to populate the database\n`);
 });

@@ -23,7 +23,14 @@ router.get('/:tableNum', async (req, res) => {
 router.post('/', protect, allow('admin'), async (req, res) => {
   try {
     const { tableNumber, capacity } = req.body;
-    const baseUrl = process.env.BASE_URL || 'http://localhost:5000';
+    
+    // Determine base URL dynamically if possible, or use env variable
+    let baseUrl = process.env.BASE_URL;
+    if (!baseUrl || baseUrl.includes('localhost')) {
+      const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+      baseUrl = `${protocol}://${req.get('host')}`;
+    }
+    
     const url = `${baseUrl}/verify.html?table=${tableNumber}`;
     const qrCodeImage = await QRCode.toDataURL(url, { width: 300, margin: 2, color: { dark: '#1a1a1a', light: '#ffffff' } });
     const table = await Table.create({ tableNumber, capacity: capacity || 4, qrCodeValue: url, qrCodeImage });
@@ -35,6 +42,23 @@ router.get('/qr/:tableNum', protect, allow('admin'), async (req, res) => {
   try {
     const table = await Table.findOne({ tableNumber: req.params.tableNum });
     if (!table) return res.status(404).json({ success: false, msg: 'Table not found' });
+
+    // Dynamically check if URL matches current host, regenerate if needed
+    let currentBaseUrl = process.env.BASE_URL;
+    if (!currentBaseUrl || currentBaseUrl.includes('localhost')) {
+      const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+      currentBaseUrl = `${protocol}://${req.get('host')}`;
+    }
+
+    if (!table.qrCodeValue.startsWith(currentBaseUrl)) {
+      const newUrl = `${currentBaseUrl}/verify.html?table=${table.tableNumber}`;
+      const newQrImage = await QRCode.toDataURL(newUrl, { width: 300, margin: 2, color: { dark: '#1a1a1a', light: '#ffffff' } });
+      
+      table.qrCodeValue = newUrl;
+      table.qrCodeImage = newQrImage;
+      await table.save();
+    }
+
     res.json({ success: true, qrCodeImage: table.qrCodeImage, url: table.qrCodeValue });
   } catch (err) { res.status(500).json({ success: false, msg: err.message }); }
 });
