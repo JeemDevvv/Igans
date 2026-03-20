@@ -1,4 +1,13 @@
-require('dotenv').config({ path: './config/config.env' });
+// Load config from .env if it exists, otherwise use environment variables
+const fs = require('fs');
+const path = require('path');
+const configPath = path.join(__dirname, 'config/config.env');
+if (fs.existsSync(configPath)) {
+  require('dotenv').config({ path: configPath });
+} else {
+  require('dotenv').config();
+}
+
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -27,9 +36,7 @@ app.use('/api/admin',    require('./routes/admin.routes'));
 app.get('/api/health', (req, res) => res.json({ status: 'ok', time: new Date() }));
 
 // Catch-all: serve frontend
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/index.html'));
-});
+// ...existing code...
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

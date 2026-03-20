@@ -37,20 +37,31 @@ This guide provides step-by-step instructions to deploy the ordering system usin
     *   **Name**: `igans-restaurant-system` (or your choice).
     *   **Region**: Same as your MongoDB cluster (e.g., Singapore).
     *   **Branch**: `main`.
-    *   **Root Directory**: (Leave blank). The root `package.json` I added will handle delegation.
+    *   **Root Directory**: (Leave blank).
     *   **Runtime**: `Node`.
-    *   **Build Command**: `npm run build` (This installs backend dependencies).
-    *   **Start Command**: `npm start` (This starts the backend server).
-4.  **Add Environment Variables**:
+    *   **Build Command**: `npm run build`
+    *   **Start Command**: `npm start`
+4.  **Add Environment Variables (CRITICAL)**:
     *   Go to the **Environment** tab on Render.
-    *   Add the following variables:
-        *   `MONGO_URI`: Your connection string from MongoDB Atlas.
-        *   `JWT_SECRET`: A long random string (e.g., `your_secret_key_123`).
+    *   Click **Add Environment Variable** for each of these:
+        *   `MONGO_URI`: (PASTE YOUR MONGODB ATLAS STRING HERE). **Do not use localhost!**
+        *   `JWT_SECRET`: `restaurant_super_secret_key_2024` (or any random string).
         *   `JWT_EXPIRE`: `7d`.
-        *   `OPENAI_API_KEY`: Your OpenAI API key for the AI features.
-        *   `BASE_URL`: The URL Render provides for your service (e.g., `https://igans.onrender.com`).
-        *   `PORT`: `10000` (Render's default).
+        *   `BASE_URL`: `https://igansbudbodhouse.onrender.com`
+        *   `PORT`: `10000`
 5.  **Deploy**: Click **Create Web Service**. Render will now build and start your application.
+
+---
+
+### **⚠️ Fixing the 502 Bad Gateway / MongoDB Error**
+Kung nakikita mo ang error na `connect ECONNREFUSED 127.0.0.1:27017` sa logs, ibig sabihin ay hindi mo pa nailalagay ang **MongoDB Atlas URI** sa Render Dashboard.
+
+1. Pumunta sa [MongoDB Atlas](https://cloud.mongodb.com/).
+2. I-copy ang connection string (yung may `mongodb+srv://...`).
+3. Pumunta sa **Render Dashboard > Your Service > Environment**.
+4. I-edit ang `MONGO_URI` at i-paste ang string mula sa Atlas.
+5. I-save ang changes. Mag-re-restart ang server at dapat ay `✅ MongoDB Connected` na ang lumabas.
+
 
 ---
 
