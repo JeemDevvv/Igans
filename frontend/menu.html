@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/jpeg" href="css/favicon.jpg">
-<title>Menu — La Maison</title>
+<title>Menu — Igans Budbod House</title>
 <link rel="stylesheet" href="css/main.css">
 <style>
 /* ── NAVBAR ─── */
@@ -344,25 +344,26 @@
 
 <!-- Consolidated AI Chat -->
 <button class="chat-fab" id="chat-fab" onclick="toggleChat()" title="AI Food Recommendations">
-  🤖<div class="notif" id="chat-notif" style="display:none;"></div>
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+  <div class="notif" id="chat-notif" style="display:none;"></div>
 </button>
 <div class="chat-panel" id="chat-panel">
   <div class="chat-header">
-    <div class="chat-header-avatar">🤖</div>
+    <div class="chat-header-avatar">AI</div>
     <div class="chat-header-info">
-      <h4>Maison AI Assistant</h4>
+      <h4>Igans AI Assistant</h4>
       <p>Ask me for food recommendations!</p>
     </div>
     <button class="chat-close" onclick="toggleChat()">✕</button>
   </div>
   <div class="chat-messages" id="chat-messages">
     <div class="chat-bubble bot">
-      👋 Hi! I'm your AI food assistant. Tell me what you're craving and I'll find the perfect dish for you!
+      Hi! I'm your AI food assistant. Tell me what you're craving and I'll find the perfect dish for you!
       <div class="chat-suggestions">
-        <span class="chat-suggestion" onclick="sendSuggestion(this)">Something spicy 🌶️</span>
-        <span class="chat-suggestion" onclick="sendSuggestion(this)">Affordable meals 💰</span>
-        <span class="chat-suggestion" onclick="sendSuggestion(this)">Best sellers ⭐</span>
-        <span class="chat-suggestion" onclick="sendSuggestion(this)">Cold drinks 🥤</span>
+        <span class="chat-suggestion" onclick="sendSuggestion(this)">Something spicy</span>
+        <span class="chat-suggestion" onclick="sendSuggestion(this)">Affordable meals</span>
+        <span class="chat-suggestion" onclick="sendSuggestion(this)">Best sellers</span>
+        <span class="chat-suggestion" onclick="sendSuggestion(this)">Cold drinks</span>
       </div>
     </div>
   </div>
@@ -389,7 +390,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   await loadCategories();
   await loadMenu();
   renderCart();
-  setTimeout(() => { document.getElementById('chat-notif').style.display = 'block'; }, 3000);
+  setTimeout(() => { 
+    const notif = document.getElementById('chat-notif');
+    if (notif) notif.style.display = 'block'; 
+  }, 3000);
 });
 
 async function loadCategories() {
@@ -412,6 +416,7 @@ async function loadMenu(sort = '') {
     if (currentSort) url += `&sort=${currentSort}`;
     const data = await apiFetch(url);
     allItems = data.data;
+    localStorage.setItem('menu_items', JSON.stringify(allItems)); // Store for AI actions
     renderItems(allItems);
   } catch (e) {
     grid.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><h3>Could not load menu</h3><p>${e.message}</p></div>`;
@@ -532,19 +537,44 @@ function goToCheckout() {
 let chatOpen = false;
 function toggleChat() {
   chatOpen = !chatOpen;
-  document.getElementById('chat-panel').classList.toggle('open', chatOpen);
-  document.getElementById('chat-fab').innerHTML = chatOpen ? '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>' : '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>';
-  document.getElementById('chat-notif').style.display = 'none';
-  if (chatOpen) document.getElementById('chat-input').focus();
+  const panel = document.getElementById('chat-panel');
+  const fab = document.getElementById('chat-fab');
+  const notif = document.getElementById('chat-notif');
+  
+  if (panel) panel.classList.toggle('open', chatOpen);
+  if (fab) {
+    fab.innerHTML = chatOpen 
+      ? '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>' 
+      : '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>';
+    
+    // Re-append notification dot if it was removed by innerHTML
+    if (!chatOpen) {
+      const dot = document.createElement('div');
+      dot.className = 'notif';
+      dot.id = 'chat-notif';
+      dot.style.display = 'none';
+      fab.appendChild(dot);
+    }
+  }
+  if (notif) notif.style.display = 'none';
+  if (chatOpen) {
+    const input = document.getElementById('chat-input');
+    if (input) input.focus();
+  }
 }
 
+let isChatLoading = false;
 async function sendChat() {
+  if (isChatLoading) return;
   const input = document.getElementById('chat-input');
   const msg = input.value.trim();
   if (!msg) return;
+  
+  isChatLoading = true;
   appendMessage(msg, 'user');
   input.value = '';
   showTyping();
+  
   try {
     const data = await apiFetch('/ai/recommend', {
       method: 'POST',
@@ -553,13 +583,30 @@ async function sendChat() {
     removeTyping();
     const formatted = (data.reply || 'Here are my suggestions!').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
     appendMessage(formatted, 'bot', true);
+
+    // Handle AI Actions (Auto Add to Cart)
+    if (data.action && data.action.type === 'ADD_TO_CART') {
+      const itemName = data.action.payload;
+      // Find item in loaded menu to get ID and other details
+      const allItems = JSON.parse(localStorage.getItem('menu_items') || '[]');
+      const item = allItems.find(i => i.name.toLowerCase() === itemName.toLowerCase());
+      if (item) {
+        addItemFromChat(item._id, item.name, item.price, item.image);
+      }
+    }
+
     if (data.items?.length > 0) {
       const suggs = data.items.slice(0,3).map(i =>
         `<span class="chat-suggestion" onclick="addItemFromChat('${i._id}','${i.name}',${i.price},'${i.image||''}')">+ Add ${i.name} ₱${i.price}</span>`
       ).join('');
       appendHTML(`<div class="chat-suggestions">${suggs}</div>`);
     }
-  } catch (e) { removeTyping(); appendMessage('Sorry, I had trouble connecting. Please try again!', 'bot', true); }
+  } catch (e) { 
+    removeTyping(); 
+    appendMessage('Sorry, I had trouble connecting. Please try again!', 'bot', true); 
+  } finally {
+    isChatLoading = false;
+  }
 }
 
 function sendSuggestion(el) { document.getElementById('chat-input').value = el.textContent; sendChat(); }

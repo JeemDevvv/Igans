@@ -148,7 +148,7 @@
       if (!w) { alert('Popup blocked! Please allow popups for this site.'); return; }
       const html = '\x3Chtml\x3E\x3Chead\x3E\x3Ctitle\x3ETable ' + selectedQr.tableNumber + ' QR\x3C/title\x3E' +
         '\x3Cstyle\x3Ebody{text-align:center;font-family:Georgia,serif;padding:40px;}h1{font-size:2rem;color:#C8440A;}p{color:#888;margin-top:8px;}\x3C/style\x3E\x3C/head\x3E' +
-        '\x3Cbody\x3E\x3Ch1\x3ELa Maison\x3C/h1\x3E\x3Cp\x3ETable ' + selectedQr.tableNumber + '\x3C/p\x3E' +
+        '\x3Cbody\x3E\x3Ch1\x3EIgans\x3C/h1\x3E\x3Cp\x3ETable ' + selectedQr.tableNumber + '\x3C/p\x3E' +
         '\x3Cimg src="' + selectedQr.qrCodeImage + '" style="width:250px;height:250px;margin:20px 0;"\x3E\x3Cbr\x3E' +
         '\x3Cp style="font-size:0.8rem;word-break:break-all;"\x3E' + selectedQr.qrCodeValue + '\x3C/p\x3E' +
         '\x3Cscript\x3Ewindow.onload = function() { window.print(); };\x3C/script\x3E\x3C/body\x3E\x3C/html\x3E';
@@ -172,7 +172,7 @@
       for (let i = 0; i < tables.length; i++) {
         const t = tables[i];
         cards += '\x3Cdiv style="display:inline-block;text-align:center;padding:24px;border:1px solid #ddd;border-radius:12px;margin:12px;width:200px;"\x3E' +
-          '\x3Ch2 style="font-size:1.3rem;color:#C8440A;margin-bottom:4px;"\x3ELa Maison\x3C/h2\x3E' +
+          '\x3Ch2 style="font-size:1.3rem;color:#C8440A;margin-bottom:4px;"\x3EIgans\x3C/h2\x3E' +
           '\x3Cp style="font-size:0.85rem;color:#888;margin-bottom:12px;"\x3ETable ' + t.tableNumber + ' - Capacity: ' + t.capacity + '\x3C/p\x3E' +
           '\x3Cimg src="' + t.qrCodeImage + '" style="width:160px;height:160px;"\x3E' +
           '\x3Cp style="font-size:0.65rem;color:#aaa;margin-top:8px;word-break:break-all;"\x3E' + t.qrCodeValue + '\x3C/p\x3E' +

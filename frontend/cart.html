@@ -140,16 +140,13 @@ function renderItems(cart) {
 function renderSummary(cart) {
   const orderType = Session.getOrderType() || 'dine-in';
   const tableNum = Session.getTable();
-  const subtotal = Cart.total();
-  const tax = subtotal * 0.12;
-  const total = subtotal + tax;
+  const total = Cart.total();
 
   document.getElementById('order-info').innerHTML = `
     <div class="info-chip">🪑 ${orderType === 'dine-in' ? `Dine-In ${tableNum ? '— Table ' + tableNum : ''}` : 'Take-Out'}</div>`;
 
   document.getElementById('price-breakdown').innerHTML = `
-    <div class="summary-row"><span>Subtotal (${Cart.count()} items)</span><span>${formatCurrency(subtotal)}</span></div>
-    <div class="summary-row"><span>VAT (12%)</span><span>${formatCurrency(tax)}</span></div>
+    <div class="summary-row"><span>Items (${Cart.count()})</span><span>${formatCurrency(total)}</span></div>
     <div class="summary-row total"><span>Total</span><span>${formatCurrency(total)}</span></div>`;
 }
 
@@ -173,8 +170,7 @@ async function placeOrder() {
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span> Placing order...';
 
-  const subtotal = Cart.total();
-  const total = subtotal * 1.12;
+  const total = Cart.total();
   const items = cart.map(i => ({ menuItem: i._id, name: i.name, price: i.price, quantity: i.quantity, image: i.image || '' }));
 
   try {

@@ -34,8 +34,11 @@ app.use('/api/admin',    require('./routes/admin.routes'));
 // Health check
 app.get('/api/health', (req, res) => res.json({ status: 'ok', time: new Date() }));
 
-// Catch-all: serve frontend
-// ...existing code...
+// Catch-all: serve index.html for any other frontend routes (for SPA behavior if needed)
+// Or just handle 404s by serving a friendly message
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/index.html'));
+});
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

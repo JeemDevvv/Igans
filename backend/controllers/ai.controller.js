@@ -1,103 +1,141 @@
 const MenuItem = require('../models/MenuItem');
 const ChatLog = require('../models/ChatLog');
+const Groq = require('groq-sdk');
 
-// Rule-based AI recommendation engine
+// ── Shared Utilities for Fallback ──────────────────────────────────────────────
+const isGreeting = (msg) => {
+  const m = msg.toLowerCase().trim();
+  const greetings = ['hi', 'hello', 'hey', 'good morning', 'good afternoon', 'good evening', 'kumusta', 'kamusta', 'yo', 'sup'];
+  return greetings.some(g => m === g || m.startsWith(g + ' '));
+};
+
 const parseIntent = (msg) => {
   const m = msg.toLowerCase();
   const intent = {};
-  if (/spicy|hot|chili|spice/i.test(m)) intent.spicy = true;
-  if (/cheap|affordable|budget|inexpensive|low.?price/i.test(m)) intent.affordable = true;
-  if (/expensive|premium|luxury|best/i.test(m)) intent.premium = true;
-  if (/drink|beverage|juice|coffee|tea|soda/i.test(m)) intent.categoryHint = 'drinks';
-  if (/snack|light|small|appetizer|starter/i.test(m)) intent.categoryHint = 'snacks';
-  if (/dessert|sweet|cake|ice cream|pastry/i.test(m)) intent.categoryHint = 'desserts';
-  if (/full.?meal|main|rice|pasta|heavy|lunch|dinner/i.test(m)) intent.categoryHint = 'main course';
-  if (/vegan|vegetarian|plant.?based/i.test(m)) intent.vegan = true;
-  if (/halal/i.test(m)) intent.halal = true;
-  if (/seafood|fish|shrimp|crab/i.test(m)) intent.seafood = true;
-  if (/chicken|poultry/i.test(m)) intent.chicken = true;
-  if (/beef|steak|pork/i.test(m)) intent.meat = true;
-  if (/popular|bestseller|best.?seller|trending/i.test(m)) intent.popular = true;
-  if (/featured|special|today|recommend/i.test(m)) intent.featured = true;
+  if (/spicy|maanghang|hot/i.test(m)) intent.spicy = true;
+  if (/cheap|affordable|budget|mura|sulit/i.test(m)) intent.affordable = true;
+  if (/drink|juice|shake|cold/i.test(m)) intent.categoryHint = 'drinks';
+  if (/rice|meal|lunch|dinner|busog/i.test(m)) intent.categoryHint = 'main course';
+  if (/chicken|manok/i.test(m)) intent.chicken = true;
+  if (/beef|pork|meat/i.test(m)) intent.meat = true;
   return intent;
 };
 
-const buildQuery = async (intent) => {
-  const { Category } = require('../models/Category');
-  let query = { available: true };
-  const tags = [];
-  if (intent.spicy) tags.push('spicy');
-  if (intent.vegan) tags.push('vegan');
-  if (intent.halal) tags.push('halal');
-  if (intent.seafood) tags.push('seafood');
-  if (intent.chicken) tags.push('chicken');
-  if (intent.meat) tags.push('meat');
-  if (tags.length > 0) query.tags = { $in: tags };
-  if (intent.affordable) query.price = { $lte: 200 };
-  if (intent.premium) query.price = { $gte: 300 };
-  if (intent.popular) query.isBestSeller = true;
-  if (intent.featured) query.isFeatured = true;
-  if (intent.categoryHint) {
-    const cat = await require('../models/Category').findOne({ name: { $regex: intent.categoryHint, $options: 'i' } });
-    if (cat) query.category = cat._id;
+const formatFallbackResponse = (items, intent, message) => {
+  if (isGreeting(message)) {
+    return "Hello! I'm your Igans AI Assistant. I can help you find the best Budbod meals! What are you craving today? 🍛";
   }
-  return query;
-};
-
-const formatResponse = (items, intent) => {
+  
   if (items.length === 0) {
-    return "I couldn't find a perfect match, but here's what I suggest: try browsing our **Main Course** or **Featured** items — there's something for everyone! 🍽️";
+    return "I couldn't find a perfect match, but you should definitely try our signature Budbod meals! They're our best sellers! 🍽️";
   }
-  const intros = [
-    "Great choice of vibe! Here are my top picks for you:",
-    "Based on what you're looking for, I'd recommend:",
-    "You've got great taste! Check these out:",
-    "Perfect! Here's what I think you'll love:"
-  ];
-  const intro = intros[Math.floor(Math.random() * intros.length)];
-  const list = items.slice(0, 4).map(i =>
-    `🍴 **${i.name}** — ₱${i.price}\n   ${i.description || 'A delicious choice!'}`
-  ).join('\n\n');
-  let tip = '';
-  if (intent.spicy) tip = '\n\n🌶️ Tip: All these dishes have a spicy kick — perfect for heat lovers!';
-  if (intent.affordable) tip = '\n\n💰 Tip: These are all budget-friendly options without sacrificing taste!';
-  return `${intro}\n\n${list}${tip}`;
+
+  const list = items.slice(0, 3).map(i => `🍴 **${i.name}** — ₱${i.price}\n   ${i.description || 'A delicious choice!'}`).join('\n\n');
+  return "I'm having a bit of trouble connecting to my cloud brain, but here are some top recommendations from our menu: \n\n" + list;
 };
 
+// ── Main Recommendation Handler (GROQ) ──────────────────────────────────────────
 exports.recommend = async (req, res) => {
+  const { message, sessionId } = req.body;
+  if (!message) return res.status(400).json({ success: false, msg: 'Message required' });
+
+  let reply = "";
+  let success = false;
+
   try {
-    const { message, sessionId } = req.body;
-    if (!message) return res.status(400).json({ success: false, msg: 'Message required' });
+    // 1. Try Groq AI First
+    if (process.env.GROQ_API_KEY && process.env.GROQ_API_KEY.startsWith('gsk_')) {
+      const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+      
+      const menu = await MenuItem.find({ available: true }).limit(15);
+      const menuContext = menu.map(i => `- ${i.name} (₱${i.price}): ${i.description}`).join('\n');
 
+      // Fetch last few messages for context to prevent repetitive greetings
+      let historyMessages = [];
+      if (sessionId) {
+        const log = await ChatLog.findOne({ sessionId });
+        if (log && log.messages) {
+          historyMessages = log.messages.slice(-6).map(m => ({
+            role: m.role === 'assistant' ? 'assistant' : 'user',
+            content: m.content
+          }));
+        }
+      }
+
+      const chatCompletion = await groq.chat.completions.create({
+        messages: [
+          {
+            role: "system",
+            content: `You are the friendly AI for "Igan's Budbod House".
+            Help customers choose from this menu:
+            ${menuContext}
+            
+            Instructions:
+            - Keep it friendly, short, and appetizing. Respond in Taglish or English.
+            - COMMAND RULE: Only include [COMMAND:ADD_TO_CART:ITEM_NAME] if the user is CLEARLY asking to add a new item for the first time in this conversation.
+            - DO NOT repeat the command if the user is just saying "Yes", "Sige", or confirming.
+            - NEVER include more than one command tag in a single response.
+            - If the user says "No", "None", "Ayoko na", or "Ayoko yan", STOP offering food immediately and acknowledge.
+            - Do NOT be pushy. Suggest max 1-2 items only when highly relevant.`
+          },
+          ...historyMessages,
+          {
+            role: "user",
+            content: message
+          }
+        ],
+        model: "llama-3.3-70b-versatile",
+        temperature: 0.6,
+        max_tokens: 350,
+      });
+
+      const fullReply = chatCompletion.choices[0]?.message?.content || "";
+      
+      // Parse command if exists
+      let action = null;
+      let finalReply = fullReply;
+      
+      // Use global regex to find ALL commands but only process the first one
+      const allMatches = [...fullReply.matchAll(/\[COMMAND:(.+?):(.+?)\]/g)];
+      if (allMatches.length > 0) {
+        // Take only the first command
+        const firstMatch = allMatches[0];
+        action = { type: firstMatch[1], payload: firstMatch[2] };
+        
+        // Remove ALL [COMMAND:...] tags from the reply before showing to user/saving to history
+        finalReply = fullReply.replace(/\[COMMAND:.+?\]/g, '').trim();
+      }
+
+      reply = finalReply;
+      res.json({ success: true, reply, action });
+      success = true;
+    }
+  } catch (err) {
+    console.warn(`Groq API Issue: ${err.message}. Falling back to local logic.`);
+  }
+
+  // 2. FALLBACK: Use local logic if Groq fails
+  if (!success) {
     const intent = parseIntent(message);
-    const query = await buildQuery(intent);
-    const items = await MenuItem.find(query).populate('category').limit(6);
+    const items = await MenuItem.find({ available: true }).limit(3);
+    reply = formatFallbackResponse(items, intent, message);
+    res.json({ success: true, reply });
+  }
 
-    // If no results with strict query, fall back to general popular items
-    const finalItems = items.length > 0 ? items : await MenuItem.find({ available: true, isBestSeller: true }).populate('category').limit(4);
-    const reply = formatResponse(finalItems, intent);
-
-    // Save chat log
-    if (sessionId) {
+  // 3. Save chat log (using final clean reply)
+  if (sessionId && reply) {
+    try {
       let log = await ChatLog.findOne({ sessionId });
       if (!log) log = new ChatLog({ sessionId, messages: [] });
-      log.messages.push({ role: 'user', content: message });
-      log.messages.push({ role: 'assistant', content: reply });
+      log.messages.push({ role: 'user', content: message }, { role: 'assistant', content: reply });
       await log.save();
-    }
-
-    res.json({ success: true, reply, items: finalItems });
-  } catch (err) {
-    res.status(500).json({ success: false, msg: err.message });
+    } catch (e) {}
   }
 };
 
 exports.getHistory = async (req, res) => {
   try {
-    const { sessionId } = req.params;
-    const log = await ChatLog.findOne({ sessionId });
+    const log = await ChatLog.findOne({ sessionId: req.params.sessionId });
     res.json({ success: true, messages: log ? log.messages : [] });
-  } catch (err) {
-    res.status(500).json({ success: false, msg: err.message });
-  }
+  } catch (err) { res.status(500).json({ success: false, msg: err.message }); }
 };
