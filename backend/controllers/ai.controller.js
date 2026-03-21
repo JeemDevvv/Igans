@@ -44,8 +44,9 @@ exports.recommend = async (req, res) => {
 
   try {
     // 1. Try Groq AI First
-    if (process.env.GROQ_API_KEY && process.env.GROQ_API_KEY.startsWith('gsk_')) {
-      const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+    const apiKey = process.env.GROQ_API_KEY;
+    if (apiKey && apiKey.startsWith('gsk_')) {
+      const groq = new Groq({ apiKey });
       
       const menu = await MenuItem.find({ available: true }).limit(15);
       const menuContext = menu.map(i => `- ${i.name} (₱${i.price}): ${i.description}`).join('\n');
@@ -72,8 +73,9 @@ exports.recommend = async (req, res) => {
             
             Instructions:
             - Keep it friendly, short, and appetizing. Respond in Taglish or English.
-            - COMMAND RULE: Only include [COMMAND:ADD_TO_CART:ITEM_NAME] if the user is CLEARLY asking to add a new item for the first time in this conversation.
-            - DO NOT repeat the command if the user is just saying "Yes", "Sige", or confirming.
+            - COMMAND RULE: Only include [COMMAND:ADD_TO_CART:ITEM_NAME] if the user is CLEARLY and EXPLICITLY asking to purchase or add the item (e.g., "order", "add to cart", "bilhin ko yan", "paki add").
+            - DO NOT include the command if the user is just asking for information, calories, or an introduction.
+            - DO NOT repeat the command if the user is just saying "Yes", "Sige", or confirming a previous action.
             - NEVER include more than one command tag in a single response.
             - If the user says "No", "None", "Ayoko na", or "Ayoko yan", STOP offering food immediately and acknowledge.
             - Do NOT be pushy. Suggest max 1-2 items only when highly relevant.`
@@ -109,17 +111,36 @@ exports.recommend = async (req, res) => {
       reply = finalReply;
       res.json({ success: true, reply, action });
       success = true;
+    } else {
+      console.warn("AI Warning: GROQ_API_KEY is missing or invalid in environment.");
     }
   } catch (err) {
-    console.warn(`Groq API Issue: ${err.message}. Falling back to local logic.`);
+    console.error(`AI Error (Groq API): ${err.message}`);
   }
 
   // 2. FALLBACK: Use local logic if Groq fails
   if (!success) {
     const intent = parseIntent(message);
-    const items = await MenuItem.find({ available: true }).limit(3);
-    reply = formatFallbackResponse(items, intent, message);
-    res.json({ success: true, reply });
+    const allAvailableItems = await MenuItem.find({ available: true });
+    
+    // Simple name matching for fallback ordering
+    let action = null;
+    const lowerMsg = message.toLowerCase();
+    const matchedItem = allAvailableItems.find(i => 
+      lowerMsg.includes(i.name.toLowerCase()) || 
+      (i.description && lowerMsg.includes(i.description.toLowerCase()))
+    );
+
+    // Use regex for more specific keyword matching in fallback
+    const buyRegex = /\b(order|add|bilhin|paki|pabili|take)\b/i;
+    if (matchedItem && buyRegex.test(lowerMsg)) {
+      action = { type: 'ADD_TO_CART', payload: matchedItem.name };
+      reply = `I've added **${matchedItem.name}** to your cart! 🛒 Is there anything else you'd like to try?`;
+    } else {
+      reply = formatFallbackResponse(allAvailableItems.slice(0, 3), intent, message);
+    }
+    
+    res.json({ success: true, reply, action });
   }
 
   // 3. Save chat log (using final clean reply)
