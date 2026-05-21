@@ -2,7 +2,7 @@ const MenuItem = require('../models/MenuItem');
 const ChatLog = require('../models/ChatLog');
 const Groq = require('groq-sdk');
 
-// ── Shared Utilities for Fallback ──────────────────────────────────────────────
+
 const isGreeting = (msg) => {
   const m = msg.toLowerCase().trim();
   const greetings = ['hi', 'hello', 'hey', 'good morning', 'good afternoon', 'good evening', 'kumusta', 'kamusta', 'yo', 'sup'];
@@ -34,51 +34,102 @@ const formatFallbackResponse = (items, intent, message) => {
   return "I'm having a bit of trouble connecting to my cloud brain, but here are some top recommendations from our menu: \n\n" + list;
 };
 
-// ── Main Recommendation Handler (GROQ) ──────────────────────────────────────────
+
 exports.recommend = async (req, res) => {
-  const { message, sessionId } = req.body;
+  const { message, sessionId, cart, cartTotal } = req.body;
+  console.log("AI Request received:", { message, cart, cartTotal }); // Log request
   if (!message) return res.status(400).json({ success: false, msg: 'Message required' });
 
   let reply = "";
   let success = false;
+  
+  let log = null;
+  let lastAddedItem = null;
+  
+  // Check for cart-related queries (more specific)
+  const lowerMsg = message.toLowerCase();
+  
+  // Check if message is actually about the cart, not just containing keywords
+  const isCartRelated = 
+    /(my|the|cart|my cart|the cart)/i.test(lowerMsg) ||
+    /(how much (is|are|total)|what(')?s? the total|total (cost|price)|how many (items|orders)|what(')?s? in (my|the) cart|ano (nasa|sa) (cart|aking cart)|meron (ba)? sa (cart|aking cart)|ilan (nasa|sa) (cart|aking cart))/i.test(lowerMsg);
+  
+  if (isCartRelated && cart && cart.length > 0) {
+    const cartList = cart.map(item => `- ${item.name} (₱${item.price}) × ${item.quantity}`).join('\n');
+    reply = `Here's what's in your cart:\n\n${cartList}\n\nTotal: **₱${parseFloat(cartTotal).toFixed(2)}** 😊`;
+    res.json({ success: true, reply, action: null });
+    
+    // Save to chat log
+    if (sessionId) {
+      try {
+        if (!log) log = new ChatLog({ sessionId, messages: [] });
+        log.messages.push({ role: 'user', content: message }, { role: 'assistant', content: reply });
+        await log.save();
+      } catch (e) {}
+    }
+    return;
+  } else if (isCartRelated && (!cart || cart.length === 0)) {
+    reply = "Your cart is still empty! You haven't ordered anything yet. What can I help you with? Would you like to try our best-seller, Chicken Adobo, or something else?";
+    res.json({ success: true, reply, action: null });
+    
+    // Save to chat log
+    if (sessionId) {
+      try {
+        if (!log) log = new ChatLog({ sessionId, messages: [] });
+        log.messages.push({ role: 'user', content: message }, { role: 'assistant', content: reply });
+        await log.save();
+      } catch (e) {}
+    }
+    return;
+  }
+  
+  if (sessionId) {
+    log = await ChatLog.findOne({ sessionId });
+    if (log && log.lastAddedItem) {
+      lastAddedItem = log.lastAddedItem;
+    }
+  }
 
   try {
-    // 1. Try Groq AI First
     const apiKey = process.env.GROQ_API_KEY;
     if (apiKey && apiKey.startsWith('gsk_')) {
       const groq = new Groq({ apiKey });
       
-      const menu = await MenuItem.find({ available: true }).limit(15);
-      const menuContext = menu.map(i => `- ${i.name} (₱${i.price}): ${i.description}`).join('\n');
+      const menu = await MenuItem.find({ available: true });
+      const menuContext = menu.map(i => `- ${i.name} (₱${i.price}): ${i.description || 'Delicious Filipino dish'}`).join('\n');
 
-      // Fetch last few messages for context to prevent repetitive greetings
       let historyMessages = [];
-      if (sessionId) {
-        const log = await ChatLog.findOne({ sessionId });
-        if (log && log.messages) {
-          historyMessages = log.messages.slice(-6).map(m => ({
-            role: m.role === 'assistant' ? 'assistant' : 'user',
-            content: m.content
-          }));
-        }
+      if (log && log.messages) {
+        historyMessages = log.messages.slice(-6).map(m => ({
+          role: m.role === 'assistant' ? 'assistant' : 'user',
+          content: m.content
+        }));
       }
 
+      let systemContent = `You are the friendly AI for "Igan's Budbod House".
+      Help customers choose from this menu:
+      ${menuContext}`;
+      
+      if (cart && cart.length > 0) {
+        const cartList = cart.map(item => `- ${item.name} (₱${item.price}) × ${item.quantity}`).join('\n');
+        systemContent += `\n\nCURRENT CUSTOMER CART:\n${cartList}\nTotal: ₱${parseFloat(cartTotal).toFixed(2)}`;
+      }
+      
+      systemContent += `\n\nVERY IMPORTANT RULES:
+            - Keep it friendly, short, and appetizing. Respond in Taglish or English.
+            - ONLY use [COMMAND:ADD_TO_CART:ITEM_NAME] if the user is EXPLICITLY asking to ORDER/ADD an item (e.g., "I'll take that", "Order it", "Add to cart", "Bilhin ko yan", "Add mo").
+            - NEVER use the command if the user is just: asking questions, saying "yes"/"sige" to confirm, saying "thank you"/"that's all", or just chatting.
+            - NEVER repeat the command for the same item more than once.
+            - If the user says "That's all", "Thank you", "Okay na", or similar, just respond warmly and don't offer anything else.
+            - If you recommended an item and the user says "Yes, please", just respond positively WITHOUT using the ADD_TO_CART command.
+            - NEVER include more than one command tag in a single response.
+            - If the user asks about their cart, tell them exactly what's in it and the total.`;
+      
       const chatCompletion = await groq.chat.completions.create({
         messages: [
           {
             role: "system",
-            content: `You are the friendly AI for "Igan's Budbod House".
-            Help customers choose from this menu:
-            ${menuContext}
-            
-            Instructions:
-            - Keep it friendly, short, and appetizing. Respond in Taglish or English.
-            - COMMAND RULE: Only include [COMMAND:ADD_TO_CART:ITEM_NAME] if the user is CLEARLY and EXPLICITLY asking to purchase or add the item (e.g., "order", "add to cart", "bilhin ko yan", "paki add").
-            - DO NOT include the command if the user is just asking for information, calories, or an introduction.
-            - DO NOT repeat the command if the user is just saying "Yes", "Sige", or confirming a previous action.
-            - NEVER include more than one command tag in a single response.
-            - If the user says "No", "None", "Ayoko na", or "Ayoko yan", STOP offering food immediately and acknowledge.
-            - Do NOT be pushy. Suggest max 1-2 items only when highly relevant.`
+            content: systemContent
           },
           ...historyMessages,
           {
@@ -87,28 +138,37 @@ exports.recommend = async (req, res) => {
           }
         ],
         model: "llama-3.3-70b-versatile",
-        temperature: 0.6,
-        max_tokens: 350,
+        temperature: 0.5,
+        max_tokens: 300,
       });
 
       const fullReply = chatCompletion.choices[0]?.message?.content || "";
       
-      // Parse command if exists
       let action = null;
       let finalReply = fullReply;
-      
-      // Use global regex to find ALL commands but only process the first one
+
       const allMatches = [...fullReply.matchAll(/\[COMMAND:(.+?):(.+?)\]/g)];
       if (allMatches.length > 0) {
-        // Take only the first command
         const firstMatch = allMatches[0];
-        action = { type: firstMatch[1], payload: firstMatch[2] };
+        const itemName = firstMatch[2].trim();
         
-        // Remove ALL [COMMAND:...] tags from the reply before showing to user/saving to history
+        // Check if item was already added recently
+        if (lastAddedItem && lastAddedItem.toLowerCase() === itemName.toLowerCase()) {
+          action = null; // Don't add again
+        } else {
+          action = { type: firstMatch[1], payload: itemName };
+        }
+
         finalReply = fullReply.replace(/\[COMMAND:.+?\]/g, '').trim();
       }
 
       reply = finalReply;
+      
+      // Save last added item to log
+      if (action && action.type === 'ADD_TO_CART') {
+        lastAddedItem = action.payload;
+      }
+      
       res.json({ success: true, reply, action });
       success = true;
     } else {
@@ -118,12 +178,11 @@ exports.recommend = async (req, res) => {
     console.error(`AI Error (Groq API): ${err.message}`);
   }
 
-  // 2. FALLBACK: Use local logic if Groq fails
+
   if (!success) {
     const intent = parseIntent(message);
     const allAvailableItems = await MenuItem.find({ available: true });
     
-    // Simple name matching for fallback ordering
     let action = null;
     const lowerMsg = message.toLowerCase();
     const matchedItem = allAvailableItems.find(i => 
@@ -131,24 +190,48 @@ exports.recommend = async (req, res) => {
       (i.description && lowerMsg.includes(i.description.toLowerCase()))
     );
 
-    // Use regex for more specific keyword matching in fallback
-    const buyRegex = /\b(order|add|bilhin|paki|pabili|take)\b/i;
-    if (matchedItem && buyRegex.test(lowerMsg)) {
-      action = { type: 'ADD_TO_CART', payload: matchedItem.name };
-      reply = `I've added **${matchedItem.name}** to your cart! 🛒 Is there anything else you'd like to try?`;
+    const buyRegex = /\b(order|add|bilhin|paki|pabili|take|i'll take|ill take)\b/i;
+    const checkIfHaveRegex = /\b(do you have|meron ba|mayroon|have you got)\b/i;
+    const confirmationRegex = /\b(yes|sige|okay|ok|sure|go ahead|please)\b/i;
+    const doneRegex = /\b(thank you|thanks|that's all|thats all|okay na|tama na|salamat)\b/i;
+    
+    if (doneRegex.test(lowerMsg)) {
+      reply = "You're welcome! Enjoy your meal! 🍽️";
+      res.json({ success: true, reply, action: null });
+    } else if (confirmationRegex.test(lowerMsg)) {
+      reply = "Great! Let me know if you'd like anything else! 😊";
+      res.json({ success: true, reply, action: null });
+    } else if (checkIfHaveRegex.test(lowerMsg) && matchedItem) {
+      reply = `Yes! We have **${matchedItem.name}**! It costs ₱${matchedItem.price}. ${matchedItem.description ? matchedItem.description : 'Would you like to try it?'} 🍹`;
+      res.json({ success: true, reply, items: [matchedItem] });
+    } else if (checkIfHaveRegex.test(lowerMsg) && !matchedItem) {
+      reply = "Sorry, we don't have that on our menu. But we have a variety of delicious Filipino dishes to choose from! Would you like me to recommend something?";
+      res.json({ success: true, reply, items: allAvailableItems.slice(0, 3) });
+    } else if (matchedItem && buyRegex.test(lowerMsg)) {
+      // Check if already added
+      if (lastAddedItem && lastAddedItem.toLowerCase() === matchedItem.name.toLowerCase()) {
+        reply = `${matchedItem.name} is already in your cart! 😊 Is there anything else you'd like?`;
+        res.json({ success: true, reply, action: null });
+      } else {
+        action = { type: 'ADD_TO_CART', payload: matchedItem.name };
+        lastAddedItem = matchedItem.name;
+        reply = `I've added **${matchedItem.name}** to your cart! 🛒 Is there anything else you'd like to try?`;
+        res.json({ success: true, reply, action });
+      }
     } else {
       reply = formatFallbackResponse(allAvailableItems.slice(0, 3), intent, message);
+      res.json({ success: true, reply, action: null });
     }
-    
-    res.json({ success: true, reply, action });
   }
 
-  // 3. Save chat log (using final clean reply)
+
   if (sessionId && reply) {
     try {
-      let log = await ChatLog.findOne({ sessionId });
       if (!log) log = new ChatLog({ sessionId, messages: [] });
       log.messages.push({ role: 'user', content: message }, { role: 'assistant', content: reply });
+      if (lastAddedItem) {
+        log.lastAddedItem = lastAddedItem;
+      }
       await log.save();
     } catch (e) {}
   }

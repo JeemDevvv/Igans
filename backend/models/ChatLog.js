@@ -7,6 +7,7 @@ const ChatLogSchema = new mongoose.Schema({
     content: { type: String },
     timestamp: { type: Date, default: Date.now }
   }],
+  lastAddedItem: { type: String },
   createdAt: { type: Date, default: Date.now }
 });
 

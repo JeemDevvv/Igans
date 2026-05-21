@@ -76,23 +76,42 @@ const Cart = {
   get: () => Session.getCart(),
   add: (item) => {
     const cart = Session.getCart();
-    const existing = cart.find(c => c._id === item._id);
+    // Create a unique key for the cart item: _id + name (since name includes size)
+    const itemKey = `${item._id}-${item.name}`;
+    const existing = cart.find(c => `${c._id}-${c.name}` === itemKey);
     if (existing) existing.quantity++;
     else cart.push({ ...item, quantity: 1 });
     Session.setCart(cart);
     Cart.updateBadge();
     return cart;
   },
-  remove: (id) => {
-    const cart = Session.getCart().filter(c => c._id !== id);
+  remove: (id, name) => {
+    let cart = Session.getCart();
+    if (name) {
+      const itemKey = `${id}-${name}`;
+      cart = cart.filter(c => `${c._id}-${c.name}` !== itemKey);
+    } else {
+      cart = cart.filter(c => c._id !== id);
+    }
     Session.setCart(cart);
     Cart.updateBadge();
     return cart;
   },
-  updateQty: (id, qty) => {
+  updateQty: (id, qty, name) => {
     const cart = Session.getCart();
-    const item = cart.find(c => c._id === id);
-    if (item) { if (qty <= 0) return Cart.remove(id); item.quantity = qty; }
+    let item;
+    if (name) {
+      const itemKey = `${id}-${name}`;
+      item = cart.find(c => `${c._id}-${c.name}` === itemKey);
+    } else {
+      item = cart.find(c => c._id === id);
+    }
+    if (item) { 
+      if (qty <= 0) {
+        return Cart.remove(id, name); 
+      }
+      item.quantity = qty; 
+    }
     Session.setCart(cart);
     Cart.updateBadge();
     return cart;
@@ -100,6 +119,14 @@ const Cart = {
   clear: () => { Session.setCart([]); Cart.updateBadge(); },
   total: () => Session.getCart().reduce((s, i) => s + i.price * i.quantity, 0),
   count: () => Session.getCart().reduce((s, i) => s + i.quantity, 0),
+  has: (id, name) => {
+    const cart = Session.getCart();
+    if (name) {
+      const itemKey = `${id}-${name}`;
+      return !!cart.find(c => `${c._id}-${c.name}` === itemKey);
+    }
+    return !!cart.find(c => c._id === id);
+  },
   updateBadge: () => {
     const badge = document.getElementById('cart-badge');
     if (badge) { const n = Cart.count(); badge.textContent = n; badge.style.display = n > 0 ? 'flex' : 'none'; }
@@ -130,12 +157,8 @@ function renderNavUser() {
   if (!user) return;
   const el = document.getElementById('nav-user');
   if (el) {
-    const isGuest = user.isGuest;
-    const initials = isGuest ? 'GC' : user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
     el.innerHTML = `<div class="navbar-user">
-      <div class="navbar-user-avatar">${initials}</div>
-      <span class="hide-mobile">${isGuest ? 'Guest Customer' : user.name}</span>
-      <span class="badge badge-primary" style="font-size:0.7rem;">${user.role}</span>
+      <span class="badge badge-primary" style="font-size:0.7rem;opacity:0.8;">${user.role.toUpperCase()}</span>
     </div>`;
   }
 }

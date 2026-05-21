@@ -27,17 +27,23 @@ app.use('/api/auth',     require('./routes/auth.routes'));
 app.use('/api/menu',     require('./routes/menu.routes'));
 app.use('/api/orders',   require('./routes/order.routes'));
 app.use('/api/tables',   require('./routes/table.routes'));
+app.use('/api/publicqr', require('./routes/publicqr.routes'));
 app.use('/api/settings', require('./routes/settings.routes'));
 app.use('/api/ai',       require('./routes/ai.routes'));
 app.use('/api/admin',    require('./routes/admin.routes'));
+app.use('/api/reviews',  require('./routes/review.routes'));
 
 // Health check
 app.get('/api/health', (req, res) => res.json({ status: 'ok', time: new Date() }));
 
-// Catch-all: serve index.html for any other frontend routes (for SPA behavior if needed)
-// Or just handle 404s by serving a friendly message
+// Catch-all: serve requested file if it exists, otherwise index.html
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/index.html'));
+  const requestedFile = path.join(__dirname, '../frontend', req.path);
+  if (fs.existsSync(requestedFile) && fs.statSync(requestedFile).isFile()) {
+    res.sendFile(requestedFile);
+  } else {
+    res.sendFile(path.join(__dirname, '../frontend/index.html'));
+  }
 });
 
 const PORT = process.env.PORT || 5000;

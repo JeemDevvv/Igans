@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/jpeg" href="css/favicon.jpg">
 <title>Order Status — Igans</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <link rel="stylesheet" href="css/main.css">
 <style>
 /* Use global background from main.css */
@@ -67,14 +68,59 @@
   .timer-display { padding: 16px; }
   .timer-value { font-size: 1.8rem; }
   .action-bar { flex-direction: column; }
+  .navbar { flex-wrap: wrap; gap: 8px; }
+  .navbar-brand { font-size: 1rem; }
+  .navbar-actions { gap: 6px; }
+}
+
+/* ── E-RECEIPT MODAL ─── */
+.receipt-modal {
+  background: white;
+  color: #333;
+  width: 380px;
+  max-width: 95vw;
+  padding: 30px;
+  font-family: 'Courier New', Courier, monospace;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+  border-radius: 4px;
+}
+.receipt-header { text-align: center; border-bottom: 1px dashed #ccc; padding-bottom: 15px; margin-bottom: 15px; }
+.receipt-header h2 { margin: 0; font-size: 1.4rem; color: #1C1008; }
+.receipt-info { font-size: 0.85rem; line-height: 1.6; margin-bottom: 15px; }
+.receipt-items { border-bottom: 1px dashed #ccc; padding-bottom: 10px; margin-bottom: 10px; }
+.receipt-item { display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 5px; }
+.receipt-total { display: flex; justify-content: space-between; font-weight: bold; font-size: 1.1rem; padding-top: 5px; }
+.receipt-footer { text-align: center; font-size: 0.75rem; color: #666; margin-top: 20px; }
+
+/* ── REVIEW FORM ─── */
+.review-card {
+  background: rgb(50, 50, 50, 1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 30px;
+  margin-top: 24px;
+  text-align: left;
+}
+.review-title { font-family: var(--font-display); font-size: 1.2rem; color: var(--accent); margin-bottom: 15px; }
+.star-rating { display: flex; gap: 8px; margin-bottom: 15px; }
+.star { font-size: 1.8rem; cursor: pointer; color: #444; transition: color 0.2s; }
+.star.active { color: var(--accent); }
+.review-textarea { width: 100%; background: rgba(0,0,0,0.2); border: 1px solid var(--border); color: white; padding: 12px; border-radius: 8px; margin-bottom: 15px; resize: none; font-family: inherit; }
+
+@media print {
+  body * { visibility: hidden; }
+  .modal-overlay.active, .receipt-modal, .receipt-modal * { visibility: visible; }
+  .receipt-modal { position: absolute; left: 0; top: 0; width: 100%; box-shadow: none; }
+  .modal-close, .receipt-actions { display: none; }
 }
 </style>
 </head>
 <body>
 <nav class="navbar">
-  <div class="navbar-brand">Igan's Budbod House</div>
+  <div class="navbar-brand" onclick="window.location.href='index.html'">Igan's Budbod House</div>
   <div class="navbar-actions">
-    <button class="btn btn-ghost btn-sm" onclick="showOrderMoreWarning()">+ New Order</button>
+    <button class="btn btn-ghost btn-sm" id="receipt-btn" style="display:none;" onclick="openReceipt()"><i class="fas fa-receipt"></i> <span class="btn-text-mobile">Receipt</span></button>
+    <button class="btn btn-ghost btn-sm" onclick="showOrderMoreWarning()">+ <span class="btn-text-mobile">Order</span></button>
     <div id="nav-user"></div>
   </div>
 </nav>
@@ -99,19 +145,19 @@
       <div class="progress-steps">
         <div class="progress-track" id="prog-track"></div>
         <div class="step" id="step-pending">
-          <div class="step-circle" id="sc-pending">📋</div>
+          <div class="step-circle" id="sc-pending"><i class="fas fa-clipboard-list"></i></div>
           <div class="step-label">Pending</div>
         </div>
         <div class="step" id="step-preparing">
-          <div class="step-circle" id="sc-preparing">👨‍🍳</div>
+          <div class="step-circle" id="sc-preparing"><i class="fa-solid fa-kitchen-set"></i></div>
           <div class="step-label">Preparing</div>
         </div>
         <div class="step" id="step-ready">
-          <div class="step-circle" id="sc-ready">✅</div>
+          <div class="step-circle" id="sc-ready"><i class="fas fa-circle-check"></i></div>
           <div class="step-label">Ready</div>
         </div>
         <div class="step" id="step-served">
-          <div class="step-circle" id="sc-served">🎉</div>
+          <div class="step-circle" id="sc-served"><i class="fa-solid fa-bell"></i></div>
           <div class="step-label">Served</div>
         </div>
       </div>
@@ -136,9 +182,73 @@
 
     <div class="action-bar">
       <button class="btn btn-outline btn-block refresh-btn" onclick="refreshOrder()">
-        <span class="refresh-icon" id="refresh-icon">↻</span> Refresh Status
+        <i class="fas fa-rotate-right"></i> Refresh Status
       </button>
       <button class="btn btn-ghost btn-block" onclick="showOrderMoreWarning()">Order More</button>
+    </div>
+
+    <!-- Customer Review Section -->
+    <div id="review-section" style="display:none;">
+      <div class="review-card">
+        <h3 class="review-title">Rate Your Experience</h3>
+        <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:15px;">How was the food and service? Let us know!</p>
+        
+        <div class="star-rating" id="star-rating">
+          <span class="star" data-rating="1"><i class="fas fa-star"></i></span>
+          <span class="star" data-rating="2"><i class="fas fa-star"></i></span>
+          <span class="star" data-rating="3"><i class="fas fa-star"></i></span>
+          <span class="star" data-rating="4"><i class="fas fa-star"></i></span>
+          <span class="star" data-rating="5"><i class="fas fa-star"></i></span>
+        </div>
+        
+        <textarea class="review-textarea" id="review-comment" rows="3" placeholder="Write your comments here... (Optional)"></textarea>
+        
+        <button class="btn btn-primary btn-block" id="submit-review-btn" onclick="submitReview()">Submit Review</button>
+      </div>
+    </div>
+
+    <div id="review-success" style="display:none;margin-top:20px;padding:20px;background:rgba(46,125,79,0.1);border:1px solid var(--success);border-radius:var(--radius);text-align:center;">
+      <div style="font-size:2rem;margin-bottom:10px;"><i class="fas fa-wand-magic-sparkles"></i></div>
+      <h4 style="color:var(--success);">Thank you for your feedback!</h4>
+    </div>
+  </div>
+</div>
+
+<!-- E-Receipt Modal -->
+<div class="modal-overlay" id="receipt-overlay">
+  <div class="receipt-modal">
+    <div style="position:relative;">
+      <button class="modal-close" onclick="closeReceipt()" style="position:absolute;top:0;right:0;"><i class="fas fa-xmark"></i></button>
+    </div>
+    
+    <div id="receipt-content">
+      <div class="receipt-header">
+        <h2>IGAN'S BUDBOD HOUSE</h2>
+        <p style="font-size:0.7rem;margin-top:5px;">Digital E-Receipt</p>
+      </div>
+      
+      <div class="receipt-info" id="receipt-info">
+        <!-- Filled by JS -->
+      </div>
+      
+      <div class="receipt-items" id="receipt-items-list">
+        <!-- Filled by JS -->
+      </div>
+      
+      <div class="receipt-total" id="receipt-total-row">
+        <!-- Filled by JS -->
+      </div>
+      
+      <div class="receipt-footer">
+        <p>Thank you for dining with us!</p>
+        <p id="receipt-date"></p>
+        <p style="margin-top:10px;font-weight:bold;">Visit us again!</p>
+      </div>
+    </div>
+
+    <div class="receipt-actions" style="margin-top:25px;display:flex;gap:10px;">
+      <button class="btn btn-primary btn-block" onclick="window.print()">Print Receipt</button>
+      <button class="btn btn-outline btn-block" onclick="closeReceipt()">Close</button>
     </div>
   </div>
 </div>
@@ -149,12 +259,107 @@ let orderId = Session.getOrderId();
 let orderCreatedAt = null;
 let currentOrderStatus = 'pending';
 let timerInterval;
+let selectedRating = 0;
+let currentOrderData = null;
 
 function showOrderMoreWarning() {
   if (currentOrderStatus === 'served' || currentOrderStatus === 'cancelled') {
     window.location.href = 'menu.html';
   } else {
-    showToast("Wait for your current order to be served before ordering another one to avoid confusion. 😊", "warning", 5000);
+    showToast("Wait for your current order to be served before ordering another one to avoid confusion. <i class=\\\"fas fa-smile\\\"></i>", "warning", 5000);
+  }
+}
+
+// ── E-RECEIPT ─────────────────────────────────────────────────────────────
+function openReceipt() {
+  if (!currentOrderData) return;
+  const o = currentOrderData;
+  
+  document.getElementById('receipt-info').innerHTML = `
+    <div>Order ID: <strong>${o.orderNumber}</strong></div>
+    <div>Date: ${new Date(o.createdAt).toLocaleDateString()}</div>
+    <div>Time: ${new Date(o.createdAt).toLocaleTimeString()}</div>
+    <div>Type: ${o.orderType.toUpperCase()}</div>
+    ${o.tableNumber ? `<div>Table: ${o.tableNumber}</div>` : ''}
+    <div>Status: ${o.status.toUpperCase()}</div>
+  `;
+
+  document.getElementById('receipt-items-list').innerHTML = o.items.map(i => `
+    <div class="receipt-item">
+      <span>${i.quantity}x ${i.name}</span>
+      <span>${formatCurrency(i.price * i.quantity)}</span>
+    </div>
+  `).join('');
+
+  document.getElementById('receipt-total-row').innerHTML = `
+    <span>TOTAL</span>
+    <span>${formatCurrency(o.totalAmount)}</span>
+  `;
+
+  document.getElementById('receipt-date').textContent = new Date().toLocaleString();
+  document.getElementById('receipt-overlay').classList.add('active');
+}
+
+function closeReceipt() {
+  document.getElementById('receipt-overlay').classList.remove('active');
+}
+
+// ── REVIEWS ──────────────────────────────────────────────────────────────
+function initStars() {
+  const stars = document.querySelectorAll('.star');
+  stars.forEach(s => {
+    s.onclick = () => {
+      selectedRating = parseInt(s.dataset.rating);
+      stars.forEach((st, i) => {
+        st.classList.toggle('active', i < selectedRating);
+      });
+    };
+  });
+}
+
+async function submitReview() {
+  if (selectedRating === 0) {
+    showToast('Please select a rating!', 'warning');
+    return;
+  }
+
+  const btn = document.getElementById('submit-review-btn');
+  btn.disabled = true;
+  btn.textContent = 'Submitting...';
+
+  try {
+    await apiFetch('/reviews', {
+      method: 'POST',
+      body: JSON.stringify({
+        orderId,
+        rating: selectedRating,
+        comment: document.getElementById('review-comment').value.trim(),
+        sessionId: Session.getSessionId()
+      })
+    });
+    
+    document.getElementById('review-section').style.display = 'none';
+    document.getElementById('review-success').style.display = 'block';
+    showToast('Thank you for your review!', 'success');
+  } catch (e) {
+    showToast(e.message, 'error');
+    btn.disabled = false;
+    btn.textContent = 'Submit Review';
+  }
+}
+
+async function checkIfReviewed() {
+  try {
+    const data = await apiFetch(`/reviews?orderId=${orderId}`);
+    // If we have a review for this order, don't show the form
+    if (data.data && data.data.some(r => r.order._id === orderId)) {
+      document.getElementById('review-section').style.display = 'none';
+    } else {
+      document.getElementById('review-section').style.display = 'block';
+    }
+  } catch (e) {
+    // If error or no review, we can show the section (unless it's a 404/403)
+    document.getElementById('review-section').style.display = 'block';
   }
 }
 
@@ -174,6 +379,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     orderId = params.get('id');
   }
   if (!orderId) { window.location.href = 'menu.html'; return; }
+  initStars();
   await loadOrder();
   setInterval(loadOrder, 12000);
 });
@@ -182,6 +388,7 @@ async function loadOrder() {
   try {
     const data = await apiFetch(`/orders/${orderId}`);
     const order = data.data;
+    currentOrderData = order;
     orderCreatedAt = order.createdAt;
     renderOrder(order);
     startTimer();
@@ -195,6 +402,14 @@ function renderOrder(order) {
   document.getElementById('loading').style.display = 'none';
   document.getElementById('order-content').style.display = 'block';
 
+  // Show receipt button if order is placed
+  document.getElementById('receipt-btn').style.display = 'inline-flex';
+
+  // Show review section if served and not yet reviewed
+  if (order.status === 'served') {
+    checkIfReviewed();
+  }
+
   document.getElementById('order-num-display').textContent = order.orderNumber;
   const cfg = STATUS_CONFIG[order.status] || STATUS_CONFIG.pending;
   document.getElementById('status-hero').innerHTML = cfg.hero;
@@ -207,7 +422,7 @@ function renderOrder(order) {
   STEPS.forEach((s, i) => {
     const circle = document.getElementById(`sc-${s}`);
     const label = document.querySelector(`#step-${s} .step-label`);
-    if (i < statusIdx) { circle.className = 'step-circle done'; circle.textContent = '✓'; label.className = 'step-label done'; }
+    if (i < statusIdx) { circle.className = 'step-circle done'; circle.innerHTML = '<i class="fas fa-circle-check"></i>'; label.className = 'step-label done'; }
     else if (i === statusIdx) { circle.className = 'step-circle active'; label.className = 'step-label active'; }
     else { circle.className = 'step-circle'; label.className = 'step-label'; }
   });

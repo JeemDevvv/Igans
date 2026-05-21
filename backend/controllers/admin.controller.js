@@ -20,23 +20,33 @@ exports.getStats = async (req, res) => {
     }));
     const topItems = Object.entries(itemMap).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([name, count]) => ({ name, count }));
 
-    // Daily sales last 7 days
+    // Daily sales for last 7 days
     const dailySales = [];
     for (let i = 6; i >= 0; i--) {
-      const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - i);
-      const next = new Date(d); next.setDate(d.getDate() + 1);
-      const dayOrders = await Order.find({ createdAt: { $gte: d, $lt: next }, status: { $ne: 'cancelled' } });
-      const revenue = dayOrders.reduce((s, o) => s + o.totalAmount, 0);
-      dailySales.push({ date: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }), revenue: parseFloat(revenue.toFixed(2)), count: dayOrders.length });
+      const dayStart = new Date(today);
+      dayStart.setDate(dayStart.getDate() - i);
+      const dayEnd = new Date(dayStart);
+      dayEnd.setDate(dayEnd.getDate() + 1);
+      
+      const dayOrders = await Order.find({ 
+        createdAt: { $gte: dayStart, $lt: dayEnd }, 
+        status: { $ne: 'cancelled' } 
+      });
+      const dayRevenue = dayOrders.reduce((s, o) => s + o.totalAmount, 0);
+      
+      dailySales.push({
+        date: dayStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        revenue: parseFloat(dayRevenue.toFixed(2))
+      });
     }
+
+    // Let's rewrite this part more cleanly for the reporting system
+    const reports = await generateGeneralReports();
 
     // Status breakdown
     const statusCounts = { pending: 0, preparing: 0, ready: 0, served: 0, cancelled: 0 };
     const allWithCancelled = await Order.find({});
     allWithCancelled.forEach(o => { if (statusCounts[o.status] !== undefined) statusCounts[o.status]++; });
-
-    const totalUsers = await User.countDocuments({ role: 'customer' });
-    const totalOrdersCount = await Order.countDocuments();
 
     res.json({
       success: true,
@@ -44,10 +54,11 @@ exports.getStats = async (req, res) => {
         todayOrders: todayOrders.length,
         todayRevenue: parseFloat(todayRevenue.toFixed(2)),
         totalRevenue: parseFloat(totalRevenue.toFixed(2)),
-        totalOrders: totalOrdersCount,
-        totalCustomers: totalUsers,
+        totalOrders: allOrders.length,
+        totalCustomers: await User.countDocuments({ role: 'customer' }),
         topItems,
         dailySales,
+        reports,
         statusCounts
       }
     });
@@ -55,6 +66,40 @@ exports.getStats = async (req, res) => {
     res.status(500).json({ success: false, msg: err.message });
   }
 };
+
+async function generateGeneralReports() {
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  
+  // Monthly for current year
+  const monthly = [];
+  for (let m = 0; m < 12; m++) {
+    const start = new Date(currentYear, m, 1);
+    const end = new Date(currentYear, m + 1, 0, 23, 59, 59);
+    const orders = await Order.find({ createdAt: { $gte: start, $lte: end }, status: 'served' });
+    monthly.push({
+      month: start.toLocaleString('default', { month: 'short' }),
+      revenue: orders.reduce((s, o) => s + o.totalAmount, 0),
+      count: orders.length
+    });
+  }
+
+  // Quarterly
+  const quarterly = [];
+  for (let q = 0; q < 4; q++) {
+    const startMonth = q * 3;
+    const start = new Date(currentYear, startMonth, 1);
+    const end = new Date(currentYear, startMonth + 3, 0, 23, 59, 59);
+    const orders = await Order.find({ createdAt: { $gte: start, $lte: end }, status: 'served' });
+    quarterly.push({
+      quarter: `Q${q + 1}`,
+      revenue: orders.reduce((s, o) => s + o.totalAmount, 0),
+      count: orders.length
+    });
+  }
+
+  return { monthly, quarterly };
+}
 
 exports.getUsers = async (req, res) => {
   try {

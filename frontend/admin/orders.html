@@ -5,12 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/jpeg" href="../css/favicon.jpg">
 <title>Orders — Admin</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <link rel="stylesheet" href="../css/main.css">
 <link rel="stylesheet" href="../css/admin.css">
 </head>
 <body>
 <div class="admin-shell">
-  <div class="mobile-nav-toggle" onclick="toggleSidebar()">☰</div>
+  <div class="mobile-nav-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></div>
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-brand">
       <div>
@@ -25,6 +26,7 @@
       <a href="users.html" class="nav-item">Users</a>
       <a href="tables.html" class="nav-item">Tables & QR</a>
       <a href="reports.html" class="nav-item">Reports</a>
+      <a href="reviews.html" class="nav-item">Reviews</a>
       <a href="settings.html" class="nav-item">Settings</a>
     </nav>
     <div class="sidebar-footer"><button class="btn btn-ghost btn-sm btn-block" onclick="logout()">Sign Out</button></div>
@@ -39,11 +41,12 @@
     <div class="admin-table-wrap" style="padding-top:24px;">
       <div class="table-toolbar">
         <div class="search-input-wrap">
-          <span>🔍</span>
+          <i class="fas fa-magnifying-glass"></i>
           <input type="text" id="search-orders" placeholder="Search order # or table..." oninput="filterOrders()">
         </div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;">
-          <select class="sort-select" id="status-filter" onchange="filterOrders()">
+        <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;">
+          <span class="filter-label">Filters:</span>
+          <select class="filter-select" id="status-filter" onchange="loadOrders()">
             <option value="">All Statuses</option>
             <option value="pending">Pending</option>
             <option value="preparing">Preparing</option>
@@ -51,12 +54,12 @@
             <option value="served">Served</option>
             <option value="cancelled">Cancelled</option>
           </select>
-          <select class="sort-select" id="type-filter" onchange="filterOrders()">
+          <select class="filter-select" id="type-filter" onchange="loadOrders()">
             <option value="">All Types</option>
             <option value="dine-in">Dine-In</option>
             <option value="take-out">Take-Out</option>
           </select>
-          <input type="date" id="date-filter" class="sort-select" onchange="filterOrders()" style="min-width:140px;">
+          <input type="date" id="date-filter" class="filter-input" onchange="loadOrders()" style="min-width:140px;">
         </div>
         <span id="order-count" style="font-size:0.85rem;color:var(--text-muted);white-space:nowrap;"></span>
       </div>
@@ -87,7 +90,7 @@
   <div class="modal">
     <div class="modal-header">
       <h2 id="order-modal-title">Order Details</h2>
-      <button class="modal-close" onclick="closeOrderModal()">✕</button>
+      <button class="modal-close" onclick="closeOrderModal()"><i class="fas fa-xmark"></i></button>
     </div>
     <div class="modal-body" id="order-modal-body"></div>
     <div class="modal-footer">
@@ -143,8 +146,12 @@ function renderTable(orders) {
     : orders.map(o => `
       <tr>
         <td><strong style="color:var(--primary);">${o.orderNumber}</strong></td>
-        <td><span class="badge ${o.orderType==='dine-in'?'badge-primary':'badge-accent'}">${o.orderType==='dine-in'?'🪑 Dine-In':'🥡 Take-Out'}</span></td>
-        <td>${o.tableNumber ? `Table ${o.tableNumber}` : '—'}</td>
+        <td><span class="badge ${o.orderType==='dine-in'?'badge-primary':'badge-accent'}"><i class="fas fa-chair"></i> ${o.orderType==='dine-in'?'Dine-In':'Take-Out'}</span></td>
+        <td>
+          ${o.tableNumber ? `Table ${o.tableNumber}` : '—'}
+          ${o.sessionId ? `<div style="font-size:0.75rem;color:var(--text-muted);margin-top:2px;">Session: ${o.sessionId.slice(-8)}</div>` : ''}
+          ${o.customerName ? `<div style="font-size:0.75rem;color:var(--info);margin-top:2px;">${o.customerName}</div>` : ''}
+        </td>
         <td style="color:var(--text-muted);font-size:0.82rem;">${o.items.length} item${o.items.length!==1?'s':''}</td>
         <td><strong>${formatCurrency(o.totalAmount)}</strong></td>
         <td>${statusBadge(o.status)}</td>
@@ -175,9 +182,26 @@ async function viewOrder(id) {
       ${o.items.map(i => `<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:0.88rem;"><span>${i.quantity}× ${i.name}</span><span>${formatCurrency(i.price * i.quantity)}</span></div>`).join('')}
       <div style="display:flex;justify-content:space-between;padding:10px 0;font-weight:700;"><span>Total</span><span style="color:var(--primary);">${formatCurrency(o.totalAmount)}</span></div>
     </div>
-    ${o.specialRequests ? `<div class="alert alert-warning">📝 ${o.specialRequests}</div>` : ''}
+    ${o.specialRequests ? `<div class="alert alert-warning"><i class="fas fa-note-sticky"></i> ${o.specialRequests}</div>` : ''}
     <div style="font-size:0.8rem;color:var(--text-muted);margin-top:12px;">Placed: ${formatDate(o.createdAt)}</div>`;
-  document.getElementById('status-update-sel').value = '';
+  
+  const statusSel = document.getElementById('status-update-sel');
+  const statusBtn = document.querySelector('#status-update-sel').parentElement.querySelector('button');
+  
+  if (o.status === 'served' || o.status === 'cancelled') {
+    statusSel.disabled = true;
+    statusBtn.disabled = true;
+    statusSel.innerHTML = `<option value="" disabled selected>Status cannot be changed</option>`;
+  } else {
+    statusSel.disabled = false;
+    statusBtn.disabled = false;
+    statusSel.innerHTML = `<option value="" disabled selected>Change status...</option>
+      <option value="pending">Pending</option>
+      <option value="preparing">Preparing</option>
+      <option value="ready">Ready</option>
+      <option value="served">Served</option>
+      <option value="cancelled">Cancelled</option>`;
+  }
   document.getElementById('order-modal').classList.add('active');
 }
 

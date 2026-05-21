@@ -11,6 +11,14 @@ const MenuItemSchema = new mongoose.Schema({
   isFeatured: { type: Boolean, default: false },
   isBestSeller: { type: Boolean, default: false },
   orderCount: { type: Number, default: 0 },
+  avgRating: { type: Number, default: 0 },
+  reviewCount: { type: Number, default: 0 },
+  // Drink size options
+  hasSizes: { type: Boolean, default: false },
+  sizes: [{
+    name: { type: String, required: true },
+    price: { type: Number, required: true, min: 0 }
+  }],
   createdAt: { type: Date, default: Date.now }
 });
 

@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/jpeg" href="css/favicon.jpg">
 <title>Checkout — La Maison</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <link rel="stylesheet" href="css/main.css">
 <style>
 .checkout-layout { max-width: 1100px; margin: 0 auto; padding: 40px 24px; display: grid; grid-template-columns: 1fr 420px; gap: 32px; }
@@ -53,8 +54,8 @@
 <body>
 <nav class="navbar">
   <div class="navbar-brand">Igan's Budbod House</div>
-  <div style="display:flex;gap:12px;align-items:center;">
-    <button class="btn btn-ghost btn-sm" onclick="window.location.href='menu.html'">Back to Menu</button>
+  <div class="navbar-actions">
+    <button class="btn btn-ghost btn-sm" onclick="window.location.href='menu.html'"><i class="fas fa-home"></i> <span class="btn-text-mobile">Menu</span></button>
     <div id="nav-user"></div>
   </div>
 </nav>
@@ -119,22 +120,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function renderItems(cart) {
   document.getElementById('order-items').innerHTML = cart.length === 0
-    ? '<div class="empty-state"><div class="icon">🛒</div><h3>Cart is empty</h3></div>'
+    ? '<div class="empty-state"><div class="icon"><i class="fas fa-shopping-cart"></i></div><h3>Cart is empty</h3></div>'
     : cart.map(item => `
-      <div class="order-row">
-        <div class="order-row-img">${item.image ? `<img src="${item.image}" style="width:52px;height:52px;object-fit:cover;border-radius:8px;" onerror="this.outerHTML='🍛'">` : '🍛'}</div>
+      <div class="order-row" data-item-id="${item._id}">
+        <div class="order-row-img">${item.image ? `<img src="${item.image}" style="width:52px;height:52px;object-fit:cover;border-radius:8px;" alt="${item.name}">` : '<i class="fas fa-bowl-food"></i>'}</div>
         <div style="flex:1;">
           <div class="order-row-name">${item.name}</div>
           <div class="order-row-qty">₱${item.price} each</div>
         </div>
         <div class="qty-control">
-          <button class="qty-btn" onclick="changeQty('${item._id}',${item.quantity-1})">−</button>
+          <button class="qty-btn" onclick="changeQty('${item._id}',${item.quantity-1},'${item.name}')">−</button>
           <span style="width:24px;text-align:center;font-weight:700;">${item.quantity}</span>
-          <button class="qty-btn" onclick="changeQty('${item._id}',${item.quantity+1})">+</button>
+          <button class="qty-btn" onclick="changeQty('${item._id}',${item.quantity+1},'${item.name}')">+</button>
         </div>
         <div class="order-row-price">${formatCurrency(item.price * item.quantity)}</div>
-        <button class="del-btn" onclick="removeItem('${item._id}')">🗑</button>
+        <button class="del-btn" onclick="removeItem('${item._id}','${item.name}')"><i class="fas fa-trash"></i></button>
       </div>`).join('');
+  
+  setTimeout(() => {
+    document.querySelectorAll('.order-row-img img').forEach(img => {
+      img.onerror = function() {
+        const icon = document.createElement('i');
+        icon.className = 'fas fa-bowl-food';
+        this.replaceWith(icon);
+      };
+    });
+  }, 0);
 }
 
 function renderSummary(cart) {
@@ -143,21 +154,21 @@ function renderSummary(cart) {
   const total = Cart.total();
 
   document.getElementById('order-info').innerHTML = `
-    <div class="info-chip">🪑 ${orderType === 'dine-in' ? `Dine-In ${tableNum ? '— Table ' + tableNum : ''}` : 'Take-Out'}</div>`;
+    <div class="info-chip"><i class="fas fa-chair"></i> ${orderType === 'dine-in' ? `Dine-In ${tableNum ? '— Table ' + tableNum : ''}` : 'Take-Out'}</div>`;
 
   document.getElementById('price-breakdown').innerHTML = `
     <div class="summary-row"><span>Items (${Cart.count()})</span><span>${formatCurrency(total)}</span></div>
     <div class="summary-row total"><span>Total</span><span>${formatCurrency(total)}</span></div>`;
 }
 
-function changeQty(id, qty) {
-  Cart.updateQty(id, qty);
+function changeQty(id, qty, name) {
+  Cart.updateQty(id, qty, name);
   const cart = Cart.get();
   if (cart.length === 0) { window.location.href = 'menu.html'; return; }
   renderItems(cart); renderSummary(cart);
 }
-function removeItem(id) {
-  Cart.remove(id);
+function removeItem(id, name) {
+  Cart.remove(id, name);
   const cart = Cart.get();
   if (cart.length === 0) { window.location.href = 'menu.html'; return; }
   renderItems(cart); renderSummary(cart);
@@ -174,15 +185,22 @@ async function placeOrder() {
   const items = cart.map(i => ({ menuItem: i._id, name: i.name, price: i.price, quantity: i.quantity, image: i.image || '' }));
 
   try {
+    const tableStr = sessionStorage.getItem('tableNumber');
+    console.log('DEBUG cart.html: tableStr from sessionStorage:', tableStr);
+    const tableNumber = tableStr ? parseInt(tableStr, 10) : null;
+    console.log('DEBUG cart.html: parsed tableNumber:', tableNumber);
+    console.log('DEBUG cart.html: orderType:', sessionStorage.getItem('orderType'));
+    
     const data = await apiFetch('/orders', {
       method: 'POST',
       body: JSON.stringify({
-        tableNumber: parseInt(Session.getTable()) || null,
+        tableNumber,
         orderType: Session.getOrderType() || 'dine-in',
         sessionId: Session.getSessionId(),
         items,
         totalAmount: parseFloat(total.toFixed(2)),
-        specialRequests: document.getElementById('special-req').value
+        specialRequests: document.getElementById('special-req').value,
+        customerName: sessionStorage.getItem('customerName') || ''
       })
     });
     Session.setOrderId(data.data._id);
@@ -192,7 +210,7 @@ async function placeOrder() {
   } catch (e) {
     showToast(e.message, 'error');
     btn.disabled = false;
-    btn.innerHTML = '✅ Place Order';
+    btn.innerHTML = '<i class="fas fa-circle-check"></i> Place Order';
   }
 }
 </script>

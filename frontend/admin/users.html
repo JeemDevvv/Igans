@@ -25,6 +25,7 @@
       <a href="users.html" class="nav-item active">Users</a>
       <a href="tables.html" class="nav-item">Tables & QR</a>
       <a href="reports.html" class="nav-item">Reports</a>
+      <a href="reviews.html" class="nav-item">Reviews</a>
       <a href="settings.html" class="nav-item">Settings</a>
     </nav>
     <div class="sidebar-footer"><button class="btn btn-ghost btn-sm btn-block" onclick="logout()">Sign Out</button></div>
@@ -36,14 +37,18 @@
     </div>
     <div class="admin-table-wrap" style="padding-top:24px;">
       <div class="table-toolbar">
-        <div class="search-input-wrap"><span>🔍</span><input type="text" id="search-users" placeholder="Search name or email..." oninput="filterUsers()"></div>
-        <select class="sort-select" id="role-filter" onchange="filterUsers()">
-          <option value="">All Roles</option>
-          <option value="admin">Admin</option>
-          <option value="kitchen">Kitchen</option>
-          <option value="staff">Staff</option>
-          <option value="customer">Customer</option>
-        </select>
+        <div class="search-input-wrap"><i class="fas fa-magnifying-glass"></i><input type="text" id="search-users" placeholder="Search name or email..." oninput="filterUsers()"></div>
+        <div style="display:flex;gap:12px;align-items:center;">
+          <span class="filter-label">Role:</span>
+          <select class="filter-select" id="role-filter" onchange="filterUsers()">
+            <option value="">All Roles</option>
+            <option value="admin">Admin</option>
+            <option value="kitchen">Kitchen</option>
+            <option value="staff">Staff</option>
+            <option value="customer">Customer</option>
+          </select>
+          <button class="btn btn-ghost btn-sm" onclick="loadUsers()" style="margin-left:8px;">Refresh</button>
+        </div>
         <span id="user-count" style="font-size:0.85rem;color:var(--text-muted);"></span>
       </div>
       <div class="table-wrap">
@@ -59,7 +64,7 @@
 <!-- Add user modal -->
 <div class="modal-overlay" id="user-modal">
   <div class="modal" style="max-width:440px;">
-    <div class="modal-header"><h2>Add User</h2><button class="modal-close" onclick="closeAddUser()">✕</button></div>
+    <div class="modal-header"><h2 id="modal-title">Add User</h2><button class="modal-close" onclick="closeAddUser()">✕</button></div>
     <div class="modal-body">
       <div class="form-group"><label class="form-label">Full Name *</label><input type="text" id="u-name" class="form-control"></div>
       <div class="form-group"><label class="form-label">Email *</label><input type="email" id="u-email" class="form-control"></div>
@@ -99,7 +104,7 @@ function filterUsers() {
   if (q) users = users.filter(u => u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q));
   if (role) users = users.filter(u => u.role === role);
   document.getElementById('user-count').textContent = `${users.length} user${users.length !== 1 ? 's' : ''}`;
-  const roleIcons = { admin: '⚙️', kitchen: '👨‍🍳', staff: '🧑‍💼', customer: '👤' };
+  const roleIcons = { admin: '<i class="fas fa-gear"></i>', kitchen: '<i class="fas fa-user-chef"></i>', staff: '<i class="fas fa-user-tie"></i>', customer: '<i class="fas fa-user"></i>' };
   const me = Session.getUser();
   document.getElementById('users-tbody').innerHTML = users.length === 0
     ? `<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text-muted);">No users found</td></tr>`

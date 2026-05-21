@@ -12,6 +12,7 @@ const OrderSchema = new mongoose.Schema({
   orderNumber: { type: String, unique: true },
   customer: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
   sessionId: { type: String },
+  customerName: { type: String, default: '' },
   tableNumber: { type: Number, default: null },
   orderType: { type: String, enum: ['dine-in', 'take-out'], required: true },
   items: [OrderItemSchema],

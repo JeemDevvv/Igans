@@ -7,9 +7,31 @@
 <title>Staff Dashboard — Igans</title>
 <link rel="stylesheet" href="css/main.css">
 <style>
-.staff-layout { max-width: 1200px; margin: 0 auto; padding: 20px; }
-.stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
-.stat-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; text-align: center; }
+.staff-layout { max-width: 1200px; margin: 0 auto; padding: 20px; width: 100%; box-sizing: border-box; }
+
+/* Stats row: horizontal scroll on mobile */
+.stats-row { 
+  display: grid; 
+  grid-template-columns: repeat(4, 1fr); 
+  gap: 16px; 
+  margin-bottom: 24px; 
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 8px;
+}
+@media (max-width: 768px) {
+  .stats-row {
+    grid-template-columns: repeat(4, minmax(160px, 1fr));
+  }
+}
+.stat-card { 
+  background: var(--bg-card); 
+  border: 1px solid var(--border); 
+  border-radius: var(--radius); 
+  padding: 20px; 
+  text-align: center; 
+  min-width: 140px;
+}
 .stat-num { font-family: var(--font-display); font-size: 2rem; font-weight: 700; line-height: 1; }
 .stat-label { font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.05em; }
 .stat-num.pending-c { color: var(--warning); }
@@ -22,16 +44,90 @@
 .ftab:hover { border-color: var(--primary); color: var(--primary); }
 .ftab.active { border-color: var(--primary); background: var(--primary); color: white; }
 
-.orders-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
-.staff-order-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; transition: box-shadow var(--transition); }
+/* Orders grid: single column on mobile */
+.orders-grid { 
+  display: flex; 
+  gap: 16px; 
+  width: 100%;
+}
+@media (max-width: 768px) {
+  .staff-layout {
+    padding: 16px;
+  }
+}
+
+.table-group {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.table-group-header {
+  padding: 16px 20px;
+  background: linear-gradient(135deg, rgba(233,196,106,0.1) 0%, rgba(233,196,106,0.05) 100%);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.table-group-title {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.table-group-count {
+  background: var(--accent);
+  color: #1C1008;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.table-group-orders {
+  padding: 16px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.staff-order-card { 
+  background: var(--bg); 
+  border: 1px solid var(--border); 
+  border-radius: var(--radius); 
+  padding: 18px; 
+  transition: box-shadow var(--transition); 
+  width: 100%;
+  box-sizing: border-box;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
+}
 .staff-order-card:hover { box-shadow: var(--shadow); }
-.soc-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.soc-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
 .soc-id { font-weight: 700; color: var(--primary); font-size: 0.9rem; }
 .soc-time { font-size: 0.78rem; color: var(--text-muted); }
-.soc-meta { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
-.soc-items { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px; line-height: 1.7; }
+.soc-meta { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
+.customer-name-badge {
+  background: rgba(96,165,250,0.1);
+  color: #93C5FD;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.soc-items { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px; line-height: 1.7; overflow-wrap: break-word; }
 .soc-total { font-weight: 700; color: var(--text); font-size: 0.9rem; }
-.soc-actions { display: flex; gap: 8px; margin-top: 12px; }
+.soc-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
 
 .refresh-indicator { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: var(--text-muted); }
 .live-dot { width: 8px; height: 8px; background: var(--success); border-radius: 50%; animation: pulse-dot 2s infinite; }
@@ -114,32 +210,97 @@ function renderOrders(orders) {
   const empty = document.getElementById('empty-staff');
   if (orders.length === 0) { grid.innerHTML = ''; empty.style.display = 'block'; return; }
   empty.style.display = 'none';
-  grid.innerHTML = orders.map(order => {
-    const itemsSummary = order.items.map(i => `${i.quantity}× ${i.name}`).join(', ');
-    const actions = order.status === 'ready'
-      ? `<button class="btn btn-success btn-sm" onclick="markServed('${order._id}')">🎉 Mark Served</button>`
-      : order.status === 'pending'
-      ? `<button class="btn btn-outline btn-sm" onclick="markStatus('${order._id}','preparing')">→ Preparing</button>`
-      : '';
-    return `<div class="staff-order-card fade-in">
-      <div class="soc-header">
-        <span class="soc-id">#${order.orderNumber}</span>
-        <span class="soc-time">${formatDate(order.createdAt)}</span>
-      </div>
-      <div class="soc-meta">
-        ${statusBadge(order.status)}
-        <span class="badge ${order.orderType==='dine-in'?'badge-primary':'badge-accent'}">${order.orderType==='dine-in'?'🪑 Dine-In':'🥡 Take-Out'}</span>
-        ${order.tableNumber ? `<span class="badge badge-accent">Table ${order.tableNumber}</span>` : ''}
-      </div>
-      <div class="soc-items">${itemsSummary}</div>
-      ${order.specialRequests ? `<div style="font-size:0.8rem;color:var(--warning);background:var(--warning-bg);padding:6px 10px;border-radius:6px;margin-bottom:8px;">📝 ${order.specialRequests}</div>` : ''}
-      <div class="soc-total">${formatCurrency(order.totalAmount)}</div>
-      <div class="soc-actions">
-        ${actions}
-        <button class="btn btn-ghost btn-sm" onclick="viewOrder('${order._id}')">View Details</button>
-      </div>
-    </div>`;
+  
+  // Group orders: first by table (dine-in), then take-out as separate group
+  const groups = {};
+  const takeOutOrders = [];
+  
+  orders.forEach(order => {
+    if (order.orderType === 'dine-in' && order.tableNumber) {
+      const key = `table-${order.tableNumber}`;
+      if (!groups[key]) {
+        groups[key] = {
+          type: 'table',
+          tableNumber: order.tableNumber,
+          orders: []
+        };
+      }
+      groups[key].orders.push(order);
+    } else {
+      takeOutOrders.push(order);
+    }
+  });
+  
+  // If there are take-out orders, add them as a group
+  if (takeOutOrders.length > 0) {
+    groups['takeout'] = {
+      type: 'takeout',
+      orders: takeOutOrders
+    };
+  }
+  
+  // Render all groups
+  grid.innerHTML = Object.values(groups).map(group => {
+    if (group.type === 'table') {
+      return `
+        <div class="table-group">
+          <div class="table-group-header">
+            <div class="table-group-title">
+              <i class="fas fa-utensils"></i> Table ${group.tableNumber}
+              <span class="table-group-count">${group.orders.length} order${group.orders.length !== 1 ? 's' : ''}</span>
+            </div>
+          </div>
+          <div class="table-group-orders">
+            ${group.orders.map(order => renderOrderCard(order)).join('')}
+          </div>
+        </div>
+      `;
+    } else {
+      return `
+        <div class="table-group">
+          <div class="table-group-header">
+            <div class="table-group-title">
+              <i class="fas fa-shopping-bag"></i> Take-Out Orders
+              <span class="table-group-count">${group.orders.length} order${group.orders.length !== 1 ? 's' : ''}</span>
+            </div>
+          </div>
+          <div class="table-group-orders">
+            ${group.orders.map(order => renderOrderCard(order)).join('')}
+          </div>
+        </div>
+      `;
+    }
   }).join('');
+}
+
+function renderOrderCard(order) {
+  const itemsSummary = order.items.map(i => `${i.quantity}× ${i.name}`).join(', ');
+  const actions = order.status === 'ready'
+    ? `<button class="btn btn-success btn-sm" onclick="markServed('${order._id}')"><i class="fas fa-check-circle"></i> Mark Served</button>`
+    : order.status === 'pending'
+    ? `<button class="btn btn-outline btn-sm" onclick="markStatus('${order._id}','preparing')">→ Preparing</button>`
+    : '';
+  
+  return `<div class="staff-order-card fade-in">
+    <div class="soc-header">
+      <span class="soc-id">#${order.orderNumber}</span>
+      <span class="soc-time">${formatDate(order.createdAt)}</span>
+    </div>
+    <div class="soc-meta">
+      ${statusBadge(order.status)}
+      <span class="badge ${order.orderType==='dine-in'?'badge-primary':'badge-accent'}">${order.orderType==='dine-in'?'<i class="fas fa-chair"></i> Dine-In':'<i class="fas fa-box"></i> Take-Out'}</span>
+      ${order.tableNumber ? `<span class="badge badge-accent">Table ${order.tableNumber}</span>` : ''}
+      ${order.sessionId ? `<span class="badge" style="background: rgba(139,92,246,0.1); border: 1px solid rgba(139,92,246,0.3); color: #A78BFA;">Session ${order.sessionId.slice(-8)}</span>` : ''}
+    </div>
+    ${order.customerName ? `<div class="customer-name-badge"><i class="fas fa-user"></i> ${order.customerName}</div>` : ''}
+    <div class="soc-items">${itemsSummary}</div>
+    ${order.specialRequests ? `<div style="font-size:0.8rem;color:var(--warning);background:var(--warning-bg);padding:6px 10px;border-radius:6px;margin-bottom:8px;"><i class="fas fa-note-sticky"></i> ${order.specialRequests}</div>` : ''}
+    <div class="soc-total">${formatCurrency(order.totalAmount)}</div>
+    <div class="soc-actions">
+      ${actions}
+      <button class="btn btn-ghost btn-sm" onclick="viewOrder('${order._id}')">View Details</button>
+    </div>
+  </div>`;
 }
 
 function updateStats(orders) {
@@ -171,7 +332,7 @@ async function markStatus(id, status) {
   } catch (e) { showToast(e.message, 'error'); }
 }
 
-function viewOrder(id) { window.open(`/order-status.html?id=${id}`, '_blank'); }
+function viewOrder(id) { window.open(`order-status.html?id=${id}`, '_blank'); }
 
 document.addEventListener('DOMContentLoaded', () => {
   loadOrders();

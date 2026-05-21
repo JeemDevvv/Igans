@@ -48,11 +48,16 @@ body { background: #111827; color: #F9FAFB; }
 .order-type-badge { font-size: 0.72rem; padding: 2px 8px; border-radius: 6px; font-weight: 600; }
 .type-dinein { background: rgba(96,165,250,0.15); color: #60A5FA; }
 .type-takeout { background: rgba(167,139,250,0.15); color: #A78BFA; }
-.table-badge { font-size: 0.75rem; color: #9CA3AF; margin-bottom: 8px; }
-.items-list-k { font-size: 0.82rem; margin-bottom: 12px; }
-.item-row-k { display: flex; align-items: center; gap: 6px; padding: 5px 0; border-bottom: 1px solid #1F2937; color: #D1D5DB; }
+.table-badge { 
+  font-size: 1.5rem; 
+  color: #F5A623; 
+  font-weight: 800; 
+  margin-bottom: 8px;
+}
+.items-list-k { font-size: 1.15rem; margin-bottom: 12px; }
+.item-row-k { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid #1F2937; color: #D1D5DB; }
 .item-row-k:last-child { border-bottom: none; }
-.item-qty { background: #374151; color: #F5A623; padding: 1px 6px; border-radius: 4px; font-weight: 700; font-size: 0.78rem; }
+.item-qty { background: #374151; color: #F5A623; padding: 4px 10px; border-radius: 6px; font-weight: 800; font-size: 1.05rem; }
 .special-req-k { background: #1F2937; border-radius: 6px; padding: 8px 10px; font-size: 0.78rem; color: #FCD34D; margin-bottom: 10px; }
 .action-btns { display: flex; gap: 8px; }
 .action-btn {
@@ -98,19 +103,19 @@ body { background: #111827; color: #F9FAFB; }
 <div class="board">
   <div class="column col-pending">
     <div class="col-header">
-      <div class="col-title">📋 New Orders <div class="col-count" id="cnt-pending">0</div></div>
+      <div class="col-title"><i class="fas fa-clipboard-list"></i> New Orders <div class="col-count" id="cnt-pending">0</div></div>
     </div>
     <div class="col-cards" id="col-pending"></div>
   </div>
   <div class="column col-preparing">
     <div class="col-header">
-      <div class="col-title">🔥 Cooking <div class="col-count" id="cnt-preparing">0</div></div>
+      <div class="col-title"><i class="fas fa-fire"></i> Cooking <div class="col-count" id="cnt-preparing">0</div></div>
     </div>
     <div class="col-cards" id="col-preparing"></div>
   </div>
   <div class="column col-ready">
     <div class="col-header">
-      <div class="col-title">✅ Ready to Serve <div class="col-count" id="cnt-ready">0</div></div>
+      <div class="col-title"><i class="fas fa-check"></i> Ready to Serve <div class="col-count" id="cnt-ready">0</div></div>
     </div>
     <div class="col-cards" id="col-ready"></div>
   </div>
@@ -144,7 +149,7 @@ function playNotif() {
 function toggleSound() {
   soundEnabled = !soundEnabled;
   const btn = document.getElementById('sound-btn');
-  btn.textContent = soundEnabled ? '🔔 Sound On' : '🔕 Sound Off';
+  btn.innerHTML = soundEnabled ? '<i class="fas fa-volume-high"></i> Sound On' : '<i class="fas fa-volume-xmark"></i> Sound Off';
   btn.classList.toggle('on', soundEnabled);
 }
 
@@ -163,23 +168,27 @@ function getTimeClass(createdAt) {
 function renderCard(order, status) {
   const mins = minutesAgo(order.createdAt);
   const timeClass = getTimeClass(order.createdAt);
-  const special = order.specialRequests ? `<div class="special-req-k">📝 ${order.specialRequests}</div>` : '';
+  const special = order.specialRequests ? `<div class="special-req-k"><i class="fas fa-note-sticky"></i> ${order.specialRequests}</div>` : '';
   const actions = status === 'pending'
-    ? `<button class="action-btn btn-start" onclick="updateStatus('${order._id}','preparing')">🔥 Start Cooking</button>
+    ? `<button class="action-btn btn-start" onclick="updateStatus('${order._id}','preparing')"><i class="fas fa-fire"></i> Start Cooking</button>
        <button class="action-btn btn-cancel" onclick="updateStatus('${order._id}','cancelled')">✕</button>`
     : status === 'preparing'
-    ? `<button class="action-btn btn-ready" onclick="updateStatus('${order._id}','ready')">✅ Mark Ready</button>
+    ? `<button class="action-btn btn-ready" onclick="updateStatus('${order._id}','ready')"><i class="fas fa-check"></i> Mark Ready</button>
        <button class="action-btn btn-cancel" onclick="updateStatus('${order._id}','cancelled')">✕</button>`
     : `<div style="font-size:0.8rem;color:#34D399;font-weight:600;text-align:center;">Waiting for staff pickup</div>`;
 
   return `<div class="order-card ${order._new ? 'new-order' : ''}" id="card-${order._id}">
     <div class="order-card-header">
       <span class="order-id">#${order.orderNumber}</span>
-      <span class="order-time ${timeClass}">${mins < 1 ? 'Just now' : `${mins}m ago`}</span>
+      <div style="display:flex;align-items:center;gap:10px;">
+        ${order.tableNumber ? `<span class="table-badge">Table ${order.tableNumber}</span>` : ''}
+        <span class="order-time ${timeClass}">${mins < 1 ? 'Just now' : `${mins}m ago`}</span>
+      </div>
     </div>
-    <div style="display:flex;gap:6px;margin-bottom:8px;">
-      <span class="order-type-badge ${order.orderType==='dine-in'?'type-dinein':'type-takeout'}">${order.orderType==='dine-in'?'🪑 Dine-In':'🥡 Take-Out'}</span>
-      ${order.tableNumber ? `<span class="table-badge">Table ${order.tableNumber}</span>` : ''}
+    <div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;">
+      <span class="order-type-badge ${order.orderType==='dine-in'?'type-dinein':'type-takeout'}">${order.orderType==='dine-in'?'<i class="fas fa-chair"></i> Dine-In':'<i class="fas fa-box"></i> Take-Out'}</span>
+      ${order.sessionId ? `<span style="font-size:0.75rem;padding:3px 8px;border-radius:6px;background:rgba(139,92,246,0.1);color:#A78BFA;border:1px solid rgba(139,92,246,0.3);font-weight:600;">Session ${order.sessionId.slice(-8)}</span>` : ''}
+      ${order.customerName ? `<span style="font-size:0.75rem;padding:3px 8px;border-radius:6px;background:rgba(96,165,250,0.1);color:#93C5FD;font-weight:600;"><i class="fas fa-user"></i> ${order.customerName}</span>` : ''}
     </div>
     <div class="items-list-k">
       ${order.items.map(i => `<div class="item-row-k"><span class="item-qty">${i.quantity}x</span>${i.name}</div>`).join('')}

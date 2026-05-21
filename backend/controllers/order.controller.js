@@ -3,13 +3,16 @@ const MenuItem = require('../models/MenuItem');
 
 exports.createOrder = async (req, res) => {
   try {
-    const { tableNumber, orderType, items, specialRequests, sessionId } = req.body;
+    console.log('DEBUG order.controller.js: req.body:', req.body);
+    const { tableNumber, orderType, items, specialRequests, sessionId, customerName } = req.body;
+    console.log('DEBUG order.controller.js: tableNumber:', tableNumber, 'typeof tableNumber:', typeof tableNumber);
     if (!items || items.length === 0) return res.status(400).json({ success: false, msg: 'No items in order' });
     const total = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
     const order = await Order.create({
       customer: req.user?.id || null,
       sessionId: sessionId || req.user?.id || 'guest',
-      tableNumber: tableNumber || null,
+      customerName: customerName || '',
+      tableNumber: tableNumber !== undefined ? tableNumber : null,
       orderType,
       items,
       totalAmount: parseFloat(total.toFixed(2)),
@@ -71,12 +74,22 @@ exports.updateStatus = async (req, res) => {
     const { status } = req.body;
     const validStatuses = ['pending', 'preparing', 'ready', 'served', 'cancelled'];
     if (!validStatuses.includes(status)) return res.status(400).json({ success: false, msg: 'Invalid status' });
-    const order = await Order.findByIdAndUpdate(
-      req.params.id,
-      { status, updatedAt: new Date() },
-      { new: true }
-    );
+    
+    const order = await Order.findById(req.params.id);
     if (!order) return res.status(404).json({ success: false, msg: 'Order not found' });
+    
+    if (order.status === 'served') {
+      return res.status(400).json({ success: false, msg: 'Cannot modify a served order' });
+    }
+    
+    if (order.status === 'cancelled' && status !== 'cancelled') {
+      return res.status(400).json({ success: false, msg: 'Cannot reactivate a cancelled order' });
+    }
+    
+    order.status = status;
+    order.updatedAt = new Date();
+    await order.save();
+    
     res.json({ success: true, data: order });
   } catch (err) {
     res.status(500).json({ success: false, msg: err.message });

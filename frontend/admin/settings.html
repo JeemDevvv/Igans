@@ -35,9 +35,8 @@
     </div>
 
     <div style="padding:24px 28px;max-width:720px;">
-      <!-- Restaurant Info -->
       <div class="card card-padded" style="margin-bottom:24px;">
-        <h2 style="font-size:1.1rem;font-weight:600;margin-bottom:20px;">🍽 Restaurant Information</h2>
+        <h2 style="font-size:1.1rem;font-weight:600;margin-bottom:20px;"><i class="fas fa-utensils"></i> Restaurant Information</h2>
         <div class="form-row">
           <div class="form-group"><label class="form-label">Restaurant Name</label><input type="text" id="s-name" class="form-control"></div>
           <div class="form-group"><label class="form-label">Phone</label><input type="text" id="s-phone" class="form-control" placeholder="+63 912 345 6789"></div>
@@ -49,9 +48,8 @@
         </div>
       </div>
 
-      <!-- Geolocation -->
       <div class="card card-padded" style="margin-bottom:24px;">
-        <h2 style="font-size:1.1rem;font-weight:600;margin-bottom:8px;">📍 Geolocation & Access Control</h2>
+        <h2 style="font-size:1.1rem;font-weight:600;margin-bottom:8px;"><i class="fas fa-location-dot"></i> Geolocation & Access Control</h2>
         <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:20px;">Set the restaurant's GPS coordinates and the allowed radius. Customers outside this radius will be denied access.</p>
         <div class="form-row">
           <div class="form-group"><label class="form-label">Latitude</label><input type="number" id="s-lat" class="form-control" step="0.00001" placeholder="e.g. 14.5995"></div>
@@ -62,12 +60,10 @@
           <input type="range" id="s-radius" min="50" max="2000" step="50" oninput="document.getElementById('radius-display').textContent=this.value" style="width:100%;margin:8px 0;">
           <div style="display:flex;justify-content:space-between;font-size:0.78rem;color:var(--text-muted);"><span>50m (strict)</span><span>2000m (loose)</span></div>
         </div>
-        <button class="btn btn-outline btn-sm" onclick="useMyLocation()">📍 Use My Current Location</button>
+        <button class="btn btn-outline btn-sm" onclick="useMyLocation()">Use My Current Location</button>
         <p style="font-size:0.78rem;color:var(--text-muted);margin-top:8px;">This will auto-fill your current GPS coordinates as the restaurant location.</p>
       </div>
-
-      <div id="settings-alert" class="alert alert-hidden" style="margin-bottom:16px;"></div>
-      <button class="btn btn-primary btn-lg" onclick="saveSettings()" id="save-btn">💾 Save All Settings</button>
+      <button class="btn btn-primary btn-lg" onclick="saveSettings()" id="save-btn">Save All Settings</button>
     </div>
   </main>
 </div>
@@ -118,14 +114,12 @@ async function saveSettings() {
         allowedRadiusMeters:parseInt(document.getElementById('s-radius').value)
       })
     });
-    alertEl.className = 'alert alert-success';
-    alertEl.textContent = '✅ Settings saved successfully!';
     showToast('Settings saved!');
   } catch(e) {
     alertEl.className = 'alert alert-error';
-    alertEl.textContent = '❌ ' + e.message;
+    alertEl.textContent = '<i class="fas fa-xmark"></i> ' + e.message;
   }
-  btn.disabled = false; btn.innerHTML = '💾 Save All Settings';
+  btn.disabled = false; btn.innerHTML = 'Save All Settings';
 }
 
 document.addEventListener('DOMContentLoaded', loadSettings);

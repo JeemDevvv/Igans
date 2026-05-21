@@ -37,19 +37,24 @@ exports.getOne = async (req, res) => {
 
 exports.create = async (req, res) => {
   try {
+    console.log('Create menu item request body:', req.body);
     const item = await MenuItem.create(req.body);
     res.status(201).json({ success: true, data: item });
   } catch (err) {
+    console.error('Create menu item error:', err);
     res.status(400).json({ success: false, msg: err.message });
   }
 };
 
 exports.update = async (req, res) => {
   try {
+    console.log('Update menu item request body:', req.body);
     const item = await MenuItem.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+    console.log('Updated menu item:', item);
     if (!item) return res.status(404).json({ success: false, msg: 'Item not found' });
     res.json({ success: true, data: item });
   } catch (err) {
+    console.error('Update menu item error:', err);
     res.status(400).json({ success: false, msg: err.message });
   }
 };
