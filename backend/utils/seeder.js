@@ -9,12 +9,19 @@ const RestaurantSettings = require('../models/RestaurantSettings');
 const QRCode = require('qrcode');
 
 const BASE_URL = process.env.BASE_URL || 'http://localhost:5000';
+const ENABLE_DB_SEED = process.env.ENABLE_DB_SEED === 'true';
 
 async function seed() {
+  if (!ENABLE_DB_SEED) {
+    console.log('ENABLE_DB_SEED is not true. Skipping database seeding.');
+    console.log('Set ENABLE_DB_SEED=true only when you want to seed the database.');
+    process.exit(0);
+  }
+
   if (!process.env.MONGO_URI) {
     console.error('MONGO_URI is not defined. Skipping database seeding.');
     console.error('Set MONGO_URI in environment variables or in backend/config/config.env before running the seeder.');
-    process.exit(0);
+    process.exit(1);
   }
 
   await mongoose.connect(process.env.MONGO_URI);
