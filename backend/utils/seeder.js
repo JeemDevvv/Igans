@@ -11,6 +11,12 @@ const QRCode = require('qrcode');
 const BASE_URL = process.env.BASE_URL || 'http://localhost:5000';
 
 async function seed() {
+  if (!process.env.MONGO_URI) {
+    console.error('MONGO_URI is not defined. Skipping database seeding.');
+    console.error('Set MONGO_URI in environment variables or in backend/config/config.env before running the seeder.');
+    process.exit(0);
+  }
+
   await mongoose.connect(process.env.MONGO_URI);
   console.log('Connected to MongoDB...');
 
