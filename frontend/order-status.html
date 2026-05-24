@@ -402,10 +402,8 @@ function renderOrder(order) {
   document.getElementById('loading').style.display = 'none';
   document.getElementById('order-content').style.display = 'block';
 
-  // Show receipt button if order is placed
   document.getElementById('receipt-btn').style.display = 'inline-flex';
 
-  // Show review section if served and not yet reviewed
   if (order.status === 'served') {
     checkIfReviewed();
   }
@@ -417,7 +415,6 @@ function renderOrder(order) {
   document.getElementById('status-sub').textContent = cfg.sub;
   document.getElementById('prog-track').style.width = cfg.trackPct;
 
-  // Update step circles
   const statusIdx = STEPS.indexOf(order.status);
   STEPS.forEach((s, i) => {
     const circle = document.getElementById(`sc-${s}`);
@@ -427,7 +424,6 @@ function renderOrder(order) {
     else { circle.className = 'step-circle'; label.className = 'step-label'; }
   });
 
-  // Ready pulse
   if (order.status === 'ready') {
     document.querySelector('.order-card').classList.add('pulse-ready');
   }

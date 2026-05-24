@@ -111,14 +111,6 @@ body {
   </div>
 
   <button class="btn btn-primary btn-block btn-lg" id="login-btn" onclick="doLogin()">Sign In</button>
-
-  <div class="divider">Test Accounts</div>
-  <div class="demo-accounts">
-    <p>Click to auto-fill:</p>
-    <div class="demo-item" onclick="fillDemo('admin@restaurant.com','password123','admin')">Admin — <code>admin@restaurant.com</code></div>
-    <div class="demo-item" onclick="fillDemo('kitchen@restaurant.com','password123','kitchen')">Kitchen — <code>kitchen@restaurant.com</code></div>
-    <div class="demo-item" onclick="fillDemo('staff@restaurant.com','password123','staff')">Staff — <code>staff@restaurant.com</code></div>
-  </div>
 </div>
 
 <script src="js/auth.js"></script>
@@ -129,16 +121,6 @@ function selectRole(el) {
   document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
   el.classList.add('active');
   selectedRole = el.dataset.role;
-}
-
-function fillDemo(email, pass, role) {
-  document.getElementById('email').value = email;
-  document.getElementById('password').value = pass;
-  document.querySelectorAll('.role-btn').forEach(b => {
-    b.classList.remove('active');
-    if (b.dataset.role === role) b.classList.add('active');
-  });
-  selectedRole = role;
 }
 
 async function doLogin() {

@@ -1261,7 +1261,6 @@ async function loadCategories() {
         <div class="cat-pill-text">All</div>
       </div>
     `;
-    // Add all other categories
     html += data.data.map(c =>
       `<div class="cat-pill" data-id="${c._id}" onclick="filterCategory('${c._id}', this)">
         <div class="cat-pill-icon">${c.icon}</div>

@@ -118,7 +118,6 @@ async function loadDashboard() {
     const data = await apiFetch('/admin/stats');
     const d = data.data;
 
-    // KPIs
     document.getElementById('kpi-grid').innerHTML = `
       <div class="kpi-card"><div class="kpi-icon"><i class="fas fa-clipboard-list"></i></div><div class="kpi-body"><div class="kpi-num">${d.todayOrders || 0}</div><div class="kpi-label">Today's Orders</div></div></div>
       <div class="kpi-card"><div class="kpi-icon"><i class="fas fa-dollar-sign"></i></div><div class="kpi-body"><div class="kpi-num">${formatCurrency(d.todayRevenue || 0)}</div><div class="kpi-label">Today's Revenue</div></div></div>
@@ -134,7 +133,6 @@ async function loadDashboard() {
     
     document.getElementById('revenue-total').textContent = formatCurrency(dailySales.reduce((s,x)=>s + (x.revenue || 0),0)) + ' (7 days)';
 
-    // Sales chart
     const salesCtx = document.getElementById('salesChart').getContext('2d');
     if (salesChart) salesChart.destroy();
     salesChart = new Chart(salesCtx, {
@@ -151,7 +149,6 @@ async function loadDashboard() {
       options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } }, x: { grid: { display: false } } } }
     });
 
-    // Top items chart
     const itemsCtx = document.getElementById('itemsChart').getContext('2d');
     if (itemsChart) itemsChart.destroy();
     itemsChart = new Chart(itemsCtx, {

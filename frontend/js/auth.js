@@ -43,10 +43,17 @@ async function apiFetch(path, options = {}) {
   const token = Session.getToken();
   const headers = { 'Content-Type': 'application/json', ...options.headers };
   if (token) headers['Authorization'] = `Bearer ${token}`;
-  const res = await fetch(API + path, { ...options, headers });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.msg || `HTTP ${res.status}`);
-  return data;
+  try {
+    const res = await fetch(API + path, { ...options, headers });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.msg || `HTTP ${res.status}`);
+    return data;
+  } catch (err) {
+    if (err.message === 'Failed to fetch') {
+      throw new Error('Unable to connect to server. Please check your connection.');
+    }
+    throw err;
+  }
 }
 
 // ── Role guard ────────────────────────────────────────────────────────────
