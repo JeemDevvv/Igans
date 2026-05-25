@@ -2,6 +2,30 @@ const Order = require('../models/Order');
 const User = require('../models/User');
 const MenuItem = require('../models/MenuItem');
 
+// Get active customers from server.js
+let activeCustomers = new Map();
+let ACTIVE_TIMEOUT = 30000;
+try {
+  const server = require('../server');
+  activeCustomers = server.activeCustomers || new Map();
+  ACTIVE_TIMEOUT = server.ACTIVE_TIMEOUT || 30000;
+} catch (e) {
+  // If server isn't imported yet, use defaults
+}
+
+function getActiveCustomersCount() {
+  const now = Date.now();
+  let count = 0;
+  for (const [id, lastSeen] of activeCustomers) {
+    if (now - lastSeen <= ACTIVE_TIMEOUT) {
+      count++;
+    } else {
+      activeCustomers.delete(id);
+    }
+  }
+  return count;
+}
+
 exports.getStats = async (req, res) => {
   try {
     const today = new Date(); today.setHours(0, 0, 0, 0);
@@ -55,7 +79,7 @@ exports.getStats = async (req, res) => {
         todayRevenue: parseFloat(todayRevenue.toFixed(2)),
         totalRevenue: parseFloat(totalRevenue.toFixed(2)),
         totalOrders: allOrders.length,
-        totalCustomers: await User.countDocuments({ role: 'customer' }),
+        totalCustomers: getActiveCustomersCount(),
         topItems,
         dailySales,
         reports,
@@ -114,6 +138,28 @@ exports.deleteUser = async (req, res) => {
   try {
     await User.findByIdAndDelete(req.params.id);
     res.json({ success: true, msg: 'User deleted' });
+  } catch (err) {
+    res.status(500).json({ success: false, msg: err.message });
+  }
+};
+
+exports.updateUser = async (req, res) => {
+  try {
+    const { name, email, password, role } = req.body;
+    const updateData = { name, email, role };
+    
+    if (password && password.length >= 6) {
+      const bcrypt = require('bcryptjs');
+      updateData.password = await bcrypt.hash(password, 12);
+    }
+    
+    const updatedUser = await User.findByIdAndUpdate(
+      req.params.id,
+      updateData,
+      { new: true, runValidators: true }
+    );
+    
+    res.json({ success: true, data: updatedUser });
   } catch (err) {
     res.status(500).json({ success: false, msg: err.message });
   }

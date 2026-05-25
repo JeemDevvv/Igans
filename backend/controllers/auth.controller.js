@@ -16,7 +16,7 @@ exports.register = async (req, res) => {
     const { name, email, password, role } = req.body;
     const exists = await User.findOne({ email });
     if (exists) return res.status(400).json({ success: false, msg: 'Email already registered' });
-    const safeRole = ['customer', 'staff', 'kitchen'].includes(role) ? role : 'customer';
+    const safeRole = ['staff', 'kitchen', 'admin'].includes(role) ? role : 'staff';
     const user = await User.create({ name, email, password, role: safeRole });
     const token = signToken(user);
     res.status(201).json({ success: true, token, user: { id: user._id, name: user.name, email: user.email, role: user.role } });
@@ -34,7 +34,7 @@ exports.login = async (req, res) => {
       return res.status(401).json({ success: false, msg: 'Invalid credentials' });
     }
     if (role && user.role !== role) {
-      return res.status(403).json({ success: false, msg: `Account role is '${user.role}', not '${role}'` });
+      return res.status(403).json({ success: false, msg: `Invalid role for this account` });
     }
     const token = signToken(user);
     res.json({ success: true, token, user: { id: user._id, name: user.name, email: user.email, role: user.role } });

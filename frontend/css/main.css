@@ -277,6 +277,7 @@ textarea.form-control { resize: vertical; min-height: 100px; }
 .alert-success { background: var(--success-bg); color: #FFF; border-color: var(--success); }
 .alert-warning { background: var(--warning-bg); color: #FFF; border-color: var(--warning); }
 .alert-info    { background: var(--info-bg); color: #FFF; border-color: var(--info); }
+.alert-hidden  { display: none; }
 
 /* ── MODAL ─────────────────────────────────── */
 .modal-overlay {

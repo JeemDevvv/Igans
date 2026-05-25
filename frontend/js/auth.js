@@ -194,4 +194,49 @@ function statusBadge(status) {
 }
 
 // Auto-render nav user on DOM load
-document.addEventListener('DOMContentLoaded', () => { renderNavUser(); Cart.updateBadge(); });
+document.addEventListener('DOMContentLoaded', () => { renderNavUser(); Cart.updateBadge(); startCustomerHeartbeat(); });
+
+// Customer heartbeat for active customers tracking
+let heartbeatInterval = null;
+function startCustomerHeartbeat() {
+  const customerPages = ['index.html', 'menu.html', 'cart.html', 'verify.html', 'order-type.html', 'order-status.html'];
+  const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+  
+  if (customerPages.includes(currentPage)) {
+    // Send initial heartbeat
+    sendHeartbeat();
+    // Send heartbeat every 10 seconds
+    heartbeatInterval = setInterval(sendHeartbeat, 10000);
+    
+    // Stop heartbeat when page is hidden or unloaded
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        stopHeartbeat();
+      } else {
+        sendHeartbeat();
+        if (!heartbeatInterval) {
+          heartbeatInterval = setInterval(sendHeartbeat, 10000);
+        }
+      }
+    });
+    
+    window.addEventListener('beforeunload', stopHeartbeat);
+  }
+}
+
+function sendHeartbeat() {
+  const sessionId = Session.getSessionId();
+  fetch(API + '/customer/heartbeat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ sessionId }),
+    keepalive: true
+  }).catch(() => {});
+}
+
+function stopHeartbeat() {
+  if (heartbeatInterval) {
+    clearInterval(heartbeatInterval);
+    heartbeatInterval = null;
+  }
+}
