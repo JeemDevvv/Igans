@@ -2,11 +2,12 @@ const express = require('express');
 const router = express.Router();
 const { protect } = require('../middleware/auth.middleware');
 const { allow } = require('../middleware/role.middleware');
-const { getStats, getUsers, deleteUser } = require('../controllers/admin.controller');
+const { getStats, getUsers, deleteUser, updateUser } = require('../controllers/admin.controller');
 
 router.use(protect, allow('admin'));
 router.get('/stats', getStats);
 router.get('/users', getUsers);
 router.delete('/users/:id', deleteUser);
+router.put('/users/:id', updateUser);
 
 module.exports = router;

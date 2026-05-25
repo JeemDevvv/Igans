@@ -1,30 +1,7 @@
 const Order = require('../models/Order');
 const User = require('../models/User');
 const MenuItem = require('../models/MenuItem');
-
-// Get active customers from server.js
-let activeCustomers = new Map();
-let ACTIVE_TIMEOUT = 30000;
-try {
-  const server = require('../server');
-  activeCustomers = server.activeCustomers || new Map();
-  ACTIVE_TIMEOUT = server.ACTIVE_TIMEOUT || 30000;
-} catch (e) {
-  // If server isn't imported yet, use defaults
-}
-
-function getActiveCustomersCount() {
-  const now = Date.now();
-  let count = 0;
-  for (const [id, lastSeen] of activeCustomers) {
-    if (now - lastSeen <= ACTIVE_TIMEOUT) {
-      count++;
-    } else {
-      activeCustomers.delete(id);
-    }
-  }
-  return count;
-}
+const { getActiveCount } = require('../utils/activeCustomers');
 
 exports.getStats = async (req, res) => {
   try {
@@ -79,7 +56,7 @@ exports.getStats = async (req, res) => {
         todayRevenue: parseFloat(todayRevenue.toFixed(2)),
         totalRevenue: parseFloat(totalRevenue.toFixed(2)),
         totalOrders: allOrders.length,
-        totalCustomers: getActiveCustomersCount(),
+        totalCustomers: getActiveCount(),
         topItems,
         dailySales,
         reports,

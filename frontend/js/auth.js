@@ -199,10 +199,11 @@ document.addEventListener('DOMContentLoaded', () => { renderNavUser(); Cart.upda
 // Customer heartbeat for active customers tracking
 let heartbeatInterval = null;
 function startCustomerHeartbeat() {
-  const customerPages = ['index.html', 'menu.html', 'cart.html', 'verify.html', 'order-type.html', 'order-status.html'];
-  const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+  // Check if current page is a customer page (not admin/staff/kitchen)
+  const path = window.location.pathname.toLowerCase();
+  const isCustomerPage = !path.includes('/admin/') && !path.includes('login.html') && !path.includes('staff.html') && !path.includes('kitchen.html');
   
-  if (customerPages.includes(currentPage)) {
+  if (isCustomerPage) {
     // Send initial heartbeat
     sendHeartbeat();
     // Send heartbeat every 10 seconds
