@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/jpeg" href="../css/favicon.jpg">
+<title>Tables & QR Codes - Igan's Budbod House</title>
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/admin.css">
+  <style>
+    .tables-content {
+      padding: 24px 28px;
+    }
+    
+    /* Fix alert styling */
+    .alert {
+      box-sizing: border-box;
+      width: 100%;
+    }
+    
+    /* Responsive layout for tables page */
+    @media (max-width: 900px) {
+      .tables-content {
+        padding: 16px !important;
+        width: 100%;
+        box-sizing: border-box;
+      }
+      
+      .admin-topbar {
+        padding: 64px 16px 24px !important;
+        width: 100%;
+        box-sizing: border-box;
+      }
+      
+      .admin-main {
+        margin-left: 0 !important;
+        width: 100%;
+        overflow-x: hidden;
+      }
+      
+      /* QR grid responsive */
+      .qr-grid {
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)) !important;
+        gap: 16px !important;
+      }
+    }
+  </style>
+</head>
+
+<body>  
+  <div class="admin-shell">
+  <div class="mobile-nav-toggle" onclick="toggleSidebar()">☰</div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div>
+        <div class="brand-name">Igan's<br><span>Budbod House</span></div>
+        <div class="brand-role">Admin Panel</div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="dashboard.html" class="nav-item">Dashboard</a>
+      <a href="orders.html" class="nav-item">Orders</a>
+      <a href="menu-manage.html" class="nav-item">Menu</a>
+      <a href="users.html" class="nav-item">Users</a>
+      <a href="tables.html" class="nav-item active">Tables & QR</a>
+      <a href="reports.html" class="nav-item">Reports</a>
+      <a href="reviews.html" class="nav-item">Reviews</a>
+      <a href="settings.html" class="nav-item">Settings</a>
+    </nav>
+    <div class="sidebar-footer"><button class="btn btn-ghost btn-sm btn-block" onclick="logout()">Sign Out</button></div>
+  </aside>
+
+    <main class="admin-main">
+      <div class="admin-topbar">
+        <div>
+          <h1 class="admin-page-title">Tables & QR Codes</h1>
+          <p class="admin-page-sub">Manage table QR codes and take-out QR codes</p>
+        </div>
+      </div>
+
+      <div class="tables-content">
+        <!-- Table QR Codes Section -->
+        <div style="margin-bottom:40px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-direction: column;gap: 15px;">
+            <h2 style="font-size:1.25rem;font-weight:700;">Table QR Codes</h2>
+            <div style="display:flex;gap:10px;">
+              <button class="btn btn-outline btn-sm" onclick="printAll()">Print All Tables</button>
+              <button class="btn btn-primary" onclick="openAddTable()">+ Add Table</button>
+            </div>
+          </div>
+          <div class="alert alert-info" style="margin-bottom:16px;">
+            Table QR codes. Print these and place them on tables.
+          </div>
+          <div id="qr-grid" class="qr-grid"></div>
+        </div>
+
+        <!-- Public Take-Out QR Section -->
+        <div>
+          <h2 style="font-size:1.25rem;font-weight:700;margin-bottom:16px; text-align: center;">Public Take-Out QR Codes</h2>
+          <div style="display:flex;align-items:center;justify-content:center;margin-bottom:16px;">
+            <div style="display:flex;gap:10px;">
+              <button class="btn btn-outline btn-sm" onclick="printAllPublic()">Print All Take-Out</button>
+              <button class="btn btn-primary" onclick="openAddPublicQR()">+ Take-Out QR</button>
+            </div>
+          </div>
+          <div class="alert alert-info" style="margin-bottom:16px;">
+            Take-Out QR codes automatically set order type to take-out and ask for customer name.
+          </div>
+          <div id="public-qr-grid" class="qr-grid"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Add table modal -->
+  <div class="modal-overlay" id="add-table-modal">
+    <div class="modal" style="max-width:380px;">
+      <div class="modal-header">
+        <h2>Add Table</h2><button class="modal-close" onclick="closeAddTable()">x</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Table Number</label>
+            <input type="number" id="new-table-num" class="form-control" min="1" placeholder="e.g. 11">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Capacity</label>
+            <input type="number" id="new-table-cap" class="form-control" min="1" max="20" value="4">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeAddTable()">Cancel</button>
+        <button class="btn btn-primary" onclick="addTable()">Generate QR & Add</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- QR View modal -->
+  <div class="modal-overlay" id="qr-modal">
+    <div class="modal" style="max-width:360px;text-align:center;">
+      <div class="modal-header">
+        <h2 id="qr-modal-title">Table QR Code</h2><button class="modal-close" onclick="closeQrModal()">x</button>
+      </div>
+      <div class="modal-body">
+        <img id="qr-modal-img" style="width:200px;height:200px;border-radius:12px;border:1px solid var(--border);">
+        <p id="qr-modal-url" style="font-size:0.78rem;color:var(--text-muted);margin-top:12px;word-break:break-all;">
+        </p>
+      </div>
+      <div class="modal-footer" style="justify-content:center;">
+        <button class="btn btn-primary" onclick="printQr()">Print QR</button>
+        <button class="btn btn-outline" onclick="downloadQr()">Download</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Public QR modal -->
+  <div class="modal-overlay" id="add-publicqr-modal">
+    <div class="modal" style="max-width:380px;">
+      <div class="modal-header">
+        <h2>Create Take-Out QR</h2><button class="modal-close" onclick="closeAddPublicQR()">x</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">QR Name</label>
+          <input type="text" id="new-publicqr-name" class="form-control" placeholder="e.g. Front Desk Take-Out">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeAddPublicQR()">Cancel</button>
+        <button class="btn btn-primary" onclick="addPublicQR()">Create QR</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/auth.js"></script>
+  <script>
+    requireRole('admin');
+    let tables = [], publicQRs = [], selectedQr = null, selectedPublicQr = null;
+
+    async function loadTables() {
+      const data = await apiFetch('/tables');
+      tables = data.data;
+      renderGrid();
+      await loadPublicQRs();
+    }
+
+    async function loadPublicQRs() {
+      try {
+        const data = await apiFetch('/publicqr');
+        publicQRs = data.data || [];
+        renderPublicGrid();
+      } catch (e) {
+        console.error('Failed to load public QRs:', e);
+        publicQRs = [];
+        renderPublicGrid();
+      }
+    }
+
+    function renderGrid() {
+      const grid = document.getElementById('qr-grid');
+      if (tables.length === 0) {
+        grid.innerHTML = '<div class="empty-state"><h3>No tables yet</h3><p>Add tables to generate QR codes</p></div>';
+        return;
+      }
+      let html = "";
+      for (let i = 0; i < tables.length; i++) {
+        const t = tables[i];
+        html += '<div class="qr-card">' +
+          '<img src="' + (t.qrCodeImage || '') + '" alt="QR Table ' + t.tableNumber + '" style="width:140px;height:140px;cursor:pointer;border-radius:10px;" onclick="viewQr(\'' + t._id + '\')">' +
+          '<div class="qr-table-num">Table ' + t.tableNumber + '</div>' +
+          '<div class="qr-capacity">Capacity: ' + t.capacity + '</div>' +
+          '<div style="margin-top:12px;display:flex;gap:6px;justify-content:center;">' +
+          '<button class="btn btn-outline btn-sm" onclick="viewQr(\'' + t._id + '\')">View</button>' +
+          '<button class="btn btn-ghost btn-sm" onclick="deleteTable(\'' + t._id + '\')" style="color:var(--danger);">Delete</button>' +
+          '</div>' +
+          '</div>';
+      }
+      grid.innerHTML = html;
+    }
+
+    function renderPublicGrid() {
+      const grid = document.getElementById('public-qr-grid');
+      if (!publicQRs || publicQRs.length === 0) {
+        grid.innerHTML = '<div class="empty-state"><h3>No take-out QRs yet</h3><p>Create take-out QR codes for walk-in customers</p></div>';
+        return;
+      }
+      let html = "";
+      for (let i = 0; i < publicQRs.length; i++) {
+        const q = publicQRs[i];
+        html += '<div class="qr-card">' +
+          '<img src="' + (q.qrCodeImage || '') + '" alt="' + q.name + '" style="width:140px;height:140px;cursor:pointer;border-radius:10px;" onclick="viewPublicQr(\'' + q._id + '\')">' +
+          '<div class="qr-table-num">' + q.name + '</div>' +
+          '<div class="qr-capacity">Take-Out Only</div>' +
+          '<div style="margin-top:12px;display:flex;gap:6px;justify-content:center;">' +
+          '<button class="btn btn-outline btn-sm" onclick="viewPublicQr(\'' + q._id + '\')">View</button>' +
+          '<button class="btn btn-ghost btn-sm" onclick="deletePublicQR(\'' + q._id + '\')" style="color:var(--danger);">Delete</button>' +
+          '</div>' +
+          '</div>';
+      }
+      grid.innerHTML = html;
+    }
+
+    function viewQr(id) {
+      const table = tables.find(function (t) { return t._id === id; });
+      if (!table) return;
+      selectedQr = table;
+      selectedPublicQr = null;
+      document.getElementById('qr-modal-title').textContent = 'Table ' + table.tableNumber + ' QR Code';
+      document.getElementById('qr-modal-img').src = table.qrCodeImage;
+      document.getElementById('qr-modal-url').textContent = table.qrCodeValue;
+      document.getElementById('qr-modal').classList.add('active');
+    }
+
+    function viewPublicQr(id) {
+      const qr = publicQRs.find(function (q) { return q._id === id; });
+      if (!qr) return;
+      selectedPublicQr = qr;
+      selectedQr = null;
+      document.getElementById('qr-modal-title').textContent = qr.name + ' (Take-Out)';
+      document.getElementById('qr-modal-img').src = qr.qrCodeImage;
+      document.getElementById('qr-modal-url').textContent = qr.qrCodeValue;
+      document.getElementById('qr-modal').classList.add('active');
+    }
+
+    function closeQrModal() { document.getElementById('qr-modal').classList.remove('active'); }
+
+    function printQr() {
+      if (!selectedQr && !selectedPublicQr) return;
+      const w = window.open('', '_blank');
+      if (!w) { alert('Popup blocked! Please allow popups for this site.'); return; }
+      let title = '', subtitle = '', img = '', url = '';
+      if (selectedQr) {
+        title = 'Table ' + selectedQr.tableNumber;
+        subtitle = 'Dine-In';
+        img = selectedQr.qrCodeImage;
+        url = selectedQr.qrCodeValue;
+      } else if (selectedPublicQr) {
+        title = selectedPublicQr.name;
+        subtitle = 'Take-Out';
+        img = selectedPublicQr.qrCodeImage;
+        url = selectedPublicQr.qrCodeValue;
+      }
+      const html = '\x3Chtml\x3E\x3Chead\x3E\x3Ctitle\x3E' + title + ' QR\x3C/title\x3E' +
+        '\x3Cstyle\x3Ebody{text-align:center;font-family:Georgia,serif;padding:40px;}h1{font-size:2rem;color:#C8440A;}p{color:#888;margin-top:8px;}\x3C/style\x3E\x3C/head\x3E' +
+        '\x3Cbody\x3E\x3Ch1\x3EIgans\x3C/h1\x3E\x3Cp\x3E' + title + ' - ' + subtitle + '\x3C/p\x3E' +
+        '\x3Cimg src="' + img + '" style="width:250px;height:250px;margin:20px 0;"\x3E\x3Cbr\x3E' +
+        '\x3Cp style="font-size:0.8rem;word-break:break-all;"\x3E' + url + '\x3C/p\x3E' +
+        '\x3Cscript\x3Ewindow.onload = function() { window.print(); };\x3C/script\x3E\x3C/body\x3E\x3C/html\x3E';
+      w.document.open();
+      w.document.write(html);
+      w.document.close();
+    }
+
+    function downloadQr() {
+      if (!selectedQr && !selectedPublicQr) return;
+      const a = document.createElement('a');
+      let filename = '';
+      if (selectedQr) {
+        a.href = selectedQr.qrCodeImage;
+        filename = 'table-' + selectedQr.tableNumber + '-qr.png';
+      } else if (selectedPublicQr) {
+        a.href = selectedPublicQr.qrCodeImage;
+        filename = 'takeout-' + selectedPublicQr._id + '-qr.png';
+      }
+      a.download = filename;
+      a.click();
+    }
+
+    function printAll() {
+      const w = window.open('', '_blank');
+      if (!w) { alert('Popup blocked! Please allow popups for this site.'); return; }
+      let cards = '';
+      for (let i = 0; i < tables.length; i++) {
+        const t = tables[i];
+        cards += '\x3Cdiv style="display:inline-block;text-align:center;padding:24px;border:1px solid #ddd;border-radius:12px;margin:12px;width:200px;"\x3E' +
+          '\x3Ch2 style="font-size:1.3rem;color:#C8440A;margin-bottom:4px;"\x3EIgans\x3C/h2\x3E' +
+          '\x3Cp style="font-size:0.85rem;color:#888;margin-bottom:12px;"\x3ETable ' + t.tableNumber + ' - Capacity: ' + t.capacity + '\x3C/p\x3E' +
+          '\x3Cimg src="' + t.qrCodeImage + '" style="width:160px;height:160px;"\x3E' +
+          '\x3Cp style="font-size:0.65rem;color:#aaa;margin-top:8px;word-break:break-all;"\x3E' + t.qrCodeValue + '\x3C/p\x3E' +
+          '\x3C/div\x3E';
+      }
+      const html = '\x3Chtml\x3E\x3Chead\x3E\x3Ctitle\x3EAll Table QR Codes\x3C/title\x3E\x3Cstyle\x3Ebody{font-family:Georgia,serif;padding:20px;}@media print{button{display:none}}\x3C/style\x3E\x3C/head\x3E' +
+        '\x3Cbody\x3E\x3Cdiv style="text-align:center;margin-bottom:20px;"\x3E\x3Cbutton onclick="window.print()" style="padding:10px 24px;background:#C8440A;color:white;border:none;border-radius:8px;cursor:pointer;font-size:1rem;"\x3EPrint All Tables\x3C/button\x3E\x3C/div\x3E' +
+        '\x3Cdiv\x3E' + cards + '\x3C/div\x3E\x3C/body\x3E\x3C/html\x3E';
+      w.document.open();
+      w.document.write(html);
+      w.document.close();
+    }
+
+    function printAllPublic() {
+      const w = window.open('', '_blank');
+      if (!w) { alert('Popup blocked! Please allow popups for this site.'); return; }
+      let cards = '';
+      for (let i = 0; i < publicQRs.length; i++) {
+        const q = publicQRs[i];
+        cards += '\x3Cdiv style="display:inline-block;text-align:center;padding:24px;border:1px solid #ddd;border-radius:12px;margin:12px;width:200px;"\x3E' +
+          '\x3Ch2 style="font-size:1.3rem;color:#C8440A;margin-bottom:4px;"\x3EIgans\x3C/h2\x3E' +
+          '\x3Cp style="font-size:0.85rem;color:#888;margin-bottom:12px;"\x3E' + q.name + ' - Take-Out\x3C/p\x3E' +
+          '\x3Cimg src="' + q.qrCodeImage + '" style="width:160px;height:160px;"\x3E' +
+          '\x3Cp style="font-size:0.65rem;color:#aaa;margin-top:8px;word-break:break-all;"\x3E' + q.qrCodeValue + '\x3C/p\x3E' +
+          '\x3C/div\x3E';
+      }
+      const html = '\x3Chtml\x3E\x3Chead\x3E\x3Ctitle\x3EAll Take-Out QR Codes\x3C/title\x3E\x3Cstyle\x3Ebody{font-family:Georgia,serif;padding:20px;}@media print{button{display:none}}\x3C/style\x3E\x3C/head\x3E' +
+        '\x3Cbody\x3E\x3Cdiv style="text-align:center;margin-bottom:20px;"\x3E\x3Cbutton onclick="window.print()" style="padding:10px 24px;background:#C8440A;color:white;border:none;border-radius:8px;cursor:pointer;font-size:1rem;"\x3EPrint All Take-Out\x3C/button\x3E\x3C/div\x3E' +
+        '\x3Cdiv\x3E' + cards + '\x3C/div\x3E\x3C/body\x3E\x3C/html\x3E';
+      w.document.open();
+      w.document.write(html);
+      w.document.close();
+    }
+
+    function openAddTable() { document.getElementById('new-table-num').value = ''; document.getElementById('new-table-cap').value = '4'; document.getElementById('add-table-modal').classList.add('active'); }
+    function closeAddTable() { document.getElementById('add-table-modal').classList.remove('active'); }
+
+    async function addTable() {
+      const num = parseInt(document.getElementById('new-table-num').value);
+      const cap = parseInt(document.getElementById('new-table-cap').value);
+      if (!num || num < 1) { showToast('Enter a valid table number', 'error'); return; }
+      try {
+        await apiFetch('/tables', { method: 'POST', body: JSON.stringify({ tableNumber: num, capacity: cap }) });
+        showToast('Table ' + num + ' added with QR code!');
+        closeAddTable();
+        loadTables();
+      } catch (e) { showToast(e.message, 'error'); }
+    }
+
+    async function deleteTable(id) {
+      if (!confirm('Delete this table?')) return;
+      try {
+        await apiFetch('/tables/' + id, { method: 'DELETE' });
+        showToast('Table deleted');
+        loadTables();
+      } catch (e) { showToast(e.message, 'error'); }
+    }
+
+    function openAddPublicQR() { document.getElementById('new-publicqr-name').value = 'Take-Out QR'; document.getElementById('add-publicqr-modal').classList.add('active'); }
+    function closeAddPublicQR() { document.getElementById('add-publicqr-modal').classList.remove('active'); }
+
+    async function addPublicQR() {
+      const name = document.getElementById('new-publicqr-name').value.trim();
+      if (!name) { showToast('Enter a name for the QR', 'error'); return; }
+      try {
+        await apiFetch('/publicqr', { method: 'POST', body: JSON.stringify({ name }) });
+        showToast('Take-Out QR created!');
+        closeAddPublicQR();
+        loadPublicQRs();
+      } catch (e) { showToast(e.message, 'error'); }
+    }
+
+    async function deletePublicQR(id) {
+      if (!confirm('Delete this take-out QR?')) return;
+      try {
+        await apiFetch('/publicqr/' + id, { method: 'DELETE' });
+        showToast('Take-Out QR deleted');
+        loadPublicQRs();
+      } catch (e) { showToast(e.message, 'error'); }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadTables);
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+</script>
+</body>
+
+</html>

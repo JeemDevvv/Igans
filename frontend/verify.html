@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/jpeg" href="css/favicon.jpg">
+<title>Verifying...</title>
+<link rel="stylesheet" href="css/main.css">
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  min-height: 100vh;
+  font-family: var(--font-body);
+  background: linear-gradient(var(--bg-overlay), var(--bg-overlay)), 
+              url('css/bg_image.jpg') no-repeat center center;
+  background-size: cover;
+  background-attachment: fixed;
+  padding: 0;
+  position: relative;
+  overflow-x: hidden;
+}
+
+.verify-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  animation: fadeIn 0.5s ease;
+}
+
+.header-section {
+  padding: 40px 24px 20px;
+  text-align: center;
+}
+
+.restaurant-banner {
+  position: relative;
+  margin-bottom: 24px;
+}
+
+.restaurant-logo {
+  font-family: var(--font-display);
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: #FFF;
+  margin-bottom: 4px;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+
+.restaurant-subtitle {
+  color: rgba(255,255,255,0.85);
+  font-size: 0.9rem;
+  font-weight: 400;
+}
+
+.verify-card {
+  background: #FDFAF6;
+  border-radius: 32px 32px 0 0;
+  padding: 32px 24px 40px;
+  position: relative;
+  box-shadow: 0 -8px 40px rgba(0,0,0,0.3);
+  animation: slideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  margin: 0px 10px 0px 10px;
+}
+
+.card-top-decoration {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 48px;
+  height: 4px;
+  background: #D7CCC8;
+  border-radius: 2px;
+  margin-top: 12px;
+}
+
+.location-icon-wrap {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 24px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(214,40,40,0.12) 0%, rgba(214,40,40,0.05) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.location-pulse {
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  border: 2px solid rgba(214,40,40,0.25);
+  animation: pulse-ring 2s ease-out infinite;
+}
+
+.location-pulse-2 {
+  position: absolute;
+  inset: -16px;
+  border-radius: 50%;
+  border: 2px solid rgba(214,40,40,0.12);
+  animation: pulse-ring 2s ease-out infinite 0.4s;
+}
+
+@keyframes pulse-ring {
+  0% { transform: scale(0.9); opacity: 1; }
+  100% { transform: scale(1.3); opacity: 0; }
+}
+
+.verify-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1C1008;
+  margin-bottom: 12px;
+  text-align: center;
+  font-family: var(--font-display);
+}
+
+.verify-desc {
+  color: #5D4037;
+  font-size: 0.92rem;
+  line-height: 1.6;
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.table-selector {
+  background: #FFF;
+  border: 2px solid #EFEBE9;
+  border-radius: 16px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  transition: all 0.3s ease;
+}
+
+.table-selector:hover {
+  border-color: #D62828;
+  box-shadow: 0 4px 16px rgba(214,40,40,0.1);
+}
+
+.table-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.table-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: #F5F0EB;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.table-label {
+  color: #3E2723;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.table-chip {
+  background: rgba(214,40,40,0.1);
+  color: var(--primary);
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 0.88rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.trust-features {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.trust-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.trust-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #F5F0EB;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #5D4037;
+}
+
+.trust-text {
+  font-size: 0.72rem;
+  color: #6D4C41;
+  text-align: center;
+  font-weight: 500;
+}
+
+.btn-verify {
+  width: 100%;
+  padding: 18px 32px;
+  background: linear-gradient(135deg, var(--primary) 0%, #B71C1C 100%);
+  color: white;
+  border: none;
+  border-radius: 50px;
+  font-family: var(--font-body);
+  font-size: 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 16px rgba(214,40,40,0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.btn-verify:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(214,40,40,0.45);
+}
+
+.btn-verify:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn-verify:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.privacy-note {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 0.8rem;
+  color: #8D6E63;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.status-area {
+  margin: 20px 0;
+  min-height: 60px;
+}
+
+.status-message {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  border-radius: 12px;
+  font-size: 0.88rem;
+  text-align: left;
+}
+
+.status-message.checking {
+  background: #E3F2FD;
+  color: #1565C0;
+}
+
+.status-message.success {
+  background: #E8F5E9;
+  color: #2E7D32;
+}
+
+.status-message.error {
+  background: #FFEBEE;
+  color: #C62828;
+}
+
+.status-message.warning {
+  background: #FFF8E1;
+  color: #F57F17;
+}
+
+.status-msg-text {
+  flex: 1;
+}
+
+.progress-bar {
+  height: 4px;
+  background: #EFEBE9;
+  border-radius: 2px;
+  overflow: hidden;
+  margin: 16px 0;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--primary);
+  border-radius: 2px;
+  transition: width 0.5s ease;
+  width: 0%;
+}
+
+.coords-info {
+  font-size: 0.78rem;
+  color: #8D6E63;
+  background: #F8F2EC;
+  padding: 10px 14px;
+  border-radius: 12px;
+  margin-top: 12px;
+  display: none;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.spinner {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  border: 3px solid rgba(255,255,255,0.2);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 380px) {
+  .restaurant-logo {
+    font-size: 1.8rem;
+  }
+  .trust-features {
+    gap: 16px;
+  }
+}
+</style>
+</head>
+<body>
+<div class="verify-container">
+  <div class="header-section">
+    <div class="restaurant-banner">
+      <div class="restaurant-logo">Igan's Budbod House</div>
+      <div class="restaurant-subtitle">Authentic Filipino Comfort Food</div>
+    </div>
+  </div>
+
+  <div class="verify-card">
+    <div class="card-top-decoration"></div>
+
+    <div class="location-icon-wrap">
+      <div class="location-pulse"></div>
+      <div class="location-pulse-2"></div>
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#D62828" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+        <circle cx="12" cy="10" r="3"></circle>
+      </svg>
+    </div>
+
+    <h2 class="verify-title" id="verify-title">Let's verify your location</h2>
+    <p class="verify-desc" id="verify-desc">To make sure you're inside the restaurant, we'll use your location to allow ordering.</p>
+
+    <div class="table-selector">
+      <div class="table-info">
+        <div class="table-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#5D4037" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+            <circle cx="12" cy="10" r="3"></circle>
+          </svg>
+        </div>
+        <span class="table-label" id="table-label">Your Table</span>
+      </div>
+      <div id="table-chip-container">
+        <span class="table-chip" id="table-chip">
+          <span id="table-num">1</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D62828" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m9 18 6-6-6-6"></path>
+          </svg>
+        </span>
+      </div>
+    </div>
+
+    <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
+
+    <div class="status-area">
+      <div class="status-message" id="status-box" style="display:none;"></div>
+      <div class="coords-info" id="coords-info"></div>
+    </div>
+
+    <div class="trust-features">
+      <div class="trust-item">
+        <div class="trust-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5D4037" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+          </svg>
+        </div>
+        <span class="trust-text">Secure & Private</span>
+      </div>
+      <div class="trust-item">
+        <div class="trust-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5D4037" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+            <circle cx="12" cy="10" r="3"></circle>
+          </svg>
+        </div>
+        <span class="trust-text">Used for access only</span>
+      </div>
+      <div class="trust-item">
+        <div class="trust-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5D4037" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+        </div>
+        <span class="trust-text">Never stored</span>
+      </div>
+    </div>
+
+    <button class="btn-verify" id="verify-btn" onclick="startVerification()">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+        <circle cx="12" cy="10" r="3"></circle>
+      </svg>
+      VERIFY LOCATION
+    </button>
+
+    <div class="privacy-note">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8D6E63" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="m9 11 3 3L22 4"></path>
+        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+      </svg>
+      We value your privacy
+    </div>
+  </div>
+</div>
+
+<script src="js/auth.js"></script>
+<script>
+const urlParams = new URLSearchParams(location.search);
+const tableNum = urlParams.get('table');
+const qrType = urlParams.get('type');
+const qrId = urlParams.get('id');
+console.log('DEBUG verify.html: urlParams:', Object.fromEntries(urlParams.entries()));
+console.log('DEBUG verify.html: tableNum:', tableNum, 'qrType:', qrType, 'qrId:', qrId);
+
+if (qrType === 'takeout' && qrId) {
+  sessionStorage.setItem('qrType', 'takeout');
+  sessionStorage.setItem('takeoutQrId', qrId);
+  sessionStorage.setItem('isTakeOutQR', 'true');
+  sessionStorage.setItem('orderType', 'take-out');
+  document.getElementById('verify-title').textContent = 'Take-Out Order';
+  document.getElementById('verify-desc').textContent = 'Scan complete! You can now place a take-out order.';
+  document.getElementById('table-label').textContent = 'Order Type';
+  document.getElementById('table-num').textContent = 'Take-Out';
+  
+  // Auto redirect after showing status for a second
+  const btn = document.getElementById('verify-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Redirecting...';
+  setProgress(100);
+  showStatus('success', 'Take-Out QR verified! Redirecting to order page...');
+  setTimeout(() => { window.location.href = 'order-type.html'; }, 1500);
+} else if (tableNum) {
+  sessionStorage.setItem('tableNumber', tableNum);
+  sessionStorage.setItem('qrType', 'table');
+  sessionStorage.removeItem('isTakeOutQR');
+  document.getElementById('table-num').textContent = tableNum;
+} else {
+  sessionStorage.removeItem('isTakeOutQR');
+}
+
+function setProgress(pct) {
+  document.getElementById('progress').style.width = pct + '%';
+}
+
+function showStatus(type, msg) {
+  const box = document.getElementById('status-box');
+  box.style.display = 'flex';
+  box.className = 'status-message ' + type;
+  box.innerHTML = `<span class="status-msg-text">${msg}</span>`;
+}
+
+function haversine(lat1, lon1, lat2, lon2) {
+  const R = 6371000, dLat = (lat2-lat1)*Math.PI/180, dLon = (lon2-lon1)*Math.PI/180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+async function startVerification() {
+  const btn = document.getElementById('verify-btn');
+  btn.disabled = true;
+  
+  // If it's takeout QR, skip location check
+  if (qrType === 'takeout' && qrId) {
+    btn.innerHTML = '<span class="spinner"></span> Redirecting...';
+    setProgress(100);
+    showStatus('success', 'Take-Out QR verified! Redirecting to order page...');
+    setTimeout(() => { window.location.href = 'order-type.html'; }, 1500);
+    return;
+  }
+
+  // Normal location verification for table QR
+  btn.innerHTML = '<span class="spinner"></span> Checking location...';
+  setProgress(20);
+  showStatus('checking', 'Requesting location permission...');
+
+  try {
+    setProgress(40);
+    const settingsRes = await fetch(`${API}/settings`);
+    const settingsData = await settingsRes.json();
+    const { latitude, longitude, allowedRadiusMeters, restaurantName } = settingsData.data;
+    setProgress(60);
+    showStatus('checking', 'Getting your GPS coordinates...');
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setProgress(85);
+        const { latitude: userLat, longitude: userLon, accuracy } = pos.coords;
+        const dist = haversine(userLat, userLon, latitude, longitude);
+        const distM = Math.round(dist);
+
+        document.getElementById('coords-info').style.display = 'block';
+        document.getElementById('coords-info').textContent =
+          `Your position: ${userLat.toFixed(5)}, ${userLon.toFixed(5)} · Accuracy: ±${Math.round(accuracy)}m · Distance to restaurant: ${distM}m`;
+
+        if (dist <= allowedRadiusMeters) {
+          setProgress(100);
+          showStatus('success', `Location verified! You are ${distM}m from ${restaurantName}. Redirecting...`);
+          setTimeout(() => { window.location.href = 'order-type.html'; }, 1500);
+        } else {
+          setProgress(100);
+          showStatus('error', `Access denied. You are ${distM}m away from the restaurant (max: ${allowedRadiusMeters}m). You must be inside the restaurant to use this ordering system.`);
+          btn.disabled = false;
+          btn.innerHTML = 'Try Again';
+        }
+      },
+      (err) => {
+        setProgress(0);
+        const msgs = { 1: 'Location permission denied. Please allow location access in your browser settings.', 2: 'Location unavailable. Please try again.', 3: 'Location request timed out. Please try again.' };
+        showStatus('warning', msgs[err.code] || 'Could not get your location.');
+        btn.disabled = false;
+        btn.innerHTML = 'Try Again';
+
+        if (confirm('DEV MODE: Location blocked. Bypass for testing?')) {
+          window.location.href = 'order-type.html';
+        }
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  } catch (err) {
+    showStatus('error', 'Server error: ' + err.message);
+    btn.disabled = false;
+    btn.innerHTML = 'Verify My Location';
+  }
+}
+</script>
+</body>
+</html>

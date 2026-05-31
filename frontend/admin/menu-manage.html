@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/jpeg" href="../css/favicon.jpg">
+<title>Menu Management — Admin</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="../css/main.css">
+<link rel="stylesheet" href="../css/admin.css">
+</head>
+<body>
+<div class="admin-shell">
+  <div class="mobile-nav-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div>
+        <div class="brand-name">Igan's<br><span>Budbod House</span></div>
+        <div class="brand-role">Admin Panel</div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="dashboard.html" class="nav-item">Dashboard</a>
+      <a href="orders.html" class="nav-item">Orders</a>
+      <a href="menu-manage.html" class="nav-item active">Menu</a>
+      <a href="users.html" class="nav-item">Users</a>
+      <a href="tables.html" class="nav-item">Tables & QR</a>
+      <a href="reports.html" class="nav-item">Reports</a>
+      <a href="reviews.html" class="nav-item">Reviews</a>
+      <a href="settings.html" class="nav-item">Settings</a>
+    </nav>
+    <div class="sidebar-footer"><button class="btn btn-ghost btn-sm btn-block" onclick="logout()">Sign Out</button></div>
+  </aside>
+
+  <main class="admin-main">
+    <div class="admin-topbar">
+      <div><h1 class="admin-page-title">Menu Management</h1><p class="admin-page-sub">Add, edit, and manage your food items</p></div>
+      <div style="display:flex;gap:10px;">
+        <button class="btn btn-outline btn-sm" onclick="openCatModal()">+ Category</button>
+        <button class="btn btn-primary" onclick="openItemModal()">+ Add Item</button>
+      </div>
+    </div>
+
+    <div style="padding:20px 28px 0;">
+      <!-- Category Filter Tabs -->
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px;" id="cat-tabs">
+        <div class="ftab active" data-id="all" onclick="filterCat('all',this)" style="padding:7px 16px;border-radius:20px;border:1.5px solid var(--border);cursor:pointer;font-size:0.83rem;font-weight:500;color:var(--text-muted);background:var(--bg);transition:all 0.2s;">All</div>
+      </div>
+      <!-- Search + Sort bar -->
+      <div style="display:flex;gap:12px;align-items:center;margin-bottom:20px;flex-wrap:wrap;">
+        <div class="search-input-wrap" style="max-width:320px;">
+          <i class="fas fa-magnifying-glass"></i>
+          <input type="text" id="search-menu" placeholder="Search items..." oninput="filterItems()">
+        </div>
+        <label style="display:flex;align-items:center;gap:6px;font-size:0.85rem;color:var(--text-muted);">
+          <input type="checkbox" id="show-unavail" onchange="filterItems()"> Show unavailable
+        </label>
+        <span id="item-count" style="font-size:0.85rem;color:var(--text-muted);margin-left:auto;"></span>
+      </div>
+      <div id="menu-item-grid" class="menu-item-grid"></div>
+    </div>
+  </main>
+</div>
+
+<!-- Item Modal -->
+<div class="modal-overlay" id="item-modal">
+  <div class="modal" style="max-width:620px;">
+    <div class="modal-header">
+      <h2 id="modal-title">Add Menu Item</h2>
+      <button class="modal-close" onclick="closeItemModal()"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="item-id">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Item Name *</label>
+          <input type="text" id="item-name" class="form-control" placeholder="e.g. Chicken Adobo">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Category *</label>
+          <select id="item-category" class="form-control"></select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <textarea id="item-desc" class="form-control" placeholder="Describe the dish..." rows="2"></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Price (₱) *</label>
+          <input type="number" id="item-price" class="form-control" placeholder="0.00" min="0" step="0.01">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Image URL</label>
+          <input type="url" id="item-image" class="form-control" placeholder="https://...">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tags (comma separated)</label>
+        <input type="text" id="item-tags" class="form-control" placeholder="e.g. spicy, chicken, grilled">
+      </div>
+      <div style="display:flex;gap:20px;flex-wrap:wrap;">
+        <label style="display:flex;align-items:center;gap:8px;font-size:0.88rem;cursor:pointer;">
+          <input type="checkbox" id="item-available" checked> Available
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:0.88rem;cursor:pointer;">
+          <input type="checkbox" id="item-featured"> Featured
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:0.88rem;cursor:pointer;">
+          <input type="checkbox" id="item-bestseller"> Best Seller
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:0.88rem;cursor:pointer;">
+          <input type="checkbox" id="item-has-sizes" onchange="toggleSizeOptions()"> Has Sizes (Drink)
+        </label>
+      </div>
+      <!-- Nutrition Info -->
+      <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">
+        <label class="form-label" style="font-weight:600;">Nutrition Information (optional)</label>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Calories (kcal)</label>
+            <input type="number" id="item-calories" class="form-control" placeholder="e.g. 350" min="0">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Prep Time (min)</label>
+            <input type="number" id="item-prep-time" class="form-control" placeholder="e.g. 15" min="0">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Protein (g)</label>
+            <input type="number" id="item-protein" class="form-control" placeholder="e.g. 25" min="0">
+          </div>
+        </div>
+      </div>
+      <div id="size-options" style="margin-top:16px;display:none;">
+        <label class="form-label">Size Options</label>
+        <div id="sizes-list" style="margin-bottom:12px;"></div>
+        <button class="btn btn-outline btn-sm" type="button" onclick="addSizeOption()" style="width:100%;">+ Add Size</button>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeItemModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveItem()" id="save-item-btn">Save Item</button>
+    </div>
+  </div>
+</div>
+
+<!-- Category Modal -->
+<div class="modal-overlay" id="cat-modal">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-header"><h2>Add Category</h2><button class="modal-close" onclick="closeCatModal()"><i class="fas fa-xmark"></i></button></div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Category Name *</label>
+          <input type="text" id="cat-name" class="form-control" placeholder="e.g. Seafood">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Icon (emoji)</label>
+          <input type="text" id="cat-icon" class="form-control" placeholder="🦐" maxlength="4">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeCatModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveCategory()">Add Category</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete confirm -->
+<div class="modal-overlay" id="del-modal">
+  <div class="modal" style="max-width:400px;text-align:center;">
+    <div class="modal-body" style="padding:32px;">
+      <div style="font-size:3rem;margin-bottom:16px;"><i class="fas fa-trash" style="color:var(--danger);"></i></div>
+      <h2 style="margin-bottom:8px;">Delete Item?</h2>
+      <p style="color:var(--text-muted);margin-bottom:24px;">This action cannot be undone.</p>
+      <div style="display:flex;gap:12px;">
+        <button class="btn btn-ghost btn-block" onclick="closeDelModal()">Cancel</button>
+        <button class="btn btn-danger btn-block" onclick="confirmDelete()">Delete</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../js/auth.js"></script>
+<script>
+requireRole('admin');
+
+let allItems = [], categories = [], currentCat = 'all', deleteTargetId = null;
+
+async function init() {
+  await loadCategories();
+  await loadItems();
+}
+
+async function loadCategories() {
+  const data = await apiFetch('/menu/meta/categories');
+  categories = data.data;
+  // Populate tabs
+  const tabs = document.getElementById('cat-tabs');
+  tabs.innerHTML = `<div class="ftab active" data-id="all" onclick="filterCat('all',this)" style="padding:7px 16px;border-radius:20px;border:1.5px solid var(--border);cursor:pointer;font-size:0.83rem;font-weight:500;color:var(--text-muted);background:var(--bg);">All</div>` +
+    categories.map(c => `<div class="ftab" data-id="${c._id}" onclick="filterCat('${c._id}',this)" style="padding:7px 16px;border-radius:20px;border:1.5px solid var(--border);cursor:pointer;font-size:0.83rem;font-weight:500;color:var(--text-muted);background:var(--bg);">${c.icon} ${c.name}</div>`).join('');
+  // Populate select
+  const sel = document.getElementById('item-category');
+  sel.innerHTML = categories.map(c => `<option value="${c._id}">${c.icon} ${c.name}</option>`).join('');
+}
+
+async function loadItems() {
+  const data = await apiFetch('/menu');
+  allItems = data.data;
+  filterItems();
+}
+
+function filterItems() {
+  const q = document.getElementById('search-menu').value.toLowerCase();
+  const showUnavail = document.getElementById('show-unavail').checked;
+  let items = allItems;
+  if (currentCat !== 'all') items = items.filter(i => i.category?._id === currentCat || i.category === currentCat);
+  if (q) items = items.filter(i => i.name.toLowerCase().includes(q) || i.description?.toLowerCase().includes(q) || i.tags?.some(t => t.toLowerCase().includes(q)));
+  if (!showUnavail) items = items.filter(i => i.available);
+  document.getElementById('item-count').textContent = `${items.length} item${items.length !== 1 ? 's' : ''}`;
+  renderGrid(items);
+}
+
+function filterCat(id, el) {
+  currentCat = id;
+  document.querySelectorAll('.ftab').forEach(t => { t.style.background = 'var(--bg)'; t.style.color = 'var(--text-muted)'; t.style.borderColor = 'var(--border)'; });
+  el.style.background = 'var(--primary)';
+  el.style.color = 'white';
+  el.style.borderColor = 'var(--primary)';
+  filterItems();
+}
+
+function renderGrid(items) {
+  const grid = document.getElementById('menu-item-grid');
+  if (items.length === 0) { grid.innerHTML = '<div class="empty-state"><div class="icon" style="font-size:2.5rem;"><i class="fas fa-utensils"></i></div><h3>No items found</h3></div>'; return; }
+  grid.innerHTML = items.map(item => {
+    const catName = item.category?.name || '';
+    return `<div class="admin-item-card" data-item-id="${item._id}">
+      <div style="position:relative;">
+        ${item.image ? `<img class="admin-item-img" src="${item.image}" alt="${item.name}">` : `<div class="admin-item-img-placeholder"><i class="fas fa-bowl-food"></i></div>`}
+        ${!item.available ? `<div style="position:absolute;inset:0;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:0.85rem;border-radius:var(--radius) var(--radius) 0 0;">UNAVAILABLE</div>` : ''}
+        ${item.isBestSeller ? `<div style="position:absolute;top:8px;right:8px;background:var(--accent);color:var(--bg-dark);padding:2px 8px;border-radius:8px;font-size:0.7rem;font-weight:700;"><i class="fas fa-star"></i> Best</div>` : ''}
+      </div>
+      <div class="admin-item-body">
+        <div class="admin-item-name">${item.name}</div>
+        <div class="admin-item-cat">${catName} ${item.isFeatured ? '· <i class="fas fa-wand-magic-sparkles"></i> Featured' : ''}</div>
+        <div class="admin-item-meta">
+          <span class="admin-item-price">₱${item.price}</span>
+          <span style="font-size:0.78rem;color:var(--text-muted);">${item.orderCount || 0} orders</span>
+        </div>
+        <div class="admin-item-actions">
+          <button class="btn btn-outline btn-sm" style="flex:1;" onclick="editItem('${item._id}')"><i class="fas fa-pen"></i> Edit</button>
+          <button class="btn btn-ghost btn-sm" onclick="toggleAvail('${item._id}',${!item.available})" title="${item.available ? 'Mark unavailable' : 'Mark available'}"><i class="fas fa-eye" style="${item.available ? '' : 'opacity: 0.5;'}"></i></button>
+          <button class="btn btn-ghost btn-sm" onclick="openDelModal('${item._id}')" style="color:var(--danger);"><i class="fas fa-trash"></i></button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  
+  setTimeout(() => {
+    document.querySelectorAll('.admin-item-img').forEach(img => {
+      img.onerror = function() {
+        const placeholder = document.createElement('div');
+        placeholder.className = 'admin-item-img-placeholder';
+        placeholder.innerHTML = '<i class="fas fa-bowl-food"></i>';
+        this.replaceWith(placeholder);
+      };
+    });
+  }, 0);
+}
+
+let currentSizes = [];
+
+function toggleSizeOptions() {
+  const hasSizes = document.getElementById('item-has-sizes').checked;
+  const sizeOptionsDiv = document.getElementById('size-options');
+  if (hasSizes) {
+    sizeOptionsDiv.style.display = 'block';
+    if (currentSizes.length === 0) {
+      addSizeOption();
+    }
+  } else {
+    sizeOptionsDiv.style.display = 'none';
+    currentSizes = [];
+    renderSizeOptions();
+  }
+}
+
+function addSizeOption() {
+  currentSizes.push({ name: 'Regular', price: 0 });
+  renderSizeOptions();
+}
+
+function removeSizeOption(index) {
+  currentSizes.splice(index, 1);
+  renderSizeOptions();
+}
+
+function updateSizeOption(index, field, value) {
+  if (field === 'price') {
+    currentSizes[index][field] = parseFloat(value) || 0;
+  } else {
+    currentSizes[index][field] = value;
+  }
+}
+
+function renderSizeOptions() {
+  const container = document.getElementById('sizes-list');
+  container.innerHTML = currentSizes.map((size, index) => `
+    <div style="display:flex;gap:10px;align-items:center;margin-bottom:8px;">
+      <input type="text" class="form-control" placeholder="Size name (e.g. Small)" value="${size.name}" 
+        onchange="updateSizeOption(${index}, 'name', this.value)" style="flex:1;">
+      <input type="number" class="form-control" placeholder="Price" value="${size.price}" 
+        onchange="updateSizeOption(${index}, 'price', this.value)" style="width:120px;" min="0" step="0.01">
+      <button type="button" class="btn btn-ghost btn-sm" onclick="removeSizeOption(${index})" style="padding:6px 10px;">
+        <i class="fas fa-trash"></i>
+      </button>
+    </div>
+  `).join('');
+}
+
+function openItemModal(prefill = null) {
+  document.getElementById('item-id').value = '';
+  document.getElementById('modal-title').textContent = 'Add Menu Item';
+  document.getElementById('item-name').value = '';
+  document.getElementById('item-desc').value = '';
+  document.getElementById('item-price').value = '';
+  document.getElementById('item-image').value = '';
+  document.getElementById('item-tags').value = '';
+  document.getElementById('item-available').checked = true;
+  document.getElementById('item-featured').checked = false;
+  document.getElementById('item-bestseller').checked = false;
+  document.getElementById('item-has-sizes').checked = false;
+  document.getElementById('item-calories').value = '';
+  document.getElementById('item-prep-time').value = '';
+  document.getElementById('item-protein').value = '';
+  currentSizes = [];
+  document.getElementById('size-options').style.display = 'none';
+  renderSizeOptions();
+  document.getElementById('item-modal').classList.add('active');
+}
+
+function closeItemModal() { document.getElementById('item-modal').classList.remove('active'); }
+
+async function editItem(id) {
+  const item = allItems.find(i => i._id === id);
+  console.log('Editing item:', item);
+  console.log('Item calories:', item.calories);
+  console.log('Item prepTime:', item.prepTime);
+  console.log('Item protein:', item.protein);
+  if (!item) return;
+  document.getElementById('item-id').value = item._id;
+  document.getElementById('modal-title').textContent = 'Edit Menu Item';
+  document.getElementById('item-name').value = item.name;
+  document.getElementById('item-desc').value = item.description || '';
+  document.getElementById('item-price').value = item.price;
+  document.getElementById('item-image').value = item.image || '';
+  document.getElementById('item-tags').value = (item.tags || []).join(', ');
+  document.getElementById('item-available').checked = item.available;
+  document.getElementById('item-featured').checked = item.isFeatured;
+  document.getElementById('item-bestseller').checked = item.isBestSeller;
+  document.getElementById('item-has-sizes').checked = item.hasSizes || false;
+  document.getElementById('item-calories').value = item.calories || '';
+  document.getElementById('item-prep-time').value = item.prepTime || '';
+  document.getElementById('item-protein').value = item.protein || '';
+  
+  currentSizes = item.sizes ? [...item.sizes] : [];
+  console.log('Current sizes set to:', currentSizes);
+  if (item.hasSizes) {
+    document.getElementById('size-options').style.display = 'block';
+    renderSizeOptions();
+  } else {
+    document.getElementById('size-options').style.display = 'none';
+  }
+  
+  // Set category
+  const cat = item.category?._id || item.category;
+  document.getElementById('item-category').value = cat;
+  document.getElementById('item-modal').classList.add('active');
+}
+
+async function saveItem() {
+  const id = document.getElementById('item-id').value;
+  const hasSizes = document.getElementById('item-has-sizes').checked;
+  
+  console.log('Reading form values:');
+  console.log('item-calories:', document.getElementById('item-calories').value);
+  console.log('item-prep-time:', document.getElementById('item-prep-time').value);
+  console.log('item-protein:', document.getElementById('item-protein').value);
+  
+  const payload = {
+    name: document.getElementById('item-name').value.trim(),
+    description: document.getElementById('item-desc').value.trim(),
+    category: document.getElementById('item-category').value,
+    price: parseFloat(document.getElementById('item-price').value),
+    image: document.getElementById('item-image').value.trim(),
+    tags: document.getElementById('item-tags').value.split(',').map(t=>t.trim()).filter(Boolean),
+    available: document.getElementById('item-available').checked,
+    isFeatured: document.getElementById('item-featured').checked,
+    isBestSeller: document.getElementById('item-bestseller').checked,
+    hasSizes: hasSizes,
+    sizes: hasSizes ? currentSizes.filter(s => s.name && s.price > 0) : [],
+    calories: parseFloat(document.getElementById('item-calories').value) || 0,
+    prepTime: document.getElementById('item-prep-time').value.trim(),
+    protein: parseFloat(document.getElementById('item-protein').value) || 0
+  };
+  console.log('Payload to send:', payload);
+  if (!payload.name || !payload.price) { showToast('Name and price are required', 'error'); return; }
+  const btn = document.getElementById('save-item-btn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Saving...';
+  try {
+    let data;
+    if (id) {
+      console.log('Updating item with id:', id);
+      data = await apiFetch(`/menu/${id}`, { method: 'PUT', body: JSON.stringify(payload) });
+    } else {
+      console.log('Creating new item');
+      data = await apiFetch('/menu', { method: 'POST', body: JSON.stringify(payload) });
+    }
+    console.log('Response from server:', data);
+    showToast(id ? 'Item updated!' : 'Item added!');
+    closeItemModal();
+    await loadItems();
+  } catch(e) { 
+    console.error('Save error:', e);
+    showToast(e.message, 'error'); 
+  }
+  btn.disabled = false; btn.textContent = 'Save Item';
+}
+
+async function toggleAvail(id, avail) {
+  try {
+    await apiFetch(`/menu/${id}`, { method: 'PUT', body: JSON.stringify({ available: avail }) });
+    showToast(avail ? 'Item marked available' : 'Item marked unavailable');
+    await loadItems();
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+function openDelModal(id) { deleteTargetId = id; document.getElementById('del-modal').classList.add('active'); }
+function closeDelModal() { document.getElementById('del-modal').classList.remove('active'); deleteTargetId = null; }
+async function confirmDelete() {
+  if (!deleteTargetId) return;
+  try {
+    await apiFetch(`/menu/${deleteTargetId}`, { method: 'DELETE' });
+    showToast('Item deleted');
+    closeDelModal();
+    await loadItems();
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+function openCatModal() { document.getElementById('cat-name').value = ''; document.getElementById('cat-icon').value = ''; document.getElementById('cat-modal').classList.add('active'); }
+function closeCatModal() { document.getElementById('cat-modal').classList.remove('active'); }
+async function saveCategory() {
+  const name = document.getElementById('cat-name').value.trim();
+  const icon = document.getElementById('cat-icon').value.trim() || 'utensils';
+  if (!name) { showToast('Name is required', 'error'); return; }
+  try {
+    await apiFetch('/menu/meta/categories', { method: 'POST', body: JSON.stringify({ name, icon }) });
+    showToast('Category added!');
+    closeCatModal();
+    await loadCategories();
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>

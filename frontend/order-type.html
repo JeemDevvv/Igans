@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<link rel="icon" type="image/jpeg" href="css/favicon.jpg">
+<title>Order Type — Igan's Budbod House</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="css/main.css">
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  min-height: 100vh;
+  font-family: var(--font-body);
+  background: linear-gradient(var(--bg-overlay), var(--bg-overlay)), 
+              url('css/bg_image.jpg') no-repeat center center;
+  background-size: cover;
+  background-attachment: fixed;
+  color: var(--text);
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  max-width: 480px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 24px 20px;
+  padding-bottom: calc(24px + env(safe-area-inset-bottom));
+}
+
+.header-section {
+  text-align: center;
+  margin-bottom: 28px;
+  animation: fadeInDown 0.5s ease;
+}
+
+.restaurant-brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.restaurant-logo {
+  font-family: var(--font-display);
+  font-size: 1.7rem;
+  font-weight: 700;
+  color: #FFF;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+
+.welcome-text h1 {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  color: #FFF;
+  margin-bottom: 4px;
+  font-weight: 700;
+}
+
+.welcome-text p {
+  font-size: 0.9rem;
+  color: rgba(255,255,255,0.75);
+  font-weight: 400;
+}
+
+.table-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(214,40,40,0.2);
+  color: #FFCDD2;
+  padding: 8px 16px;
+  border-radius: 50px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-top: 16px;
+  border: 1px solid rgba(214,40,40,0.3);
+}
+
+.table-badge i {
+  color: var(--accent);
+}
+
+.choices-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.choice-card {
+  background: rgba(255,255,255,0.06);
+  border: 2px solid transparent;
+  border-radius: 16px;
+  padding: 18px 20px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  position: relative;
+  animation: fadeInUp 0.5s ease;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.choice-card:nth-child(1) {
+  animation-delay: 0.1s;
+}
+
+.choice-card:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.choice-card:hover {
+  background: rgba(255,255,255,0.1);
+  transform: translateY(-2px);
+}
+
+.choice-card.selected {
+  background: rgba(233,196,106,0.12);
+  border-color: var(--accent);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+}
+
+.choice-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 1.5rem;
+  color: var(--accent);
+  transition: all 0.3s ease;
+}
+
+.choice-card.selected .choice-icon {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
+  color: #1C1008;
+}
+
+.choice-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.choice-title {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #FFF;
+  margin-bottom: 4px;
+}
+
+.choice-desc {
+  font-size: 0.82rem;
+  color: rgba(255,255,255,0.7);
+  line-height: 1.5;
+}
+
+.choice-check {
+  width: 24px;
+  height: 24px;
+  border: 2px solid rgba(255,255,255,0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+.choice-card.selected .choice-check {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.choice-check i {
+  color: #1C1008;
+  font-size: 0.9rem;
+  opacity: 0;
+  transform: scale(0);
+  transition: all 0.3s ease;
+}
+
+.choice-card.selected .choice-check i {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.customer-name-section {
+  animation: fadeInUp 0.5s ease 0.25s;
+  animation-fill-mode: both;
+}
+
+.input-label {
+  font-size: 0.85rem;
+  color: rgba(255,255,255,0.75);
+  font-weight: 500;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.customer-name-input {
+  width: 100%;
+  padding: 14px 18px;
+  background: rgba(255,255,255,0.08);
+  border: 2px solid rgba(255,255,255,0.15);
+  border-radius: 12px;
+  color: white;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.customer-name-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: rgba(255,255,255,0.12);
+}
+
+.customer-name-input::placeholder {
+  color: rgba(255,255,255,0.4);
+}
+
+.proceed-section {
+  animation: fadeInUp 0.5s ease 0.3s;
+  animation-fill-mode: both;
+}
+
+.btn-proceed {
+  width: 100%;
+  padding: 18px 32px;
+  background: linear-gradient(135deg, var(--primary) 0%, #B71C1C 100%);
+  color: white;
+  border: none;
+  border-radius: 16px;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 16px rgba(214,40,40,0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.btn-proceed:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(214,40,40,0.45);
+}
+
+.btn-proceed:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn-proceed:disabled {
+  background: rgba(255,255,255,0.1);
+  box-shadow: none;
+  cursor: not-allowed;
+  color: rgba(255,255,255,0.4);
+}
+
+.btn-proceed i {
+  transition: transform 0.3s ease;
+}
+
+.btn-proceed:hover:not(:disabled) i {
+  transform: translateX(4px);
+}
+
+.hint-text {
+  text-align: center;
+  margin-top: 14px;
+  font-size: 0.8rem;
+  color: rgba(255,255,255,0.5);
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 380px) {
+  .restaurant-logo {
+    font-size: 1.5rem;
+  }
+  .choice-card {
+    padding: 16px 16px;
+  }
+  .choice-icon {
+    width: 48px;
+    height: 48px;
+    font-size: 1.3rem;
+  }
+  .choice-title {
+    font-size: 1.1rem;
+  }
+  .choice-desc {
+    font-size: 0.78rem;
+  }
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header-section">
+    <div class="restaurant-brand">
+      <div class="restaurant-logo">Igan's Budbod House</div>
+    </div>
+    <div class="welcome-text">
+      <h1>Welcome!</h1>
+      <p>How would you like to enjoy your meal today?</p>
+    </div>
+    <div id="table-badge" class="table-badge" style="display:none;">
+      <i class="fas fa-utensils"></i>
+      Seated at Table <strong id="table-display"></strong>
+    </div>
+  </div>
+
+  <div class="choices-section" id="choices-section">
+    <div class="choice-card" id="dine-in-card" onclick="selectType('dine-in', this)">
+      <div class="choice-icon">
+        <i class="fas fa-utensils"></i>
+      </div>
+      <div class="choice-content">
+        <div class="choice-title">Dine In</div>
+        <div class="choice-desc">Enjoy your meal at your table. Your order will be brought directly to you.</div>
+      </div>
+      <div class="choice-check">
+        <i class="fas fa-check"></i>
+      </div>
+    </div>
+
+    <div class="choice-card" id="take-out-card" onclick="selectType('take-out', this)">
+      <div class="choice-icon">
+        <i class="fas fa-shopping-bag"></i>
+      </div>
+      <div class="choice-content">
+        <div class="choice-title">Take Out</div>
+        <div class="choice-desc">Order your food to go. Pick it up at the counter when it's ready.</div>
+      </div>
+      <div class="choice-check">
+        <i class="fas fa-check"></i>
+      </div>
+    </div>
+  </div>
+
+  <div class="customer-name-section" id="customer-name-section" style="display:none; margin-bottom: 24px;">
+    <label class="input-label" for="customer-name">Your Name (for pickup)</label>
+    <input type="text" id="customer-name" class="customer-name-input" placeholder="Enter your name" oninput="validateForm()">
+  </div>
+
+  <div class="proceed-section">
+    <button class="btn-proceed" id="proceed-btn" onclick="proceed()" disabled>
+      <span id="btn-text">Select an option</span>
+      <i class="fas fa-arrow-right"></i>
+    </button>
+    <p class="hint-text" id="hint-text">Tap to choose how you'd like to order</p>
+  </div>
+</div>
+
+<script src="js/auth.js"></script>
+<script>
+requireRole('customer');
+let selectedType = null;
+const tableNum = Session.getTable();
+console.log('DEBUG order-type.html: Session.getTable():', tableNum);
+console.log('DEBUG order-type.html: sessionStorage tableNumber:', sessionStorage.getItem('tableNumber'));
+const isTakeOutQR = sessionStorage.getItem('isTakeOutQR') === 'true';
+
+if (isTakeOutQR) {
+  document.getElementById('choices-section').style.display = 'none';
+  document.getElementById('customer-name-section').style.display = 'block';
+  selectedType = 'take-out';
+  sessionStorage.removeItem('tableNumber');
+  validateForm();
+} else if (tableNum) {
+  document.getElementById('table-badge').style.display = 'inline-flex';
+  document.getElementById('table-display').textContent = tableNum;
+  // Set table number in sessionStorage immediately on page load for table QRs
+  sessionStorage.setItem('tableNumber', tableNum);
+}
+
+function selectType(type, card) {
+  selectedType = type;
+  document.querySelectorAll('.choice-card').forEach(c => c.classList.remove('selected'));
+  card.classList.add('selected');
+  
+  if (type === 'take-out') {
+    document.getElementById('customer-name-section').style.display = 'block';
+    sessionStorage.removeItem('tableNumber');
+  } else {
+    document.getElementById('customer-name-section').style.display = 'none';
+    if (tableNum) {
+      sessionStorage.setItem('tableNumber', tableNum);
+    }
+  }
+  
+  validateForm();
+}
+
+function validateForm() {
+  const btn = document.getElementById('proceed-btn');
+  const btnText = document.getElementById('btn-text');
+  const hintText = document.getElementById('hint-text');
+  const customerName = document.getElementById('customer-name').value.trim();
+  
+  let canProceed = selectedType !== null;
+  
+  if (selectedType === 'take-out') {
+    canProceed = customerName.length > 0;
+  }
+  
+  btn.disabled = !canProceed;
+  
+  if (canProceed) {
+    btnText.textContent = selectedType === 'dine-in' ? 'Continue to Dine In Menu' : 'Continue to Take Out Menu';
+    hintText.style.opacity = '0.7';
+    hintText.textContent = 'Ready when you are!';
+  } else if (selectedType === 'take-out') {
+    btnText.textContent = 'Enter your name';
+    hintText.style.opacity = '0.5';
+    hintText.textContent = 'Please enter your name for pickup';
+  } else {
+    btnText.textContent = 'Select an option';
+    hintText.style.opacity = '0.5';
+    hintText.textContent = 'Tap to choose how you\'d like to order';
+  }
+}
+
+function proceed() {
+  if (!selectedType) return;
+  
+  if (selectedType === 'take-out') {
+    const customerName = document.getElementById('customer-name').value.trim();
+    sessionStorage.setItem('customerName', customerName);
+  } else {
+    sessionStorage.removeItem('customerName');
+  }
+  
+  sessionStorage.setItem('orderType', selectedType);
+  window.location.href = 'menu.html';
+}
+</script>
+</body>
+</html>
