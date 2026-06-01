@@ -163,7 +163,7 @@ function renderTable(orders) {
         <td style="font-size:0.8rem;color:var(--text-muted);">${formatDate(o.createdAt)}</td>
         <td>
           <button class="btn btn-ghost btn-sm" onclick="viewOrder('${o._id}')">View</button>
-          ${!o.paid ? `<button class="btn btn-success btn-sm" onclick="markAsPaid('${o._id}')">Mark as Paid</button>` : ''}
+          ${!o.paid && o.status !== 'cancelled' ? `<button class="btn btn-success btn-sm" onclick="markAsPaid('${o._id}')">Mark as Paid</button>` : ''}
         </td>
       </tr>`).join('');
 }
