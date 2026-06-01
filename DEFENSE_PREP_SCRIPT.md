@@ -51,6 +51,30 @@ We take security seriously! Here are the security measures we implemented:
 
 ---
 
+## Question 5: How Is the Payment Process Handled, Since There’s No Online Payment Yet?
+**Answer:**  
+Currently, our system does not yet have integrated online payment processing (like GCash, PayMaya, or credit cards).
+
+Here's our current order flow without payment integration:
+1. Customer browses the menu, adds items to cart, and places an order
+2. The order is sent to the kitchen staff's dashboard
+3. Staff prepares the order
+4. Payment is handled **in-person** (cash on delivery, or cash at the counter for take-out/dine-in)
+
+### Future Plans for Payment Integration:
+If we had more time to develop the system, we would integrate with popular payment providers in the Philippines like:
+- **GCash** and **PayMaya** (for mobile wallet payments)
+- **Credit/debit card** processing via providers like PayMongo or DragonPay
+- **Cash on Delivery (COD)** with order tracking
+
+We plan to add these features by:
+1. Integrating the payment provider's API into our backend
+2. Adding a payment step to our checkout process
+3. Storing payment statuses (paid/unpaid) in our order documents in MongoDB
+4. Sending payment confirmation emails to customers
+
+---
+
 ## Additional Preparation (If Asked Further):
 - **What was your role?**: I was the lead programmer, responsible for developing both the frontend and backend, designing the database schema, and implementing all core features.
 - **What was the biggest challenge?**: The biggest challenge was implementing the nutrition fields for menu items and ensuring they saved correctly—we initially had `prepTime` as a Number, but users wanted to enter ranges like "10-20", so we changed it to a String type!
