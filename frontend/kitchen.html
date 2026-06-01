@@ -203,7 +203,7 @@ let orders = { pending: [], preparing: [], ready: [] };
 async function loadOrders() {
   try {
     const data = await apiFetch('/orders?status=pending,preparing,ready');
-    const all = data.data;
+    const all = data.data.filter(o => o.paid); // Only show paid orders
     orders.pending   = all.filter(o => o.status === 'pending');
     orders.preparing = all.filter(o => o.status === 'preparing');
     orders.ready     = all.filter(o => o.status === 'ready');

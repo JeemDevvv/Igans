@@ -400,23 +400,49 @@ async function loadOrder() {
 function renderOrder(order) {
   currentOrderStatus = order.status;
   document.getElementById('loading').style.display = 'none';
+  
+  // Check if order is paid
+  if (!order.paid) {
+    // Show payment required message instead of order details
+    document.getElementById('order-content').innerHTML = `
+      <div class="order-card">
+        <div class="order-number">Order Number</div>
+        <div class="order-id-display">${order.orderNumber}</div>
+        <div class="status-hero" style="color: var(--warning);"><i class="fas fa-exclamation-triangle"></i></div>
+        <div class="status-text">Payment Required</div>
+        <div class="status-sub">Please pay for your order first to start the preparation process.</div>
+        <div style="margin-top: 24px; padding: 16px; background: rgba(233,196,106,0.08); border: 1px solid rgba(233,196,106,0.15); border-radius: var(--radius-sm);">
+          <div class="timer-label">Total Amount</div>
+          <div class="timer-value">${formatCurrency(order.totalAmount)}</div>
+        </div>
+        <div class="action-bar" style="margin-top: 24px;">
+          <button class="btn btn-primary btn-block" onclick="refreshOrder()">
+            <i class="fas fa-rotate-right"></i> Refresh Status
+          </button>
+        </div>
+      </div>
+    `;
+    return;
+  }
+  
+  // If paid, show the normal order status page
   document.getElementById('order-content').style.display = 'block';
-
+  
   // Show receipt button if order is placed
   document.getElementById('receipt-btn').style.display = 'inline-flex';
-
+  
   // Show review section if served and not yet reviewed
   if (order.status === 'served') {
     checkIfReviewed();
   }
-
+  
   document.getElementById('order-num-display').textContent = order.orderNumber;
   const cfg = STATUS_CONFIG[order.status] || STATUS_CONFIG.pending;
   document.getElementById('status-hero').innerHTML = cfg.hero;
   document.getElementById('status-text').textContent = cfg.text;
   document.getElementById('status-sub').textContent = cfg.sub;
   document.getElementById('prog-track').style.width = cfg.trackPct;
-
+  
   // Update step circles
   const statusIdx = STEPS.indexOf(order.status);
   STEPS.forEach((s, i) => {
@@ -426,12 +452,12 @@ function renderOrder(order) {
     else if (i === statusIdx) { circle.className = 'step-circle active'; label.className = 'step-label active'; }
     else { circle.className = 'step-circle'; label.className = 'step-label'; }
   });
-
+  
   // Ready pulse
   if (order.status === 'ready') {
     document.querySelector('.order-card').classList.add('pulse-ready');
   }
-
+  
   // Items
   document.getElementById('items-detail').innerHTML = order.items.map(i =>
     `<div class="order-item-row"><span>${i.quantity}× ${i.name}</span><span>${formatCurrency(i.price * i.quantity)}</span></div>`
