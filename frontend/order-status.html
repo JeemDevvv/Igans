@@ -391,7 +391,10 @@ async function loadOrder() {
     currentOrderData = order;
     orderCreatedAt = order.createdAt;
     renderOrder(order);
-    startTimer();
+    // Only start timer if order is paid
+    if (order.paid) {
+      startTimer();
+    }
   } catch (e) {
     document.getElementById('loading').innerHTML = `<div class="empty-state"><div class="icon"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg></div><h3>Could not load order</h3><p>${e.message}</p></div>`;
   }
@@ -467,19 +470,22 @@ function renderOrder(order) {
 
 function startTimer() {
   if (timerInterval) clearInterval(timerInterval);
+  // Only start timer if timer-val exists (i.e., order is paid)
+  if (!document.getElementById('timer-val')) return;
+  
   timerInterval = setInterval(() => {
     if (!orderCreatedAt) return;
+    const timerEl = document.getElementById('timer-val');
+    if (!timerEl) return;
     const diff = Math.floor((Date.now() - new Date(orderCreatedAt)) / 1000);
     const m = Math.floor(diff / 60), s = diff % 60;
-    document.getElementById('timer-val').textContent = `${m}:${s.toString().padStart(2, '0')}`;
+    timerEl.textContent = `${m}:${s.toString().padStart(2, '0')}`;
   }, 1000);
 }
 
 async function refreshOrder() {
-  const icon = document.getElementById('refresh-icon');
-  icon.classList.add('spinning');
+  // We don't have refresh-icon anymore in the payment message, so just load order
   await loadOrder();
-  setTimeout(() => icon.classList.remove('spinning'), 800);
 }
 </script>
 </body>
