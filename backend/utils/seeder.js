@@ -6,7 +6,7 @@ const Category = require('../models/Category');
 const MenuItem = require('../models/MenuItem');
 const Table = require('../models/Table');
 const RestaurantSettings = require('../models/RestaurantSettings');
-const QRCode = require('qrcode');
+const generateQRCode = require('./customQrGenerator');
 
 const BASE_URL = process.env.BASE_URL || 'http://localhost:5000';
 
@@ -123,7 +123,7 @@ async function seed() {
 
   for (let i = 1; i <= 10; i++) {
     const url = `${BASE_URL}/verify.html?table=${i}`;
-    const qrCodeImage = await QRCode.toDataURL(url, { width: 250, margin: 2 });
+    const qrCodeImage = generateQRCode(url, 250);
     await Table.create({ tableNumber: i, capacity: i <= 4 ? 2 : i <= 8 ? 4 : 6, qrCodeValue: url, qrCodeImage });
   }
   console.log('Tables seeded (10 tables with QR codes)');
