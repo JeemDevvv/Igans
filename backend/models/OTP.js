@@ -9,7 +9,7 @@ const OTPSchema = new mongoose.Schema({
   used: { type: Boolean, default: false },
   attempts: { type: Number, default: 0 },
   createdAt: { type: Date, default: Date.now }
-});
+}, { collection: 'otps' });
 
 module.exports = mongoose.model('OTP', OTPSchema);
 

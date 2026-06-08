@@ -5,6 +5,6 @@ const CategorySchema = new mongoose.Schema({
   icon: { type: String, default: '🍽️' },
   sortOrder: { type: Number, default: 0 },
   createdAt: { type: Date, default: Date.now }
-});
+}, { collection: 'categories' });
 
 module.exports = mongoose.model('Category', CategorySchema);

@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const QRCode = require('qrcode');
 
 const PublicQRSchema = new mongoose.Schema({
   name: { type: String, required: true, default: 'Take-Out QR' },
@@ -7,6 +6,6 @@ const PublicQRSchema = new mongoose.Schema({
   qrCodeImage: { type: String },
   isActive: { type: Boolean, default: true },
   createdAt: { type: Date, default: Date.now }
-});
+}, { collection: 'publicqrs' });
 
 module.exports = mongoose.model('PublicQR', PublicQRSchema);

@@ -9,6 +9,6 @@ const ChatLogSchema = new mongoose.Schema({
   }],
   lastAddedItem: { type: String },
   createdAt: { type: Date, default: Date.now }
-});
+}, { collection: 'chatlogs' });
 
 module.exports = mongoose.model('ChatLog', ChatLogSchema);

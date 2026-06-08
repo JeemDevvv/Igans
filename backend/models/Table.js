@@ -7,6 +7,6 @@ const TableSchema = new mongoose.Schema({
   capacity: { type: Number, default: 4 },
   status: { type: String, enum: ['available', 'occupied'], default: 'available' },
   createdAt: { type: Date, default: Date.now }
-});
+}, { collection: 'tables' });
 
 module.exports = mongoose.model('Table', TableSchema);

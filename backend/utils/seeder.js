@@ -48,10 +48,10 @@ async function seed() {
 
   const pass = await bcrypt.hash('password123', 12);
   await User.insertMany([
-    { name: 'Admin User', email: 'admin@restaurant.com', password: pass, role: 'admin' },
-    { name: 'Kitchen Staff', email: 'kitchen@restaurant.com', password: pass, role: 'kitchen' },
-    { name: 'Floor Staff', email: 'staff@restaurant.com', password: pass, role: 'staff' },
-    { name: 'John Customer', email: 'customer@restaurant.com', password: pass, role: 'customer' }
+    { name: 'Admin User', username: 'admin', email: 'admin@restaurant.com', password: pass, role: 'admin' },
+    { name: 'Kitchen Staff', username: 'kitchen', email: 'kitchen@restaurant.com', password: pass, role: 'kitchen' },
+    { name: 'Floor Staff', username: 'staff', email: 'staff@restaurant.com', password: pass, role: 'staff' },
+    { name: 'John Customer', username: 'customer', email: 'customer@restaurant.com', password: pass, role: 'customer' }
   ]);
   console.log('Users seeded');
 
@@ -146,10 +146,10 @@ async function seed() {
 
   console.log('\n Database seeded successfully!\n');
   console.log('📋 Login credentials:');
-  console.log('   Admin:   admin@restaurant.com / password123');
-  console.log('   Kitchen: kitchen@restaurant.com / password123');
-  console.log('   Staff:   staff@restaurant.com / password123');
-  console.log('   Customer:customer@restaurant.com / password123');
+  console.log('   Admin:   admin / password123');
+  console.log('   Kitchen: kitchen / password123');
+  console.log('   Staff:   staff / password123');
+  console.log('   Customer:customer / password123');
 
   process.exit(0);
 }

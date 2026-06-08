@@ -22,10 +22,11 @@ const OrderSchema = new mongoose.Schema({
     enum: ['pending', 'preparing', 'ready', 'served', 'cancelled'],
     default: 'pending'
   },
+  paid: { type: Boolean, default: false },
   specialRequests: { type: String, default: '' },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
-});
+}, { collection: 'orders' });
 
 OrderSchema.pre('save', function (next) {
   if (!this.orderNumber) {

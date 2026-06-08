@@ -31,7 +31,7 @@ const ReviewSchema = new mongoose.Schema({
     type: Date,
     default: Date.now
   }
-});
+}, { collection: 'reviews' });
 
 // Prevent multiple reviews for the same order/session
 ReviewSchema.index({ order: 1 }, { unique: true });

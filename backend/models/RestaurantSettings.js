@@ -9,6 +9,6 @@ const RestaurantSettingsSchema = new mongoose.Schema({
   address: { type: String, default: 'Antipolo Rizal, Philippines' },
   phone: { type: String, default: '' },
   currency: { type: String, default: '₱' }
-});
+}, { collection: 'restaurantsettings' });
 
 module.exports = mongoose.model('RestaurantSettings', RestaurantSettingsSchema);
