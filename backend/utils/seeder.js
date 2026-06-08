@@ -8,13 +8,7 @@ const Table = require('../models/Table');
 const RestaurantSettings = require('../models/RestaurantSettings');
 const generateQRCode = require('./customQrGenerator');
 const BASE_URL = process.env.BASE_URL || 'http://localhost:5000';
-const ENABLE_DB_SEED = process.env.ENABLE_DB_SEED === 'true';
 async function seed() {
-  if (!ENABLE_DB_SEED) {
-    console.log('ENABLE_DB_SEED is not true. Skipping database seeding.');
-    console.log('Set ENABLE_DB_SEED=true only when you want to seed the database.');
-    process.exit(0);
-  }
   if (!process.env.MONGO_URI) {
     console.error('MONGO_URI is not defined. Skipping database seeding.');
     console.error('Set MONGO_URI in environment variables or in backend/config/config.env before running the seeder.');
@@ -22,15 +16,13 @@ async function seed() {
   }
   await mongoose.connect(process.env.MONGO_URI);
   console.log('Connected to MongoDB...');
-  const existingUsers = await User.countDocuments();
-  const existingCategories = await Category.countDocuments();
-  const existingMenuItems = await MenuItem.countDocuments();
-  const existingTables = await Table.countDocuments();
-  const existingSettings = await RestaurantSettings.countDocuments();
-  if (existingUsers > 0 || existingCategories > 0 || existingMenuItems > 0 || existingTables > 0 || existingSettings > 0) {
-    console.log('Database already has data. Skipping seed to avoid overwriting.');
-    process.exit(0);
-  }
+  // Delete existing data
+  await User.deleteMany({});
+  await Category.deleteMany({});
+  await MenuItem.deleteMany({});
+  await Table.deleteMany({});
+  await RestaurantSettings.deleteMany({});
+  console.log('Existing data deleted.');
   await RestaurantSettings.create({
     restaurantName: 'Igans Budbod House',
     latitude: 14.5995,
