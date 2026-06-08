@@ -27,11 +27,18 @@ async function seed() {
   await mongoose.connect(process.env.MONGO_URI);
   console.log('Connected to MongoDB...');
 
-  await User.deleteMany({});
-  await Category.deleteMany({});
-  await MenuItem.deleteMany({});
-  await Table.deleteMany({});
-  await RestaurantSettings.deleteMany({});
+  // Check if data already exists to avoid overwriting
+  const existingSettings = await RestaurantSettings.countDocuments();
+  const existingUsers = await User.countDocuments();
+  const existingCategories = await Category.countDocuments();
+  const existingMenuItems = await MenuItem.countDocuments();
+  const existingTables = await Table.countDocuments();
+  
+  if (existingSettings > 0 || existingUsers > 0 || existingCategories > 0 || existingMenuItems > 0 || existingTables > 0) {
+    console.log('Data already exists. Skipping seed to avoid overwriting your database.');
+    console.log('If you want to reset your database, delete existing data first in MongoDB Compass or set FORCE_SEED=true in config.env.');
+    process.exit(0);
+  }
 
   // Settings
   await RestaurantSettings.create({
