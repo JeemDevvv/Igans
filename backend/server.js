@@ -64,6 +64,3 @@ app.listen(PORT, () => {
   console.log(`Frontend served from ../frontend`);
   console.log(`Run 'npm run seed' to populate the database\n`);
 });
-
-// Export activeCustomers for use in admin controller
-module.exports = { activeCustomers, ACTIVE_TIMEOUT };
