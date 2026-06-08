@@ -122,8 +122,8 @@ exports.deleteUser = async (req, res) => {
 
 exports.updateUser = async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
-    const updateData = { name, email, role };
+    const { name, username, email, password, role } = req.body;
+    const updateData = { name, username, email, role };
     
     if (password && password.length >= 6) {
       const bcrypt = require('bcryptjs');

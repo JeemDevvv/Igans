@@ -102,8 +102,8 @@ body {
   <div id="alert-box" class="alert alert-error alert-hidden" style="margin-bottom:16px;"></div>
 
   <div class="form-group">
-    <label class="form-label">Email address</label>
-    <input type="email" id="email" class="form-control" placeholder="Enter your email" autocomplete="email">
+    <label class="form-label">Username</label>
+    <input type="text" id="username" class="form-control" placeholder="Enter your username" autocomplete="username">
   </div>
   <div class="form-group">
     <label class="form-label">Password</label>
@@ -124,15 +124,15 @@ function selectRole(el) {
 }
 
 async function doLogin() {
-  const email = document.getElementById('email').value.trim();
+  const username = document.getElementById('username').value.trim();
   const password = document.getElementById('password').value;
   const alertBox = document.getElementById('alert-box');
   const btn = document.getElementById('login-btn');
 
   alertBox.className = 'alert alert-hidden';
-  if (!email || !password) {
+  if (!username || !password) {
     alertBox.className = 'alert alert-error';
-    alertBox.textContent = 'Please enter email and password.';
+    alertBox.textContent = 'Please enter username and password.';
     return;
   }
 
@@ -142,7 +142,7 @@ async function doLogin() {
   try {
     const data = await apiFetch('/auth/login', {
       method: 'POST',
-      body: JSON.stringify({ email, password, role: selectedRole })
+      body: JSON.stringify({ username, password, role: selectedRole })
     });
     Session.setAuth(data.token, data.user);
     const routes = { customer: 'order-type.html', staff: 'staff.html', kitchen: 'kitchen.html', admin: 'admin/dashboard.html' };
