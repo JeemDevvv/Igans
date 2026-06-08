@@ -362,9 +362,25 @@ function renderOrder(order) {
     checkIfReviewed();
   }
   document.getElementById('order-num-display').textContent = order.orderNumber;
-  // Check if order is paid
-  if (!order.paid) {
-    // Show payment required message
+  // If order is cancelled, show cancelled status regardless of payment
+  if (order.status === 'cancelled') {
+    const cfg = STATUS_CONFIG.cancelled;
+    document.getElementById('status-hero').innerHTML = cfg.hero;
+    document.getElementById('status-text').textContent = cfg.text;
+    document.getElementById('status-sub').textContent = cfg.sub;
+    document.getElementById('prog-track').style.width = cfg.trackPct;
+    // Hide timer
+    const timerDisplay = document.querySelector('.timer-display');
+    if (timerDisplay) timerDisplay.style.display = 'none';
+    // Reset progress steps
+    STEPS.forEach((s, i) => {
+      const circle = document.getElementById(`sc-${s}`);
+      const label = document.querySelector(`#step-${s} .step-label`);
+      circle.className = 'step-circle';
+      label.className = 'step-label';
+    });
+  } else if (!order.paid) {
+    // Show payment required message only if not cancelled and not paid
     document.getElementById('status-hero').innerHTML = '<svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--warning);"><rect x="2" y="5" width="20" height="14" rx="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg>';
     document.getElementById('status-text').textContent = 'Payment Required';
     document.getElementById('status-sub').textContent = 'Please wait for admin to confirm your payment.';
@@ -380,7 +396,7 @@ function renderOrder(order) {
       label.className = 'step-label';
     });
   } else {
-    // Normal status flow when paid
+    // Normal status flow when paid and not cancelled
     const cfg = STATUS_CONFIG[order.status] || STATUS_CONFIG.pending;
     document.getElementById('status-hero').innerHTML = cfg.hero;
     document.getElementById('status-text').textContent = cfg.text;
