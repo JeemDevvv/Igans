@@ -33,9 +33,14 @@ We use Mongoose schemas to enforce data consistency and validation, so we still 
 **Answer:**  
 We implemented several key algorithms in our system:
 1. **Password Hashing with Bcrypt**: We use the bcrypt algorithm to securely store user passwords. Bcrypt is an adaptive hashing algorithm that's slow and resistant to brute-force attacks. It automatically handles salting (adding random data to passwords before hashing), so even if two users have the same password, their hashes will be different.
-2. **Search and Filtering Algorithm**: For menu item search, we use MongoDB's `$regex` with case-insensitive option on the server-side, and JavaScript's `filter()` and `includes()` methods on the client-side for real-time filtering as the user types.
-3. **Cart Management Algorithm**: We use a JavaScript object (hash map) to store cart items, which gives us O(1) average time complexity for add, remove, and update operations. To calculate the total price, we use the array `reduce()` method, which is O(n) time complexity (n = number of items in the cart).
-4. **Input Validation & Sanitization**: We validate inputs on both client-side (for better UX) and server-side (for security) using simple regex checks and type validation, along with Mongoose schema validation to ensure data integrity and prevent security vulnerabilities like NoSQL injection.
+2. **Custom QR Code Generation Algorithm**: We implemented our own QR code generator from scratch without using external libraries. Our implementation includes:
+   - **Finder Patterns**: The three large square patterns in the corners that help QR readers locate and orient the code.
+   - **Timing Patterns**: Alternating black/white lines that help QR readers determine the size of the modules.
+   - **Alignment Patterns**: A smaller square pattern that helps with alignment for larger QR codes.
+   - **Data Encoding**: We use 8-bit encoding to convert text into binary data, which is then arranged in the QR code modules.
+3. **Search and Filtering Algorithm**: For menu item search, we use MongoDB's `$regex` with case-insensitive option on the server-side, and JavaScript's `filter()` and `includes()` methods on the client-side for real-time filtering as the user types.
+4. **Cart Management Algorithm**: We use a JavaScript object (hash map) to store cart items, which gives us O(1) average time complexity for add, remove, and update operations. To calculate the total price, we use the array `reduce()` method, which is O(n) time complexity (n = number of items in the cart).
+5. **Input Validation & Sanitization**: We validate inputs on both client-side (for better UX) and server-side (for security) using simple regex checks and type validation, along with Mongoose schema validation to ensure data integrity and prevent security vulnerabilities like NoSQL injection.
 
 ---
 
