@@ -1,6 +1,4 @@
-
 const mongoose = require('mongoose');
-
 const OTPSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   email: { type: String, required: true },
@@ -10,6 +8,4 @@ const OTPSchema = new mongoose.Schema({
   attempts: { type: Number, default: 0 },
   createdAt: { type: Date, default: Date.now }
 }, { collection: 'otps' });
-
 module.exports = mongoose.model('OTP', OTPSchema);
-

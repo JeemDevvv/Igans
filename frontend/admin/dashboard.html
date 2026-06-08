@@ -35,8 +35,6 @@
       <button class="btn btn-ghost btn-sm btn-block" onclick="logout()" style="margin-top:10px;">Sign Out</button>
     </div>
   </aside>
-
-  <!-- Main content -->
   <main class="admin-main">
     <div class="admin-topbar">
       <div>
@@ -48,8 +46,6 @@
         <button class="btn btn-outline btn-sm" onclick="loadDashboard()"><i class="fas fa-rotate-right"></i> Refresh</button>
       </div>
     </div>
-
-    <!-- KPI Cards -->
     <div class="kpi-grid" id="kpi-grid">
       <div class="kpi-card skeleton" style="height:100px;"></div>
       <div class="kpi-card skeleton" style="height:100px;"></div>
@@ -57,8 +53,6 @@
       <div class="kpi-card skeleton" style="height:100px;"></div>
       <div class="kpi-card skeleton" style="height:100px;"></div>
     </div>
-
-    <!-- Charts Row -->
     <div class="charts-row">
       <div class="chart-card">
         <div class="chart-card-header">
@@ -78,8 +72,6 @@
         </div>
       </div>
     </div>
-
-    <!-- Status Breakdown + Recent Orders -->
     <div class="lower-grid">
       <div class="card card-padded">
         <h3 style="margin-bottom:20px;font-size:1rem;font-weight:600;">Order Status Overview</h3>
@@ -95,11 +87,9 @@
     </div>
   </main>
 </div>
-
 <script src="../js/auth.js"></script>
 <script>
 requireRole('admin');
-
 // Sidebar user
 const u = Session.getUser();
 if (u) {
@@ -110,14 +100,11 @@ if (u) {
       <div><div style="font-weight:600;font-size:0.88rem;">${u.name}</div><div style="font-size:0.75rem;color:var(--text-muted);">Admin</div></div>
     </div>`;
 }
-
 let salesChart, itemsChart;
-
 async function loadDashboard() {
   try {
     const data = await apiFetch('/admin/stats');
     const d = data.data;
-
     document.getElementById('kpi-grid').innerHTML = `
       <div class="kpi-card"><div class="kpi-icon"><i class="fas fa-clipboard-list"></i></div><div class="kpi-body"><div class="kpi-num">${d.todayOrders || 0}</div><div class="kpi-label">Today's Orders</div></div></div>
       <div class="kpi-card"><div class="kpi-icon"><i class="fas fa-dollar-sign"></i></div><div class="kpi-body"><div class="kpi-num">${formatCurrency(d.todayRevenue || 0)}</div><div class="kpi-label">Today's Revenue</div></div></div>
@@ -125,14 +112,10 @@ async function loadDashboard() {
       <div class="kpi-card"><div class="kpi-icon"><i class="fas fa-credit-card"></i></div><div class="kpi-body"><div class="kpi-num">${formatCurrency(d.totalRevenue || 0)}</div><div class="kpi-label">Total Revenue</div></div></div>
       <div class="kpi-card"><div class="kpi-icon"><i class="fas fa-users"></i></div><div class="kpi-body"><div class="kpi-num">${d.totalCustomers || 0}</div><div class="kpi-label">Customers</div></div></div>
     `;
-
     document.getElementById('last-updated').textContent = 'Updated: ' + new Date().toLocaleTimeString();
-    
     const dailySales = d.dailySales || [];
     const topItems = d.topItems || [];
-    
     document.getElementById('revenue-total').textContent = formatCurrency(dailySales.reduce((s,x)=>s + (x.revenue || 0),0)) + ' (7 days)';
-
     const salesCtx = document.getElementById('salesChart').getContext('2d');
     if (salesChart) salesChart.destroy();
     salesChart = new Chart(salesCtx, {
@@ -148,27 +131,25 @@ async function loadDashboard() {
       },
       options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } }, x: { grid: { display: false } } } }
     });
-
     const itemsCtx = document.getElementById('itemsChart').getContext('2d');
     if (itemsChart) itemsChart.destroy();
     itemsChart = new Chart(itemsCtx, {
       type: 'doughnut',
       data: {
-        labels: topItems.length > 0 
+        labels: topItems.length > 0
           ? topItems.map(x => x.name.length > 18 ? x.name.slice(0,16)+'...' : x.name)
           : ['No items'],
-        datasets: [{ 
-          data: topItems.length > 0 ? topItems.map(x => x.count) : [1], 
-          backgroundColor: topItems.length > 0 
-            ? ['#C8440A','#F5A623','#2E7D4F','#1E40AF','#9333EA'] 
+        datasets: [{
+          data: topItems.length > 0 ? topItems.map(x => x.count) : [1],
+          backgroundColor: topItems.length > 0
+            ? ['#C8440A','#F5A623','#2E7D4F','#1E40AF','#9333EA']
             : ['#cccccc'],
-          borderWidth: 0, 
-          hoverOffset: 4 
+          borderWidth: 0,
+          hoverOffset: 4
         }]
       },
       options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { size: 11 }, padding: 12 } } } }
     });
-
     // Status breakdown
     const sc = d.statusCounts || { pending: 0, preparing: 0, ready: 0, served: 0, cancelled: 0 };
     const total = Object.values(sc).reduce((a,b)=>a+b,0)||1;
@@ -181,7 +162,6 @@ async function loadDashboard() {
           <div style="height:100%;width:${Math.round(n/total*100)}%;background:var(--primary);border-radius:3px;transition:width 0.5s;"></div>
         </div>
       </div>`).join('');
-
     // Recent orders
     const recentData = await apiFetch('/orders?status=pending,preparing,ready');
     const recent = (recentData.data || []).slice(0, 6);
@@ -200,12 +180,10 @@ async function loadDashboard() {
         </div>`).join('');
   } catch (e) { console.error(e); }
 }
-
 document.addEventListener('DOMContentLoaded', () => {
   loadDashboard();
   setInterval(loadDashboard, 30000);
 });
-
 function toggleSidebar() {
   document.getElementById('sidebar').classList.toggle('open');
 }

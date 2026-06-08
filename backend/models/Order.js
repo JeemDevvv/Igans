@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-
 const OrderItemSchema = new mongoose.Schema({
   menuItem: { type: mongoose.Schema.Types.ObjectId, ref: 'MenuItem' },
   name: { type: String, required: true },
@@ -7,7 +6,6 @@ const OrderItemSchema = new mongoose.Schema({
   quantity: { type: Number, required: true, min: 1 },
   image: { type: String, default: '' }
 });
-
 const OrderSchema = new mongoose.Schema({
   orderNumber: { type: String, unique: true },
   customer: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
@@ -27,12 +25,10 @@ const OrderSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
 }, { collection: 'orders' });
-
 OrderSchema.pre('save', function (next) {
   if (!this.orderNumber) {
     this.orderNumber = 'ORD-' + Date.now().toString().slice(-6) + Math.floor(Math.random() * 100);
   }
   next();
 });
-
 module.exports = mongoose.model('Order', OrderSchema);

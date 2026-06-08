@@ -3,7 +3,6 @@ const router = express.Router();
 const RestaurantSettings = require('../models/RestaurantSettings');
 const { protect } = require('../middleware/auth.middleware');
 const { allow } = require('../middleware/role.middleware');
-
 router.get('/', async (req, res) => {
   try {
     let settings = await RestaurantSettings.findOne();
@@ -20,7 +19,6 @@ router.get('/', async (req, res) => {
     res.json({ success: true, data: settings });
   } catch (err) { res.status(500).json({ success: false, msg: err.message }); }
 });
-
 router.put('/', protect, allow('admin'), async (req, res) => {
   try {
     let settings = await RestaurantSettings.findOne();
@@ -30,5 +28,4 @@ router.put('/', protect, allow('admin'), async (req, res) => {
     res.json({ success: true, data: settings });
   } catch (err) { res.status(400).json({ success: false, msg: err.message }); }
 });
-
 module.exports = router;

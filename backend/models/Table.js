@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-
 const TableSchema = new mongoose.Schema({
   tableNumber: { type: Number, required: true, unique: true },
   qrCodeValue: { type: String },
@@ -8,5 +7,4 @@ const TableSchema = new mongoose.Schema({
   status: { type: String, enum: ['available', 'occupied'], default: 'available' },
   createdAt: { type: Date, default: Date.now }
 }, { collection: 'tables' });
-
 module.exports = mongoose.model('Table', TableSchema);

@@ -8,7 +8,6 @@
 <link rel="stylesheet" href="css/main.css">
 <style>
 .staff-layout { max-width: 1200px; margin: 0 auto; padding: 20px; width: 100%; box-sizing: border-box; }
-
 /* Stats row: horizontal scroll on mobile */
 .stats-row { 
   display: grid; 
@@ -38,12 +37,10 @@
 .stat-num.prep-c { color: var(--info); }
 .stat-num.ready-c { color: var(--success); }
 .stat-num.total-c { color: var(--primary); }
-
 .filter-tabs { display: flex; gap: 6px; margin-bottom: 20px; flex-wrap: wrap; }
 .ftab { padding: 8px 18px; border-radius: 20px; border: 1.5px solid var(--border); background: var(--bg); cursor: pointer; font-size: 0.85rem; font-weight: 500; color: var(--text-muted); transition: all var(--transition); }
 .ftab:hover { border-color: var(--primary); color: var(--primary); }
 .ftab.active { border-color: var(--primary); background: var(--primary); color: white; }
-
 /* Orders grid: single column on mobile */
 .orders-grid { 
   display: flex; 
@@ -55,14 +52,12 @@
     padding: 16px;
   }
 }
-
 .table-group {
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   overflow: hidden;
 }
-
 .table-group-header {
   padding: 16px 20px;
   background: linear-gradient(135deg, rgba(233,196,106,0.1) 0%, rgba(233,196,106,0.05) 100%);
@@ -71,7 +66,6 @@
   align-items: center;
   justify-content: space-between;
 }
-
 .table-group-title {
   font-family: var(--font-display);
   font-size: 1.1rem;
@@ -80,7 +74,6 @@
   align-items: center;
   gap: 10px;
 }
-
 .table-group-count {
   background: var(--accent);
   color: #1C1008;
@@ -89,14 +82,12 @@
   font-size: 0.8rem;
   font-weight: 700;
 }
-
 .table-group-orders {
   padding: 16px;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 16px;
 }
-
 .staff-order-card { 
   background: var(--bg); 
   border: 1px solid var(--border); 
@@ -128,7 +119,6 @@
 .soc-items { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px; line-height: 1.7; overflow-wrap: break-word; }
 .soc-total { font-weight: 700; color: var(--text); font-size: 0.9rem; }
 .soc-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
-
 .refresh-indicator { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: var(--text-muted); }
 .live-dot { width: 8px; height: 8px; background: var(--success); border-radius: 50%; animation: pulse-dot 2s infinite; }
 </style>
@@ -142,12 +132,10 @@
     <button class="btn btn-ghost btn-sm" onclick="logout()">Sign Out</button>
   </div>
 </nav>
-
 <div class="page-header">
   <h1>Staff Dashboard</h1>
   <p>Monitor and manage all orders in real-time</p>
 </div>
-
 <div class="staff-layout">
   <div class="stats-row">
     <div class="stat-card"><div class="stat-num pending-c" id="s-pending">0</div><div class="stat-label">Pending</div></div>
@@ -155,7 +143,6 @@
     <div class="stat-card"><div class="stat-num ready-c" id="s-ready">0</div><div class="stat-label">Ready to Serve</div></div>
     <div class="stat-card"><div class="stat-num total-c" id="s-served">0</div><div class="stat-label">Served Today</div></div>
   </div>
-
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
     <div class="filter-tabs">
       <div class="ftab active" onclick="setFilter('all',this)">All Active</div>
@@ -166,7 +153,6 @@
     </div>
     <button class="btn btn-outline btn-sm" onclick="loadOrders()">Refresh</button>
   </div>
-
   <div id="orders-grid" class="orders-grid"></div>
   <div id="empty-staff" class="empty-state" style="display:none;">
     <div class="icon">
@@ -176,13 +162,11 @@
     <p>No orders in this category right now.</p>
   </div>
 </div>
-
 <script src="js/auth.js"></script>
 <script>
 requireRole('staff', 'admin');
 let currentFilter = 'all';
 let allOrders = [];
-
 async function loadOrders() {
   try {
     const url = currentFilter === 'all' || currentFilter === 'All Active'
@@ -191,12 +175,11 @@ async function loadOrders() {
       ? '/orders?status=served'
       : `/orders?status=${currentFilter}`;
     const data = await apiFetch(url);
-    allOrders = data.data;
+    allOrders = data.data.filter(o => o.paid);
     renderOrders(allOrders);
     updateStats(allOrders);
   } catch (e) { showToast(e.message, 'error'); }
 }
-
 async function loadStats() {
   try {
     const today = new Date().toISOString().split('T')[0];
@@ -204,17 +187,14 @@ async function loadStats() {
     document.getElementById('s-served').textContent = served.count || 0;
   } catch(e) {}
 }
-
 function renderOrders(orders) {
   const grid = document.getElementById('orders-grid');
   const empty = document.getElementById('empty-staff');
   if (orders.length === 0) { grid.innerHTML = ''; empty.style.display = 'block'; return; }
   empty.style.display = 'none';
-  
   // Group orders: first by table (dine-in), then take-out as separate group
   const groups = {};
   const takeOutOrders = [];
-  
   orders.forEach(order => {
     if (order.orderType === 'dine-in' && order.tableNumber) {
       const key = `table-${order.tableNumber}`;
@@ -230,7 +210,6 @@ function renderOrders(orders) {
       takeOutOrders.push(order);
     }
   });
-  
   // If there are take-out orders, add them as a group
   if (takeOutOrders.length > 0) {
     groups['takeout'] = {
@@ -238,7 +217,6 @@ function renderOrders(orders) {
       orders: takeOutOrders
     };
   }
-  
   // Render all groups
   grid.innerHTML = Object.values(groups).map(group => {
     if (group.type === 'table') {
@@ -272,7 +250,6 @@ function renderOrders(orders) {
     }
   }).join('');
 }
-
 function renderOrderCard(order) {
   const itemsSummary = order.items.map(i => `${i.quantity}× ${i.name}`).join(', ');
   const actions = order.status === 'ready'
@@ -280,7 +257,6 @@ function renderOrderCard(order) {
     : order.status === 'pending'
     ? `<button class="btn btn-outline btn-sm" onclick="markStatus('${order._id}','preparing')">→ Preparing</button>`
     : '';
-  
   return `<div class="staff-order-card fade-in">
     <div class="soc-header">
       <span class="soc-id">#${order.orderNumber}</span>
@@ -302,20 +278,17 @@ function renderOrderCard(order) {
     </div>
   </div>`;
 }
-
 function updateStats(orders) {
   document.getElementById('s-pending').textContent   = orders.filter(o => o.status === 'pending').length;
   document.getElementById('s-preparing').textContent = orders.filter(o => o.status === 'preparing').length;
   document.getElementById('s-ready').textContent     = orders.filter(o => o.status === 'ready').length;
 }
-
 function setFilter(f, el) {
   currentFilter = f;
   document.querySelectorAll('.ftab').forEach(t => t.classList.remove('active'));
   el.classList.add('active');
   loadOrders();
 }
-
 async function markServed(id) {
   try {
     await apiFetch(`/orders/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status: 'served' }) });
@@ -323,7 +296,6 @@ async function markServed(id) {
     loadOrders(); loadStats();
   } catch (e) { showToast(e.message, 'error'); }
 }
-
 async function markStatus(id, status) {
   try {
     await apiFetch(`/orders/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) });
@@ -331,9 +303,7 @@ async function markStatus(id, status) {
     loadOrders();
   } catch (e) { showToast(e.message, 'error'); }
 }
-
 function viewOrder(id) { window.open(`order-status.html?id=${id}`, '_blank'); }
-
 document.addEventListener('DOMContentLoaded', () => {
   loadOrders();
   loadStats();

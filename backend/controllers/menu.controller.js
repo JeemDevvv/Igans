@@ -1,6 +1,5 @@
 const MenuItem = require('../models/MenuItem');
 const Category = require('../models/Category');
-
 exports.getAll = async (req, res) => {
   try {
     const { category, search, available, featured, bestSeller, sort } = req.query;
@@ -24,7 +23,6 @@ exports.getAll = async (req, res) => {
     res.status(500).json({ success: false, msg: err.message });
   }
 };
-
 exports.getOne = async (req, res) => {
   try {
     const item = await MenuItem.findById(req.params.id).populate('category');
@@ -34,7 +32,6 @@ exports.getOne = async (req, res) => {
     res.status(500).json({ success: false, msg: err.message });
   }
 };
-
 exports.create = async (req, res) => {
   try {
     console.log('Create menu item request body:', req.body);
@@ -45,7 +42,6 @@ exports.create = async (req, res) => {
     res.status(400).json({ success: false, msg: err.message });
   }
 };
-
 exports.update = async (req, res) => {
   try {
     console.log('Update menu item request body:', req.body);
@@ -58,7 +54,6 @@ exports.update = async (req, res) => {
     res.status(400).json({ success: false, msg: err.message });
   }
 };
-
 exports.remove = async (req, res) => {
   try {
     await MenuItem.findByIdAndDelete(req.params.id);
@@ -67,7 +62,6 @@ exports.remove = async (req, res) => {
     res.status(500).json({ success: false, msg: err.message });
   }
 };
-
 exports.getCategories = async (req, res) => {
   try {
     const cats = await Category.find().sort({ sortOrder: 1 });
@@ -76,7 +70,6 @@ exports.getCategories = async (req, res) => {
     res.status(500).json({ success: false, msg: err.message });
   }
 };
-
 exports.createCategory = async (req, res) => {
   try {
     const cat = await Category.create(req.body);
@@ -85,7 +78,6 @@ exports.createCategory = async (req, res) => {
     res.status(400).json({ success: false, msg: err.message });
   }
 };
-
 exports.deleteCategory = async (req, res) => {
   try {
     await Category.findByIdAndDelete(req.params.id);

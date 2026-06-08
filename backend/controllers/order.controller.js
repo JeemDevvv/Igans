@@ -1,6 +1,5 @@
 const Order = require('../models/Order');
 const MenuItem = require('../models/MenuItem');
-
 exports.createOrder = async (req, res) => {
   try {
     console.log('DEBUG order.controller.js: req.body:', req.body);
@@ -18,7 +17,6 @@ exports.createOrder = async (req, res) => {
       totalAmount: parseFloat(total.toFixed(2)),
       specialRequests: specialRequests || ''
     });
-    // Increment orderCount for each item
     for (const item of items) {
       if (item.menuItem) await MenuItem.findByIdAndUpdate(item.menuItem, { $inc: { orderCount: item.quantity } });
     }
@@ -27,7 +25,6 @@ exports.createOrder = async (req, res) => {
     res.status(500).json({ success: false, msg: err.message });
   }
 };
-
 exports.getAllOrders = async (req, res) => {
   try {
     const { status, orderType, tableNumber, date } = req.query;
@@ -45,7 +42,6 @@ exports.getAllOrders = async (req, res) => {
     res.status(500).json({ success: false, msg: err.message });
   }
 };
-
 exports.getMyOrders = async (req, res) => {
   try {
     const sessionId = req.query.sessionId || req.user?.id;
@@ -58,7 +54,6 @@ exports.getMyOrders = async (req, res) => {
     res.status(500).json({ success: false, msg: err.message });
   }
 };
-
 exports.getOrder = async (req, res) => {
   try {
     const order = await Order.findById(req.params.id).populate('customer', 'name email');
@@ -68,28 +63,37 @@ exports.getOrder = async (req, res) => {
     res.status(500).json({ success: false, msg: err.message });
   }
 };
-
 exports.updateStatus = async (req, res) => {
   try {
     const { status } = req.body;
     const validStatuses = ['pending', 'preparing', 'ready', 'served', 'cancelled'];
     if (!validStatuses.includes(status)) return res.status(400).json({ success: false, msg: 'Invalid status' });
-    
     const order = await Order.findById(req.params.id);
     if (!order) return res.status(404).json({ success: false, msg: 'Order not found' });
-    
     if (order.status === 'served') {
       return res.status(400).json({ success: false, msg: 'Cannot modify a served order' });
     }
-    
     if (order.status === 'cancelled' && status !== 'cancelled') {
       return res.status(400).json({ success: false, msg: 'Cannot reactivate a cancelled order' });
     }
-    
     order.status = status;
     order.updatedAt = new Date();
     await order.save();
-    
+    res.json({ success: true, data: order });
+  } catch (err) {
+    res.status(500).json({ success: false, msg: err.message });
+  }
+};
+exports.markAsPaid = async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id);
+    if (!order) return res.status(404).json({ success: false, msg: 'Order not found' });
+    if (order.status === 'cancelled') {
+      return res.status(400).json({ success: false, msg: 'Cannot mark a cancelled order as paid' });
+    }
+    order.paid = true;
+    order.updatedAt = new Date();
+    await order.save();
     res.json({ success: true, data: order });
   } catch (err) {
     res.status(500).json({ success: false, msg: err.message });

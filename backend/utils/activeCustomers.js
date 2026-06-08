@@ -1,7 +1,5 @@
-// Active customers tracking module
 const activeCustomers = new Map();
-const ACTIVE_TIMEOUT = 30000; // 30 seconds
-
+const ACTIVE_TIMEOUT = 30000;
 function getActiveCount() {
   const now = Date.now();
   let count = 0;
@@ -14,13 +12,11 @@ function getActiveCount() {
   }
   return count;
 }
-
 function updateCustomer(sessionId) {
   if (sessionId) {
     activeCustomers.set(sessionId, Date.now());
   }
 }
-
 module.exports = {
   activeCustomers,
   ACTIVE_TIMEOUT,

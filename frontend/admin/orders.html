@@ -31,13 +31,11 @@
     </nav>
     <div class="sidebar-footer"><button class="btn btn-ghost btn-sm btn-block" onclick="logout()">Sign Out</button></div>
   </aside>
-
   <main class="admin-main">
     <div class="admin-topbar">
       <div><h1 class="admin-page-title">All Orders</h1><p class="admin-page-sub">View and manage every order</p></div>
       <button class="btn btn-outline btn-sm" onclick="loadOrders()">↻ Refresh</button>
     </div>
-
     <div class="admin-table-wrap" style="padding-top:24px;">
       <div class="table-toolbar">
         <div class="search-input-wrap">
@@ -63,7 +61,6 @@
         </div>
         <span id="order-count" style="font-size:0.85rem;color:var(--text-muted);white-space:nowrap;"></span>
       </div>
-
       <div class="table-wrap">
         <table id="orders-table" class="admin-table">
           <thead>
@@ -84,7 +81,6 @@
     </div>
   </main>
 </div>
-
 <!-- Order detail modal -->
 <div class="modal-overlay" id="order-modal">
   <div class="modal">
@@ -107,12 +103,10 @@
     </div>
   </div>
 </div>
-
 <script src="../js/auth.js"></script>
 <script>
 requireRole('admin');
 let allOrders = [], currentOrderId = null;
-
 async function loadOrders() {
   try {
     const status = document.getElementById('status-filter').value;
@@ -127,7 +121,6 @@ async function loadOrders() {
     filterOrders();
   } catch(e) { showToast(e.message, 'error'); }
 }
-
 function filterOrders() {
   const q = document.getElementById('search-orders').value.toLowerCase();
   let items = allOrders;
@@ -139,7 +132,6 @@ function filterOrders() {
   document.getElementById('order-count').textContent = `${items.length} order${items.length !== 1 ? 's' : ''}`;
   renderTable(items);
 }
-
 function renderTable(orders) {
   document.getElementById('orders-tbody').innerHTML = orders.length === 0
     ? `<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text-muted);">No orders found</td></tr>`
@@ -154,14 +146,24 @@ function renderTable(orders) {
         </td>
         <td style="color:var(--text-muted);font-size:0.82rem;">${o.items.length} item${o.items.length!==1?'s':''}</td>
         <td><strong>${formatCurrency(o.totalAmount)}</strong></td>
-        <td>${statusBadge(o.status)}</td>
+        <td>
+          ${statusBadge(o.status)}
+          ${o.paid ? '<span class="badge badge-success" style="margin-left:4px;"><i class="fas fa-check"></i> Paid</span>' : '<span class="badge badge-warning" style="margin-left:4px;"><i class="fas fa-money-bill"></i> Unpaid</span>'}
+        </td>
         <td style="font-size:0.8rem;color:var(--text-muted);">${formatDate(o.createdAt)}</td>
         <td>
+          ${!o.paid && o.status !== 'cancelled' ? `<button class="btn btn-success btn-sm" onclick="markAsPaid('${o._id}')">Mark as Paid</button>` : ''}
           <button class="btn btn-ghost btn-sm" onclick="viewOrder('${o._id}')">View</button>
         </td>
       </tr>`).join('');
 }
-
+async function markAsPaid(id) {
+  try {
+    await apiFetch(`/orders/${id}/paid`, { method: 'PATCH' });
+    showToast('Order marked as paid');
+    loadOrders();
+  } catch(e) { showToast(e.message, 'error'); }
+}
 async function viewOrder(id) {
   currentOrderId = id;
   const data = await apiFetch(`/orders/${id}`);
@@ -184,10 +186,8 @@ async function viewOrder(id) {
     </div>
     ${o.specialRequests ? `<div class="alert alert-warning"><i class="fas fa-note-sticky"></i> ${o.specialRequests}</div>` : ''}
     <div style="font-size:0.8rem;color:var(--text-muted);margin-top:12px;">Placed: ${formatDate(o.createdAt)}</div>`;
-  
   const statusSel = document.getElementById('status-update-sel');
   const statusBtn = document.querySelector('#status-update-sel').parentElement.querySelector('button');
-  
   if (o.status === 'served' || o.status === 'cancelled') {
     statusSel.disabled = true;
     statusBtn.disabled = true;
@@ -204,7 +204,6 @@ async function viewOrder(id) {
   }
   document.getElementById('order-modal').classList.add('active');
 }
-
 async function applyStatusChange() {
   const status = document.getElementById('status-update-sel').value;
   if (!status || !currentOrderId) return;
@@ -215,13 +214,10 @@ async function applyStatusChange() {
     loadOrders();
   } catch(e) { showToast(e.message, 'error'); }
 }
-
 function closeOrderModal() { document.getElementById('order-modal').classList.remove('active'); }
-
 function toggleSidebar() {
   document.getElementById('sidebar').classList.toggle('open');
 }
-
 document.addEventListener('DOMContentLoaded', () => {
   // Set today as default date filter
   document.getElementById('date-filter').value = new Date().toISOString().split('T')[0];

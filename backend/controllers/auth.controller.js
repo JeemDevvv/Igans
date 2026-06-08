@@ -1,6 +1,5 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
-
 const signToken = (user) => {
   const secret = process.env.JWT_SECRET || 'fallback_secret_for_dev_only';
   const expire = process.env.JWT_EXPIRE || '7d';
@@ -10,7 +9,6 @@ const signToken = (user) => {
     { expiresIn: expire }
   );
 };
-
 exports.register = async (req, res) => {
   try {
     const { name, username, email, password, role } = req.body;
@@ -26,7 +24,6 @@ exports.register = async (req, res) => {
     res.status(500).json({ success: false, msg: err.message });
   }
 };
-
 exports.login = async (req, res) => {
   try {
     const { username, password, role } = req.body;
@@ -44,7 +41,6 @@ exports.login = async (req, res) => {
     res.status(500).json({ success: false, msg: err.message });
   }
 };
-
 exports.getMe = async (req, res) => {
   try {
     const user = await User.findById(req.user.id);

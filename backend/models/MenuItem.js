@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-
 const MenuItemSchema = new mongoose.Schema({
   name: { type: String, required: true, trim: true },
   description: { type: String, default: '' },
@@ -13,11 +12,9 @@ const MenuItemSchema = new mongoose.Schema({
   orderCount: { type: Number, default: 0 },
   avgRating: { type: Number, default: 0 },
   reviewCount: { type: Number, default: 0 },
-  // Nutrition info
   calories: { type: Number, min: 0 },
   protein: { type: Number, min: 0 },
   prepTime: { type: Number, min: 0 },
-  // Drink size options
   hasSizes: { type: Boolean, default: false },
   sizes: [{
     name: { type: String, required: true },
@@ -25,7 +22,5 @@ const MenuItemSchema = new mongoose.Schema({
   }],
   createdAt: { type: Date, default: Date.now }
 }, { collection: 'menuitems' });
-
 MenuItemSchema.index({ name: 'text', description: 'text' });
-
 module.exports = mongoose.model('MenuItem', MenuItemSchema);

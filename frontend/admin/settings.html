@@ -33,7 +33,6 @@
     <div class="admin-topbar">
       <div><h1 class="admin-page-title">Restaurant Settings</h1><p class="admin-page-sub">Configure geolocation, restaurant info, and system options</p></div>
     </div>
-
     <div style="padding:24px 28px;max-width:720px;">
       <div class="card card-padded" style="margin-bottom:24px;">
         <h2 style="font-size:1.1rem;font-weight:600;margin-bottom:20px;"><i class="fas fa-utensils"></i> Restaurant Information</h2>
@@ -47,7 +46,6 @@
           <div class="form-group"><label class="form-label">Currency Symbol</label><input type="text" id="s-currency" class="form-control" placeholder="₱" maxlength="3"></div>
         </div>
       </div>
-
       <div class="card card-padded" style="margin-bottom:24px;">
         <h2 style="font-size:1.1rem;font-weight:600;margin-bottom:8px;"><i class="fas fa-location-dot"></i> Geolocation & Access Control</h2>
         <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:20px;">Set the restaurant's GPS coordinates and the allowed radius. Customers outside this radius will be denied access.</p>
@@ -67,11 +65,9 @@
     </div>
   </main>
 </div>
-
 <script src="../js/auth.js"></script>
 <script>
 requireRole('admin');
-
 async function loadSettings() {
   try {
     const data = await apiFetch('/settings');
@@ -87,7 +83,6 @@ async function loadSettings() {
     document.getElementById('radius-display').textContent = s.allowedRadiusMeters || 200;
   } catch(e) { showToast(e.message, 'error'); }
 }
-
 function useMyLocation() {
   navigator.geolocation.getCurrentPosition(pos => {
     document.getElementById('s-lat').value = pos.coords.latitude.toFixed(6);
@@ -95,7 +90,6 @@ function useMyLocation() {
     showToast('Location captured!');
   }, () => showToast('Could not get location', 'error'));
 }
-
 async function saveSettings() {
   const btn = document.getElementById('save-btn');
   btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Saving...';
@@ -121,9 +115,7 @@ async function saveSettings() {
   }
   btn.disabled = false; btn.innerHTML = 'Save All Settings';
 }
-
 document.addEventListener('DOMContentLoaded', loadSettings);
-
 function toggleSidebar() {
   document.getElementById('sidebar').classList.toggle('open');
 }

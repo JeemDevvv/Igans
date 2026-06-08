@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,13 +11,11 @@
     .tables-content {
       padding: 24px 28px;
     }
-    
     /* Fix alert styling */
     .alert {
       box-sizing: border-box;
       width: 100%;
     }
-    
     /* Responsive layout for tables page */
     @media (max-width: 900px) {
       .tables-content {
@@ -26,19 +23,16 @@
         width: 100%;
         box-sizing: border-box;
       }
-      
       .admin-topbar {
         padding: 64px 16px 24px !important;
         width: 100%;
         box-sizing: border-box;
       }
-      
       .admin-main {
         margin-left: 0 !important;
         width: 100%;
         overflow-x: hidden;
       }
-      
       /* QR grid responsive */
       .qr-grid {
         grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)) !important;
@@ -47,8 +41,7 @@
     }
   </style>
 </head>
-
-<body>  
+<body>
   <div class="admin-shell">
   <div class="mobile-nav-toggle" onclick="toggleSidebar()">☰</div>
   <aside class="sidebar" id="sidebar">
@@ -70,7 +63,6 @@
     </nav>
     <div class="sidebar-footer"><button class="btn btn-ghost btn-sm btn-block" onclick="logout()">Sign Out</button></div>
   </aside>
-
     <main class="admin-main">
       <div class="admin-topbar">
         <div>
@@ -78,9 +70,7 @@
           <p class="admin-page-sub">Manage table QR codes and take-out QR codes</p>
         </div>
       </div>
-
       <div class="tables-content">
-        <!-- Table QR Codes Section -->
         <div style="margin-bottom:40px;">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-direction: column;gap: 15px;">
             <h2 style="font-size:1.25rem;font-weight:700;">Table QR Codes</h2>
@@ -94,8 +84,6 @@
           </div>
           <div id="qr-grid" class="qr-grid"></div>
         </div>
-
-        <!-- Public Take-Out QR Section -->
         <div>
           <h2 style="font-size:1.25rem;font-weight:700;margin-bottom:16px; text-align: center;">Public Take-Out QR Codes</h2>
           <div style="display:flex;align-items:center;justify-content:center;margin-bottom:16px;">
@@ -112,8 +100,6 @@
       </div>
     </main>
   </div>
-
-  <!-- Add table modal -->
   <div class="modal-overlay" id="add-table-modal">
     <div class="modal" style="max-width:380px;">
       <div class="modal-header">
@@ -137,8 +123,6 @@
       </div>
     </div>
   </div>
-
-  <!-- QR View modal -->
   <div class="modal-overlay" id="qr-modal">
     <div class="modal" style="max-width:360px;text-align:center;">
       <div class="modal-header">
@@ -155,8 +139,6 @@
       </div>
     </div>
   </div>
-
-  <!-- Add Public QR modal -->
   <div class="modal-overlay" id="add-publicqr-modal">
     <div class="modal" style="max-width:380px;">
       <div class="modal-header">
@@ -174,19 +156,16 @@
       </div>
     </div>
   </div>
-
   <script src="../js/auth.js"></script>
   <script>
     requireRole('admin');
     let tables = [], publicQRs = [], selectedQr = null, selectedPublicQr = null;
-
     async function loadTables() {
       const data = await apiFetch('/tables');
       tables = data.data;
       renderGrid();
       await loadPublicQRs();
     }
-
     async function loadPublicQRs() {
       try {
         const data = await apiFetch('/publicqr');
@@ -198,7 +177,6 @@
         renderPublicGrid();
       }
     }
-
     function renderGrid() {
       const grid = document.getElementById('qr-grid');
       if (tables.length === 0) {
@@ -220,7 +198,6 @@
       }
       grid.innerHTML = html;
     }
-
     function renderPublicGrid() {
       const grid = document.getElementById('public-qr-grid');
       if (!publicQRs || publicQRs.length === 0) {
@@ -242,7 +219,6 @@
       }
       grid.innerHTML = html;
     }
-
     function viewQr(id) {
       const table = tables.find(function (t) { return t._id === id; });
       if (!table) return;
@@ -253,7 +229,6 @@
       document.getElementById('qr-modal-url').textContent = table.qrCodeValue;
       document.getElementById('qr-modal').classList.add('active');
     }
-
     function viewPublicQr(id) {
       const qr = publicQRs.find(function (q) { return q._id === id; });
       if (!qr) return;
@@ -264,9 +239,7 @@
       document.getElementById('qr-modal-url').textContent = qr.qrCodeValue;
       document.getElementById('qr-modal').classList.add('active');
     }
-
     function closeQrModal() { document.getElementById('qr-modal').classList.remove('active'); }
-
     function printQr() {
       if (!selectedQr && !selectedPublicQr) return;
       const w = window.open('', '_blank');
@@ -293,7 +266,6 @@
       w.document.write(html);
       w.document.close();
     }
-
     function downloadQr() {
       if (!selectedQr && !selectedPublicQr) return;
       const a = document.createElement('a');
@@ -308,7 +280,6 @@
       a.download = filename;
       a.click();
     }
-
     function printAll() {
       const w = window.open('', '_blank');
       if (!w) { alert('Popup blocked! Please allow popups for this site.'); return; }
@@ -329,7 +300,6 @@
       w.document.write(html);
       w.document.close();
     }
-
     function printAllPublic() {
       const w = window.open('', '_blank');
       if (!w) { alert('Popup blocked! Please allow popups for this site.'); return; }
@@ -350,10 +320,8 @@
       w.document.write(html);
       w.document.close();
     }
-
     function openAddTable() { document.getElementById('new-table-num').value = ''; document.getElementById('new-table-cap').value = '4'; document.getElementById('add-table-modal').classList.add('active'); }
     function closeAddTable() { document.getElementById('add-table-modal').classList.remove('active'); }
-
     async function addTable() {
       const num = parseInt(document.getElementById('new-table-num').value);
       const cap = parseInt(document.getElementById('new-table-cap').value);
@@ -365,7 +333,6 @@
         loadTables();
       } catch (e) { showToast(e.message, 'error'); }
     }
-
     async function deleteTable(id) {
       if (!confirm('Delete this table?')) return;
       try {
@@ -374,10 +341,8 @@
         loadTables();
       } catch (e) { showToast(e.message, 'error'); }
     }
-
     function openAddPublicQR() { document.getElementById('new-publicqr-name').value = 'Take-Out QR'; document.getElementById('add-publicqr-modal').classList.add('active'); }
     function closeAddPublicQR() { document.getElementById('add-publicqr-modal').classList.remove('active'); }
-
     async function addPublicQR() {
       const name = document.getElementById('new-publicqr-name').value.trim();
       if (!name) { showToast('Enter a name for the QR', 'error'); return; }
@@ -388,7 +353,6 @@
         loadPublicQRs();
       } catch (e) { showToast(e.message, 'error'); }
     }
-
     async function deletePublicQR(id) {
       if (!confirm('Delete this take-out QR?')) return;
       try {
@@ -397,13 +361,10 @@
         loadPublicQRs();
       } catch (e) { showToast(e.message, 'error'); }
     }
-
     document.addEventListener('DOMContentLoaded', loadTables);
-
 function toggleSidebar() {
   document.getElementById('sidebar').classList.toggle('open');
 }
 </script>
 </body>
-
 </html>

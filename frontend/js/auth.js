@@ -1,25 +1,17 @@
-// ── Shared auth & API utilities ──────────────────────────────────────────────
-// Dynamically set API URL based on current host
 const API = (function() {
   const host = window.location.host;
-  // If we are on localhost, use 5000, otherwise use current host's /api
   if (host.includes('localhost') || host.includes('127.0.0.1')) {
-    return 'http://localhost:5000/api';
+    return 'http://' + host + '/api';
   }
-  return '/api'; // In production, frontend and backend share the same origin
+  return '/api';
 })();
-
-// Helper to get root-relative path (works regardless of subfolder depth)
 function getRootPath(path) {
-  // If we are in the admin subfolder, we need to go up one level
   const isAdmin = window.location.pathname.includes('/admin/');
   if (isAdmin) {
     return '../' + path.replace(/^\//, '');
   }
   return path.replace(/^\//, '');
 }
-
-// ── Session helpers ────────────────────────────────────────────────────────
 const Session = {
   getToken: () => sessionStorage.getItem('token'),
   getUser:  () => JSON.parse(sessionStorage.getItem('user') || 'null'),
@@ -37,8 +29,6 @@ const Session = {
   getOrderId: () => sessionStorage.getItem('currentOrderId'),
   setOrderId: (id) => sessionStorage.setItem('currentOrderId', id)
 };
-
-// ── API fetch wrapper ──────────────────────────────────────────────────────
 async function apiFetch(path, options = {}) {
   const token = Session.getToken();
   const headers = { 'Content-Type': 'application/json', ...options.headers };
@@ -55,35 +45,25 @@ async function apiFetch(path, options = {}) {
     throw err;
   }
 }
-
-// ── Role guard ────────────────────────────────────────────────────────────
 function requireRole(...roles) {
   const user = Session.getUser();
-  
-  // Special case: Allow guest customers without login
   if (roles.includes('customer') && !user) {
-    // Set a guest user session to avoid errors in other parts of the code
     const guestUser = { name: 'Guest Customer', role: 'customer', isGuest: true };
     sessionStorage.setItem('user', JSON.stringify(guestUser));
     return true;
   }
-
   if (!user) { window.location.href = getRootPath('login.html'); return false; }
   if (!roles.includes(user.role)) { window.location.href = getRootPath('login.html'); return false; }
   return true;
 }
-
 function requireAuth() {
   if (!Session.getToken()) { window.location.href = getRootPath('login.html'); return false; }
   return true;
 }
-
-// ── Cart helpers ──────────────────────────────────────────────────────────
 const Cart = {
   get: () => Session.getCart(),
   add: (item) => {
     const cart = Session.getCart();
-    // Create a unique key for the cart item: _id + name (since name includes size)
     const itemKey = `${item._id}-${item.name}`;
     const existing = cart.find(c => `${c._id}-${c.name}` === itemKey);
     if (existing) existing.quantity++;
@@ -113,11 +93,11 @@ const Cart = {
     } else {
       item = cart.find(c => c._id === id);
     }
-    if (item) { 
+    if (item) {
       if (qty <= 0) {
-        return Cart.remove(id, name); 
+        return Cart.remove(id, name);
       }
-      item.quantity = qty; 
+      item.quantity = qty;
     }
     Session.setCart(cart);
     Cart.updateBadge();
@@ -139,8 +119,6 @@ const Cart = {
     if (badge) { const n = Cart.count(); badge.textContent = n; badge.style.display = n > 0 ? 'flex' : 'none'; }
   }
 };
-
-// ── Toast notifications ───────────────────────────────────────────────────
 function showToast(msg, type = 'success', duration = 3000) {
   let container = document.getElementById('toast-container');
   if (!container) {
@@ -157,8 +135,6 @@ function showToast(msg, type = 'success', duration = 3000) {
   container.appendChild(toast);
   setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.3s'; setTimeout(() => toast.remove(), 300); }, duration);
 }
-
-// ── Render navbar user ────────────────────────────────────────────────────
 function renderNavUser() {
   const user = Session.getUser();
   if (!user) return;
@@ -169,14 +145,10 @@ function renderNavUser() {
     </div>`;
   }
 }
-
-// ── Logout ────────────────────────────────────────────────────────────────
 function logout() {
   Session.clear();
   window.location.href = getRootPath('login.html');
 }
-
-// ── Format helpers ────────────────────────────────────────────────────────
 function formatCurrency(n) { return '₱' + parseFloat(n).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
 function formatDate(d) { return new Date(d).toLocaleString('en-PH', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }); }
 function timeAgo(d) {
@@ -186,30 +158,18 @@ function timeAgo(d) {
   return `${Math.floor(diff/3600)}h ago`;
 }
 function minutesAgo(d) { return Math.floor((Date.now() - new Date(d)) / 60000); }
-
-// ── Status badge HTML ────────────────────────────────────────────────────
 function statusBadge(status) {
   const dots = { pending: 'dot-pending', preparing: 'dot-preparing', ready: 'dot-ready', served: 'dot-served', cancelled: '' };
   return `<span class="badge badge-${status}"><span class="status-dot ${dots[status]||''}"></span>${status.charAt(0).toUpperCase()+status.slice(1)}</span>`;
 }
-
-// Auto-render nav user on DOM load
 document.addEventListener('DOMContentLoaded', () => { renderNavUser(); Cart.updateBadge(); startCustomerHeartbeat(); });
-
-// Customer heartbeat for active customers tracking
 let heartbeatInterval = null;
 function startCustomerHeartbeat() {
-  // Check if current page is a customer page (not admin/staff/kitchen)
   const path = window.location.pathname.toLowerCase();
   const isCustomerPage = !path.includes('/admin/') && !path.includes('login.html') && !path.includes('staff.html') && !path.includes('kitchen.html');
-  
   if (isCustomerPage) {
-    // Send initial heartbeat
     sendHeartbeat();
-    // Send heartbeat every 10 seconds
     heartbeatInterval = setInterval(sendHeartbeat, 10000);
-    
-    // Stop heartbeat when page is hidden or unloaded
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) {
         stopHeartbeat();
@@ -220,11 +180,9 @@ function startCustomerHeartbeat() {
         }
       }
     });
-    
     window.addEventListener('beforeunload', stopHeartbeat);
   }
 }
-
 function sendHeartbeat() {
   const sessionId = Session.getSessionId();
   fetch(API + '/customer/heartbeat', {
@@ -234,7 +192,6 @@ function sendHeartbeat() {
     keepalive: true
   }).catch(() => {});
 }
-
 function stopHeartbeat() {
   if (heartbeatInterval) {
     clearInterval(heartbeatInterval);

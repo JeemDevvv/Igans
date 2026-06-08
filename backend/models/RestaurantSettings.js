@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-
 const RestaurantSettingsSchema = new mongoose.Schema({
   restaurantName: { type: String, default: 'Igans Budbod House' },
   latitude: { type: Number, required: true },
@@ -10,5 +9,4 @@ const RestaurantSettingsSchema = new mongoose.Schema({
   phone: { type: String, default: '' },
   currency: { type: String, default: '₱' }
 }, { collection: 'restaurantsettings' });
-
 module.exports = mongoose.model('RestaurantSettings', RestaurantSettingsSchema);

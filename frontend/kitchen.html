@@ -8,7 +8,6 @@
 <link rel="stylesheet" href="css/main.css">
 <style>
 body { background: #111827; color: #F9FAFB; }
-
 .kitchen-nav {
   background: #1F2937; border-bottom: 1px solid #374151;
   padding: 0 24px; height: 64px;
@@ -20,7 +19,6 @@ body { background: #111827; color: #F9FAFB; }
 .kstat { text-align: center; padding: 6px 16px; background: #374151; border-radius: 8px; }
 .kstat-num { font-size: 1.3rem; font-weight: 700; color: #F5A623; line-height: 1; }
 .kstat-label { font-size: 0.7rem; color: #9CA3AF; text-transform: uppercase; letter-spacing: 0.05em; }
-
 .board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; padding: 20px; height: calc(100vh - 64px); overflow: hidden; }
 .column { background: #1F2937; border-radius: 12px; border: 1px solid #374151; display: flex; flex-direction: column; overflow: hidden; }
 .col-header { padding: 16px 20px; border-bottom: 1px solid #374151; display: flex; align-items: center; justify-content: space-between; }
@@ -32,7 +30,6 @@ body { background: #111827; color: #F9FAFB; }
 .col-cards { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 12px; }
 .col-cards::-webkit-scrollbar { width: 4px; }
 .col-cards::-webkit-scrollbar-thumb { background: #374151; border-radius: 2px; }
-
 .order-card {
   background: #111827; border-radius: 10px; border: 1px solid #374151;
   padding: 16px; animation: fadeIn 0.3s ease;
@@ -71,14 +68,11 @@ body { background: #111827; color: #F9FAFB; }
 .btn-ready:hover { background: #047857; }
 .btn-cancel { background: #374151; color: #9CA3AF; font-size: 0.75rem; padding: 6px 8px; }
 .btn-cancel:hover { background: #7F1D1D; color: #FCA5A5; }
-
 .empty-col { text-align: center; padding: 40px 16px; color: #6B7280; font-size: 0.85rem; }
 .empty-col .icon { font-size: 2.5rem; margin-bottom: 8px; }
-
 .sound-btn { background: #374151; border: none; color: #9CA3AF; padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; transition: all var(--transition); }
 .sound-btn:hover { background: #4B5563; color: white; }
 .sound-btn.on { color: #34D399; }
-
 @media (max-width: 768px) {
   .board { grid-template-columns: 1fr; height: auto; }
   .kitchen-stats { display: none; }
@@ -99,7 +93,6 @@ body { background: #111827; color: #F9FAFB; }
     <button class="sound-btn" onclick="logout()">Sign Out</button>
   </div>
 </div>
-
 <div class="board">
   <div class="column col-pending">
     <div class="col-header">
@@ -120,18 +113,15 @@ body { background: #111827; color: #F9FAFB; }
     <div class="col-cards" id="col-ready"></div>
   </div>
 </div>
-
 <script src="js/auth.js"></script>
 <script>
 requireRole('kitchen', 'admin');
 let soundEnabled = true;
 let knownOrderIds = new Set();
 let audioCtx;
-
 function initAudio() {
   try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
 }
-
 function playNotif() {
   if (!soundEnabled || !audioCtx) return;
   try {
@@ -145,26 +135,22 @@ function playNotif() {
     o.start(); o.stop(audioCtx.currentTime + 0.4);
   } catch(e) {}
 }
-
 function toggleSound() {
   soundEnabled = !soundEnabled;
   const btn = document.getElementById('sound-btn');
   btn.innerHTML = soundEnabled ? '<i class="fas fa-volume-high"></i> Sound On' : '<i class="fas fa-volume-xmark"></i> Sound Off';
   btn.classList.toggle('on', soundEnabled);
 }
-
 // Clock
 setInterval(() => {
   document.getElementById('clock').textContent = new Date().toLocaleTimeString('en-PH');
 }, 1000);
-
 function getTimeClass(createdAt) {
   const mins = minutesAgo(createdAt);
   if (mins >= 20) return 'urgent';
   if (mins >= 10) return 'warning';
   return 'ok';
 }
-
 function renderCard(order, status) {
   const mins = minutesAgo(order.createdAt);
   const timeClass = getTimeClass(order.createdAt);
@@ -176,7 +162,6 @@ function renderCard(order, status) {
     ? `<button class="action-btn btn-ready" onclick="updateStatus('${order._id}','ready')"><i class="fas fa-check"></i> Mark Ready</button>
        <button class="action-btn btn-cancel" onclick="updateStatus('${order._id}','cancelled')">✕</button>`
     : `<div style="font-size:0.8rem;color:#34D399;font-weight:600;text-align:center;">Waiting for staff pickup</div>`;
-
   return `<div class="order-card ${order._new ? 'new-order' : ''}" id="card-${order._id}">
     <div class="order-card-header">
       <span class="order-id">#${order.orderNumber}</span>
@@ -197,17 +182,14 @@ function renderCard(order, status) {
     <div class="action-btns">${actions}</div>
   </div>`;
 }
-
 let orders = { pending: [], preparing: [], ready: [] };
-
 async function loadOrders() {
   try {
     const data = await apiFetch('/orders?status=pending,preparing,ready');
-    const all = data.data;
+    const all = data.data.filter(o => o.paid);
     orders.pending   = all.filter(o => o.status === 'pending');
     orders.preparing = all.filter(o => o.status === 'preparing');
     orders.ready     = all.filter(o => o.status === 'ready');
-
     // Detect new orders
     let hasNew = false;
     all.forEach(o => {
@@ -217,14 +199,12 @@ async function loadOrders() {
       knownOrderIds.add(o._id);
     });
     if (hasNew && knownOrderIds.size > 0) playNotif();
-
     renderColumn('pending');
     renderColumn('preparing');
     renderColumn('ready');
     updateStats();
   } catch (e) { console.error(e); }
 }
-
 function renderColumn(status) {
   const col = document.getElementById(`col-${status}`);
   const list = orders[status];
@@ -233,13 +213,11 @@ function renderColumn(status) {
     : list.map(o => renderCard(o, status)).join('');
   document.getElementById(`cnt-${status}`).textContent = list.length;
 }
-
 function updateStats() {
   document.getElementById('k-pending').textContent   = orders.pending.length;
   document.getElementById('k-preparing').textContent = orders.preparing.length;
   document.getElementById('k-ready').textContent     = orders.ready.length;
 }
-
 async function updateStatus(id, status) {
   try {
     await apiFetch(`/orders/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) });
@@ -247,7 +225,6 @@ async function updateStatus(id, status) {
     showToast(`Order updated to "${status}"`, 'success');
   } catch (e) { showToast(e.message, 'error'); }
 }
-
 document.addEventListener('DOMContentLoaded', () => {
   document.body.addEventListener('click', initAudio, { once: true });
   loadOrders();

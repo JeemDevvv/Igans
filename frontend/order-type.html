@@ -13,11 +13,10 @@
   padding: 0;
   box-sizing: border-box;
 }
-
 body {
   min-height: 100vh;
   font-family: var(--font-body);
-  background: linear-gradient(var(--bg-overlay), var(--bg-overlay)), 
+  background: linear-gradient(var(--bg-overlay), var(--bg-overlay)),
               url('css/bg_image.jpg') no-repeat center center;
   background-size: cover;
   background-attachment: fixed;
@@ -26,7 +25,6 @@ body {
   display: flex;
   flex-direction: column;
 }
-
 .container {
   flex: 1;
   display: flex;
@@ -37,13 +35,11 @@ body {
   padding: 24px 20px;
   padding-bottom: calc(24px + env(safe-area-inset-bottom));
 }
-
 .header-section {
   text-align: center;
   margin-bottom: 28px;
   animation: fadeInDown 0.5s ease;
 }
-
 .restaurant-brand {
   display: flex;
   align-items: center;
@@ -51,7 +47,6 @@ body {
   gap: 10px;
   margin-bottom: 16px;
 }
-
 .restaurant-logo {
   font-family: var(--font-display);
   font-size: 1.7rem;
@@ -59,7 +54,6 @@ body {
   color: #FFF;
   text-shadow: 0 2px 8px rgba(0,0,0,0.4);
 }
-
 .welcome-text h1 {
   font-family: var(--font-display);
   font-size: 1.4rem;
@@ -67,13 +61,11 @@ body {
   margin-bottom: 4px;
   font-weight: 700;
 }
-
 .welcome-text p {
   font-size: 0.9rem;
   color: rgba(255,255,255,0.75);
   font-weight: 400;
 }
-
 .table-badge {
   display: inline-flex;
   align-items: center;
@@ -87,11 +79,9 @@ body {
   margin-top: 16px;
   border: 1px solid rgba(214,40,40,0.3);
 }
-
 .table-badge i {
   color: var(--accent);
 }
-
 .choices-section {
   flex: 1;
   display: flex;
@@ -99,7 +89,6 @@ body {
   gap: 14px;
   margin-bottom: 24px;
 }
-
 .choice-card {
   background: rgba(255,255,255,0.06);
   border: 2px solid transparent;
@@ -115,27 +104,22 @@ body {
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
 }
-
 .choice-card:nth-child(1) {
   animation-delay: 0.1s;
 }
-
 .choice-card:nth-child(2) {
   animation-delay: 0.2s;
 }
-
 .choice-card:hover {
   background: rgba(255,255,255,0.1);
   transform: translateY(-2px);
 }
-
 .choice-card.selected {
   background: rgba(233,196,106,0.12);
   border-color: var(--accent);
   transform: translateY(-3px);
   box-shadow: 0 8px 24px rgba(0,0,0,0.3);
 }
-
 .choice-icon {
   width: 56px;
   height: 56px;
@@ -149,17 +133,14 @@ body {
   color: var(--accent);
   transition: all 0.3s ease;
 }
-
 .choice-card.selected .choice-icon {
   background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
   color: #1C1008;
 }
-
 .choice-content {
   flex: 1;
   min-width: 0;
 }
-
 .choice-title {
   font-family: var(--font-display);
   font-size: 1.2rem;
@@ -167,13 +148,11 @@ body {
   color: #FFF;
   margin-bottom: 4px;
 }
-
 .choice-desc {
   font-size: 0.82rem;
   color: rgba(255,255,255,0.7);
   line-height: 1.5;
 }
-
 .choice-check {
   width: 24px;
   height: 24px;
@@ -185,12 +164,10 @@ body {
   flex-shrink: 0;
   transition: all 0.3s ease;
 }
-
 .choice-card.selected .choice-check {
   background: var(--accent);
   border-color: var(--accent);
 }
-
 .choice-check i {
   color: #1C1008;
   font-size: 0.9rem;
@@ -198,17 +175,14 @@ body {
   transform: scale(0);
   transition: all 0.3s ease;
 }
-
 .choice-card.selected .choice-check i {
   opacity: 1;
   transform: scale(1);
 }
-
 .customer-name-section {
   animation: fadeInUp 0.5s ease 0.25s;
   animation-fill-mode: both;
 }
-
 .input-label {
   font-size: 0.85rem;
   color: rgba(255,255,255,0.75);
@@ -216,7 +190,6 @@ body {
   margin-bottom: 8px;
   display: block;
 }
-
 .customer-name-input {
   width: 100%;
   padding: 14px 18px;
@@ -228,22 +201,18 @@ body {
   font-size: 1rem;
   transition: all 0.3s ease;
 }
-
 .customer-name-input:focus {
   outline: none;
   border-color: var(--accent);
   background: rgba(255,255,255,0.12);
 }
-
 .customer-name-input::placeholder {
   color: rgba(255,255,255,0.4);
 }
-
 .proceed-section {
   animation: fadeInUp 0.5s ease 0.3s;
   animation-fill-mode: both;
 }
-
 .btn-proceed {
   width: 100%;
   padding: 18px 32px;
@@ -264,38 +233,31 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
-
 .btn-proceed:hover:not(:disabled) {
   transform: translateY(-2px);
   box-shadow: 0 8px 24px rgba(214,40,40,0.45);
 }
-
 .btn-proceed:active:not(:disabled) {
   transform: translateY(0);
 }
-
 .btn-proceed:disabled {
   background: rgba(255,255,255,0.1);
   box-shadow: none;
   cursor: not-allowed;
   color: rgba(255,255,255,0.4);
 }
-
 .btn-proceed i {
   transition: transform 0.3s ease;
 }
-
 .btn-proceed:hover:not(:disabled) i {
   transform: translateX(4px);
 }
-
 .hint-text {
   text-align: center;
   margin-top: 14px;
   font-size: 0.8rem;
   color: rgba(255,255,255,0.5);
 }
-
 @keyframes fadeInDown {
   from {
     opacity: 0;
@@ -306,7 +268,6 @@ body {
     transform: translateY(0);
   }
 }
-
 @keyframes fadeInUp {
   from {
     opacity: 0;
@@ -317,7 +278,6 @@ body {
     transform: translateY(0);
   }
 }
-
 @media (max-width: 380px) {
   .restaurant-logo {
     font-size: 1.5rem;
@@ -354,7 +314,6 @@ body {
       Seated at Table <strong id="table-display"></strong>
     </div>
   </div>
-
   <div class="choices-section" id="choices-section">
     <div class="choice-card" id="dine-in-card" onclick="selectType('dine-in', this)">
       <div class="choice-icon">
@@ -368,7 +327,6 @@ body {
         <i class="fas fa-check"></i>
       </div>
     </div>
-
     <div class="choice-card" id="take-out-card" onclick="selectType('take-out', this)">
       <div class="choice-icon">
         <i class="fas fa-shopping-bag"></i>
@@ -382,12 +340,10 @@ body {
       </div>
     </div>
   </div>
-
   <div class="customer-name-section" id="customer-name-section" style="display:none; margin-bottom: 24px;">
     <label class="input-label" for="customer-name">Your Name (for pickup)</label>
     <input type="text" id="customer-name" class="customer-name-input" placeholder="Enter your name" oninput="validateForm()">
   </div>
-
   <div class="proceed-section">
     <button class="btn-proceed" id="proceed-btn" onclick="proceed()" disabled>
       <span id="btn-text">Select an option</span>
@@ -396,7 +352,6 @@ body {
     <p class="hint-text" id="hint-text">Tap to choose how you'd like to order</p>
   </div>
 </div>
-
 <script src="js/auth.js"></script>
 <script>
 requireRole('customer');
@@ -405,7 +360,6 @@ const tableNum = Session.getTable();
 console.log('DEBUG order-type.html: Session.getTable():', tableNum);
 console.log('DEBUG order-type.html: sessionStorage tableNumber:', sessionStorage.getItem('tableNumber'));
 const isTakeOutQR = sessionStorage.getItem('isTakeOutQR') === 'true';
-
 if (isTakeOutQR) {
   document.getElementById('choices-section').style.display = 'none';
   document.getElementById('customer-name-section').style.display = 'block';
@@ -417,12 +371,10 @@ if (isTakeOutQR) {
   document.getElementById('table-display').textContent = tableNum;
   sessionStorage.setItem('tableNumber', tableNum);
 }
-
 function selectType(type, card) {
   selectedType = type;
   document.querySelectorAll('.choice-card').forEach(c => c.classList.remove('selected'));
   card.classList.add('selected');
-  
   if (type === 'take-out') {
     document.getElementById('customer-name-section').style.display = 'block';
     sessionStorage.removeItem('tableNumber');
@@ -432,24 +384,18 @@ function selectType(type, card) {
       sessionStorage.setItem('tableNumber', tableNum);
     }
   }
-  
   validateForm();
 }
-
 function validateForm() {
   const btn = document.getElementById('proceed-btn');
   const btnText = document.getElementById('btn-text');
   const hintText = document.getElementById('hint-text');
   const customerName = document.getElementById('customer-name').value.trim();
-  
   let canProceed = selectedType !== null;
-  
   if (selectedType === 'take-out') {
     canProceed = customerName.length > 0;
   }
-  
   btn.disabled = !canProceed;
-  
   if (canProceed) {
     btnText.textContent = selectedType === 'dine-in' ? 'Continue to Dine In Menu' : 'Continue to Take Out Menu';
     hintText.style.opacity = '0.7';
@@ -464,17 +410,14 @@ function validateForm() {
     hintText.textContent = 'Tap to choose how you\'d like to order';
   }
 }
-
 function proceed() {
   if (!selectedType) return;
-  
   if (selectedType === 'take-out') {
     const customerName = document.getElementById('customer-name').value.trim();
     sessionStorage.setItem('customerName', customerName);
   } else {
     sessionStorage.removeItem('customerName');
   }
-  
   sessionStorage.setItem('orderType', selectedType);
   window.location.href = 'menu.html';
 }

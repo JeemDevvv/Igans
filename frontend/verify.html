@@ -12,11 +12,10 @@
   padding: 0;
   box-sizing: border-box;
 }
-
 body {
   min-height: 100vh;
   font-family: var(--font-body);
-  background: linear-gradient(var(--bg-overlay), var(--bg-overlay)), 
+  background: linear-gradient(var(--bg-overlay), var(--bg-overlay)),
               url('css/bg_image.jpg') no-repeat center center;
   background-size: cover;
   background-attachment: fixed;
@@ -24,7 +23,6 @@ body {
   position: relative;
   overflow-x: hidden;
 }
-
 .verify-container {
   min-height: 100vh;
   display: flex;
@@ -32,17 +30,14 @@ body {
   justify-content: flex-end;
   animation: fadeIn 0.5s ease;
 }
-
 .header-section {
   padding: 40px 24px 20px;
   text-align: center;
 }
-
 .restaurant-banner {
   position: relative;
   margin-bottom: 24px;
 }
-
 .restaurant-logo {
   font-family: var(--font-display);
   font-size: 2.2rem;
@@ -51,13 +46,11 @@ body {
   margin-bottom: 4px;
   text-shadow: 0 2px 8px rgba(0,0,0,0.4);
 }
-
 .restaurant-subtitle {
   color: rgba(255,255,255,0.85);
   font-size: 0.9rem;
   font-weight: 400;
 }
-
 .verify-card {
   background: #FDFAF6;
   border-radius: 32px 32px 0 0;
@@ -67,7 +60,6 @@ body {
   animation: slideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
   margin: 0px 10px 0px 10px;
 }
-
 .card-top-decoration {
   position: absolute;
   top: 0;
@@ -79,7 +71,6 @@ body {
   border-radius: 2px;
   margin-top: 12px;
 }
-
 .location-icon-wrap {
   width: 80px;
   height: 80px;
@@ -91,7 +82,6 @@ body {
   justify-content: center;
   position: relative;
 }
-
 .location-pulse {
   position: absolute;
   inset: -8px;
@@ -99,7 +89,6 @@ body {
   border: 2px solid rgba(214,40,40,0.25);
   animation: pulse-ring 2s ease-out infinite;
 }
-
 .location-pulse-2 {
   position: absolute;
   inset: -16px;
@@ -107,12 +96,10 @@ body {
   border: 2px solid rgba(214,40,40,0.12);
   animation: pulse-ring 2s ease-out infinite 0.4s;
 }
-
 @keyframes pulse-ring {
   0% { transform: scale(0.9); opacity: 1; }
   100% { transform: scale(1.3); opacity: 0; }
 }
-
 .verify-title {
   font-size: 1.5rem;
   font-weight: 700;
@@ -121,7 +108,6 @@ body {
   text-align: center;
   font-family: var(--font-display);
 }
-
 .verify-desc {
   color: #5D4037;
   font-size: 0.92rem;
@@ -129,7 +115,6 @@ body {
   margin-bottom: 24px;
   text-align: center;
 }
-
 .table-selector {
   background: #FFF;
   border: 2px solid #EFEBE9;
@@ -142,18 +127,15 @@ body {
   box-shadow: 0 2px 8px rgba(0,0,0,0.04);
   transition: all 0.3s ease;
 }
-
 .table-selector:hover {
   border-color: #D62828;
   box-shadow: 0 4px 16px rgba(214,40,40,0.1);
 }
-
 .table-info {
   display: flex;
   align-items: center;
   gap: 12px;
 }
-
 .table-icon {
   width: 44px;
   height: 44px;
@@ -163,13 +145,11 @@ body {
   align-items: center;
   justify-content: center;
 }
-
 .table-label {
   color: #3E2723;
   font-weight: 600;
   font-size: 0.95rem;
 }
-
 .table-chip {
   background: rgba(214,40,40,0.1);
   color: var(--primary);
@@ -181,21 +161,18 @@ body {
   align-items: center;
   gap: 4px;
 }
-
 .trust-features {
   display: flex;
   justify-content: center;
   gap: 24px;
   margin-bottom: 32px;
 }
-
 .trust-item {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 6px;
 }
-
 .trust-icon {
   width: 36px;
   height: 36px;
@@ -206,14 +183,12 @@ body {
   justify-content: center;
   color: #5D4037;
 }
-
 .trust-text {
   font-size: 0.72rem;
   color: #6D4C41;
   text-align: center;
   font-weight: 500;
 }
-
 .btn-verify {
   width: 100%;
   padding: 18px 32px;
@@ -232,21 +207,17 @@ body {
   justify-content: center;
   gap: 10px;
 }
-
 .btn-verify:hover:not(:disabled) {
   transform: translateY(-2px);
   box-shadow: 0 8px 24px rgba(214,40,40,0.45);
 }
-
 .btn-verify:active:not(:disabled) {
   transform: translateY(0);
 }
-
 .btn-verify:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
-
 .privacy-note {
   margin-top: 20px;
   text-align: center;
@@ -257,12 +228,10 @@ body {
   justify-content: center;
   gap: 6px;
 }
-
 .status-area {
   margin: 20px 0;
   min-height: 60px;
 }
-
 .status-message {
   display: flex;
   align-items: center;
@@ -272,31 +241,25 @@ body {
   font-size: 0.88rem;
   text-align: left;
 }
-
 .status-message.checking {
   background: #E3F2FD;
   color: #1565C0;
 }
-
 .status-message.success {
   background: #E8F5E9;
   color: #2E7D32;
 }
-
 .status-message.error {
   background: #FFEBEE;
   color: #C62828;
 }
-
 .status-message.warning {
   background: #FFF8E1;
   color: #F57F17;
 }
-
 .status-msg-text {
   flex: 1;
 }
-
 .progress-bar {
   height: 4px;
   background: #EFEBE9;
@@ -304,7 +267,6 @@ body {
   overflow: hidden;
   margin: 16px 0;
 }
-
 .progress-fill {
   height: 100%;
   background: var(--primary);
@@ -312,7 +274,6 @@ body {
   transition: width 0.5s ease;
   width: 0%;
 }
-
 .coords-info {
   font-size: 0.78rem;
   color: #8D6E63;
@@ -322,12 +283,10 @@ body {
   margin-top: 12px;
   display: none;
 }
-
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
 }
-
 @keyframes slideUp {
   from {
     opacity: 0;
@@ -338,7 +297,6 @@ body {
     transform: translateY(0);
   }
 }
-
 .spinner {
   display: inline-block;
   width: 24px;
@@ -348,11 +306,9 @@ body {
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
-
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
-
 @media (max-width: 380px) {
   .restaurant-logo {
     font-size: 1.8rem;
@@ -371,10 +327,8 @@ body {
       <div class="restaurant-subtitle">Authentic Filipino Comfort Food</div>
     </div>
   </div>
-
   <div class="verify-card">
     <div class="card-top-decoration"></div>
-
     <div class="location-icon-wrap">
       <div class="location-pulse"></div>
       <div class="location-pulse-2"></div>
@@ -383,10 +337,8 @@ body {
         <circle cx="12" cy="10" r="3"></circle>
       </svg>
     </div>
-
     <h2 class="verify-title" id="verify-title">Let's verify your location</h2>
     <p class="verify-desc" id="verify-desc">To make sure you're inside the restaurant, we'll use your location to allow ordering.</p>
-
     <div class="table-selector">
       <div class="table-info">
         <div class="table-icon">
@@ -406,14 +358,11 @@ body {
         </span>
       </div>
     </div>
-
     <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
-
     <div class="status-area">
       <div class="status-message" id="status-box" style="display:none;"></div>
       <div class="coords-info" id="coords-info"></div>
     </div>
-
     <div class="trust-features">
       <div class="trust-item">
         <div class="trust-icon">
@@ -442,7 +391,6 @@ body {
         <span class="trust-text">Never stored</span>
       </div>
     </div>
-
     <button class="btn-verify" id="verify-btn" onclick="startVerification()">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
         <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
@@ -450,7 +398,6 @@ body {
       </svg>
       VERIFY LOCATION
     </button>
-
     <div class="privacy-note">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8D6E63" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="m9 11 3 3L22 4"></path>
@@ -460,7 +407,6 @@ body {
     </div>
   </div>
 </div>
-
 <script src="js/auth.js"></script>
 <script>
 const urlParams = new URLSearchParams(location.search);
@@ -469,7 +415,6 @@ const qrType = urlParams.get('type');
 const qrId = urlParams.get('id');
 console.log('DEBUG verify.html: urlParams:', Object.fromEntries(urlParams.entries()));
 console.log('DEBUG verify.html: tableNum:', tableNum, 'qrType:', qrType, 'qrId:', qrId);
-
 if (qrType === 'takeout' && qrId) {
   sessionStorage.setItem('qrType', 'takeout');
   sessionStorage.setItem('takeoutQrId', qrId);
@@ -479,7 +424,6 @@ if (qrType === 'takeout' && qrId) {
   document.getElementById('verify-desc').textContent = 'Scan complete! You can now place a take-out order.';
   document.getElementById('table-label').textContent = 'Order Type';
   document.getElementById('table-num').textContent = 'Take-Out';
-  
   const btn = document.getElementById('verify-btn');
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span> Redirecting...';
@@ -494,28 +438,23 @@ if (qrType === 'takeout' && qrId) {
 } else {
   sessionStorage.removeItem('isTakeOutQR');
 }
-
 function setProgress(pct) {
   document.getElementById('progress').style.width = pct + '%';
 }
-
 function showStatus(type, msg) {
   const box = document.getElementById('status-box');
   box.style.display = 'flex';
   box.className = 'status-message ' + type;
   box.innerHTML = `<span class="status-msg-text">${msg}</span>`;
 }
-
 function haversine(lat1, lon1, lat2, lon2) {
   const R = 6371000, dLat = (lat2-lat1)*Math.PI/180, dLon = (lon2-lon1)*Math.PI/180;
   const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
-
 async function startVerification() {
   const btn = document.getElementById('verify-btn');
   btn.disabled = true;
-  
   // If it's takeout QR, skip location check
   if (qrType === 'takeout' && qrId) {
     btn.innerHTML = '<span class="spinner"></span> Redirecting...';
@@ -524,12 +463,10 @@ async function startVerification() {
     setTimeout(() => { window.location.href = 'order-type.html'; }, 1500);
     return;
   }
-
   // Normal location verification for table QR
   btn.innerHTML = '<span class="spinner"></span> Checking location...';
   setProgress(20);
   showStatus('checking', 'Requesting location permission...');
-
   try {
     setProgress(40);
     const settingsRes = await fetch(`${API}/settings`);
@@ -537,18 +474,15 @@ async function startVerification() {
     const { latitude, longitude, allowedRadiusMeters, restaurantName } = settingsData.data;
     setProgress(60);
     showStatus('checking', 'Getting your GPS coordinates...');
-
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         setProgress(85);
         const { latitude: userLat, longitude: userLon, accuracy } = pos.coords;
         const dist = haversine(userLat, userLon, latitude, longitude);
         const distM = Math.round(dist);
-
         document.getElementById('coords-info').style.display = 'block';
         document.getElementById('coords-info').textContent =
           `Your position: ${userLat.toFixed(5)}, ${userLon.toFixed(5)} · Accuracy: ±${Math.round(accuracy)}m · Distance to restaurant: ${distM}m`;
-
         if (dist <= allowedRadiusMeters) {
           setProgress(100);
           showStatus('success', `Location verified! You are ${distM}m from ${restaurantName}. Redirecting...`);
@@ -566,7 +500,6 @@ async function startVerification() {
         showStatus('warning', msgs[err.code] || 'Could not get your location.');
         btn.disabled = false;
         btn.innerHTML = 'Try Again';
-
         if (confirm('DEV MODE: Location blocked. Bypass for testing?')) {
           window.location.href = 'order-type.html';
         }

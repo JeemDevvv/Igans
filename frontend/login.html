@@ -35,10 +35,8 @@ body {
 .features { margin-top: 48px; display: inline-flex; flex-direction: column; gap: 20px; text-align: left; }
 .feature { display: flex; align-items: center; gap: 16px; color: rgba(255,255,255,0.9); font-size: 1rem; font-weight: 500; }
 .feature-icon { width: 44px; height: 44px; background: rgba(214,40,40,0.2); border: 1px solid rgba(214,40,40,0.3); border-radius: 12px; display:flex;align-items:center;justify-content:center; font-size: 1.3rem; flex-shrink: 0; }
-
 .login-title { font-size: 2.2rem; margin-bottom: 8px; color: #FFF; font-family: var(--font-display); }
 .login-sub { color: var(--text-muted); font-size: 1rem; margin-bottom: 40px; }
-
 .role-selector { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 32px; }
 .role-btn {
   padding: 16px 12px; border-radius: var(--radius-sm);
@@ -50,16 +48,13 @@ body {
 .role-btn .role-icon { font-size: 1.8rem; margin-bottom: 6px; }
 .role-btn .role-name { font-size: 0.9rem; font-weight: 700; color: #FFF; }
 .role-btn .role-desc { font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; }
-
 .divider { display: flex; align-items: center; gap: 12px; margin: 28px 0; color: var(--text-light); font-size: 0.85rem; }
 .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
-
 .demo-accounts { background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 16px; }
 .demo-accounts p { font-size: 0.8rem; color: var(--accent); font-weight: 700; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
 .demo-item { font-size: 0.8rem; color: var(--text-muted); padding: 4px 0; cursor: pointer; transition: color var(--transition); }
 .demo-item:hover { color: var(--accent); }
 .demo-item code { background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; color: #FFF; }
-
 @media (max-width: 992px) {
   .split-left { display: none; }
   .split-right { width: 100%; padding: 48px 24px; border-left: none; }
@@ -79,11 +74,9 @@ body {
     </div>
   </div>
 </div>
-
 <div class="split-right">
   <h1 class="login-title">Welcome back</h1>
   <p class="login-sub">Staff and administrator portal</p>
-
   <div class="role-selector" style="grid-template-columns: repeat(3, 1fr);">
     <div class="role-btn active" data-role="staff" onclick="selectRole(this)">
       <div class="role-name">Staff</div>
@@ -98,9 +91,7 @@ body {
       <div class="role-desc">Admin</div>
     </div>
   </div>
-
   <div id="alert-box" class="alert alert-error alert-hidden" style="margin-bottom:16px;"></div>
-
   <div class="form-group">
     <label class="form-label">Username</label>
     <input type="text" id="username" class="form-control" placeholder="Enter your username" autocomplete="username">
@@ -109,36 +100,29 @@ body {
     <label class="form-label">Password</label>
     <input type="password" id="password" class="form-control" placeholder="Enter your password" autocomplete="current-password">
   </div>
-
   <button class="btn btn-primary btn-block btn-lg" id="login-btn" onclick="doLogin()">Sign In</button>
 </div>
-
 <script src="js/auth.js"></script>
 <script>
 let selectedRole = 'staff';
-
 function selectRole(el) {
   document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
   el.classList.add('active');
   selectedRole = el.dataset.role;
 }
-
 async function doLogin() {
   const username = document.getElementById('username').value.trim();
   const password = document.getElementById('password').value;
   const alertBox = document.getElementById('alert-box');
   const btn = document.getElementById('login-btn');
-
   alertBox.className = 'alert alert-hidden';
   if (!username || !password) {
     alertBox.className = 'alert alert-error';
     alertBox.textContent = 'Please enter username and password.';
     return;
   }
-
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span> Signing in...';
-
   try {
     const data = await apiFetch('/auth/login', {
       method: 'POST',
@@ -155,7 +139,6 @@ async function doLogin() {
     btn.innerHTML = 'Sign In';
   }
 }
-
 document.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
 </script>
 </body>

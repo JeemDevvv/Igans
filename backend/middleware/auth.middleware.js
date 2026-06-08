@@ -1,6 +1,5 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
-
 exports.protect = async (req, res, next) => {
   let token;
   if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
@@ -15,7 +14,6 @@ exports.protect = async (req, res, next) => {
     return res.status(401).json({ success: false, msg: 'Token invalid or expired' });
   }
 };
-
 exports.optionalAuth = async (req, res, next) => {
   let token;
   if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {

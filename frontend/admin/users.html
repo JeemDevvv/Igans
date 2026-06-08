@@ -59,7 +59,6 @@
     </div>
   </main>
 </div>
-
 <!-- User modal (add/edit) -->
 <div class="modal-overlay" id="user-modal">
   <div class="modal" style="max-width:440px;">
@@ -84,19 +83,16 @@
     </div>
   </div>
 </div>
-
 <script src="../js/auth.js"></script>
 <script>
 requireRole('admin');
 let allUsers = [];
 let editingUserId = null;
-
 async function loadUsers() {
   const data = await apiFetch('/admin/users');
   allUsers = data.data;
   filterUsers();
 }
-
 function filterUsers() {
   const q = document.getElementById('search-users').value.toLowerCase();
   const role = document.getElementById('role-filter').value;
@@ -119,7 +115,6 @@ function filterUsers() {
         <td>${u._id !== me?.id ? `<button class="btn btn-ghost btn-sm" onclick="editUser('${u._id}')">Edit</button> <button class="btn btn-danger btn-sm" onclick="deleteUser('${u._id}','${u.name}')">Delete</button>` : '<span style="font-size:0.8rem;color:var(--text-muted);">You</span>'}</td>
       </tr>`).join('');
 }
-
 async function deleteUser(id, name) {
   if (!confirm(`Delete user "${name}"?`)) return;
   try {
@@ -128,7 +123,6 @@ async function deleteUser(id, name) {
     loadUsers();
   } catch(e) { showToast(e.message, 'error'); }
 }
-
 function openUserModal(userId = null) {
   editingUserId = userId;
   if (userId) {
@@ -149,16 +143,13 @@ function openUserModal(userId = null) {
   }
   document.getElementById('user-modal').classList.add('active');
 }
-
 function editUser(id) {
   openUserModal(id);
 }
-
 function closeUserModal() {
   document.getElementById('user-modal').classList.remove('active');
   editingUserId = null;
 }
-
 async function saveUser() {
   const name = document.getElementById('u-name').value.trim();
   const username = document.getElementById('u-username').value.trim();
@@ -168,7 +159,6 @@ async function saveUser() {
   if (!name || !username || !email) { showToast('Name, username, and email required', 'error'); return; }
   if (!editingUserId && !password) { showToast('Password required for new user', 'error'); return; }
   if (password && password.length < 6) { showToast('Password must be at least 6 characters', 'error'); return; }
-  
   try {
     if (editingUserId) {
       await apiFetch(`/admin/users/${editingUserId}`, { 
@@ -184,9 +174,7 @@ async function saveUser() {
     loadUsers();
   } catch(e) { showToast(e.message, 'error'); }
 }
-
 document.addEventListener('DOMContentLoaded', loadUsers);
-
 function toggleSidebar() {
   document.getElementById('sidebar').classList.toggle('open');
 }

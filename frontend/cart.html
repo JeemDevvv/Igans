@@ -9,13 +9,13 @@
 <link rel="stylesheet" href="css/main.css">
 <style>
 .checkout-layout { max-width: 1100px; margin: 0 auto; padding: 40px 24px; display: grid; grid-template-columns: 1fr 420px; gap: 32px; }
-.order-summary-card, .checkout-card { 
-  background: rgba(255, 255, 255, 0.05); 
+.order-summary-card, .checkout-card {
+  background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(15px);
   -webkit-backdrop-filter: blur(15px);
-  border: 1px solid var(--border); 
-  border-radius: var(--radius); 
-  padding: 32px; 
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 32px;
 }
 .section-title { font-family: var(--font-display); font-size: 1.4rem; margin-bottom: 24px; color: var(--accent); display: flex; align-items: center; gap: 10px; }
 .order-row { display: flex; align-items: center; gap: 16px; padding: 16px 0; border-bottom: 1px solid var(--border); }
@@ -29,17 +29,13 @@
 .qty-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(233,196,106,0.1); }
 .del-btn { background: none; border: none; cursor: pointer; color: var(--text-light); font-size: 1.2rem; padding: 6px; transition: color var(--transition); }
 .del-btn:hover { color: var(--danger); }
-
 .summary-row { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 0.95rem; color: var(--text-muted); }
 .summary-row.total { font-size: 1.2rem; font-weight: 800; color: #FFF; border-top: 1px solid var(--border); padding-top: 16px; margin-top: 8px; }
 .summary-row.total span:last-child { font-family: var(--font-display); color: var(--accent); font-size: 1.5rem; }
-
 .info-chip { display: flex; align-items: center; gap: 10px; padding: 14px 18px; background: rgba(233,196,106,0.1); border: 1px solid rgba(233,196,106,0.2); border-radius: var(--radius-sm); margin-bottom: 24px; font-size: 0.9rem; color: var(--accent); font-weight: 600; }
-
 .confirm-btn { margin-top: 24px; }
-
-@media (max-width: 992px) { 
-  .checkout-layout { grid-template-columns: 1fr; padding: 24px 16px; gap: 24px; } 
+@media (max-width: 992px) {
+  .checkout-layout { grid-template-columns: 1fr; padding: 24px 16px; gap: 24px; }
 }
 @media (max-width: 600px) {
   .order-row { position: relative; display: grid; grid-template-columns: 80px 1fr; grid-template-rows: auto auto; gap: 12px 16px; padding: 20px 0; }
@@ -59,14 +55,11 @@
     <div id="nav-user"></div>
   </div>
 </nav>
-
 <div class="page-header">
   <h1>Review Your Order</h1>
   <p>Check everything looks right before placing your order</p>
 </div>
-
 <div class="checkout-layout">
-  <!-- Order items -->
   <div class="order-summary-card">
     <h2 class="section-title">Order Items</h2>
     <div id="order-items"></div>
@@ -75,16 +68,11 @@
       <textarea class="form-control" id="special-req" placeholder="Any allergies or special instructions..." rows="2"></textarea>
     </div>
   </div>
-
-  <!-- Checkout summary -->
   <div>
     <div class="checkout-card">
       <h2 class="section-title">Order Summary</h2>
-
       <div id="order-info"></div>
-
       <div id="price-breakdown"></div>
-
       <button class="btn btn-primary btn-block btn-lg confirm-btn" id="place-btn" onclick="placeOrder()">
         Place Order
       </button>
@@ -92,8 +80,6 @@
     </div>
   </div>
 </div>
-
-<!-- Success overlay -->
 <div id="success-overlay" class="modal-overlay">
   <div class="modal" style="text-align:center;padding:48px 32px;">
     <div style="font-size:4rem;margin-bottom:16px;color:var(--success);">
@@ -105,11 +91,9 @@
     <button class="btn btn-primary btn-lg" onclick="window.location.href='order-status.html'" style="margin-top:16px;">Track My Order →</button>
   </div>
 </div>
-
 <script src="js/auth.js"></script>
 <script>
 requireRole('customer');
-
 document.addEventListener('DOMContentLoaded', () => {
   const cart = Cart.get();
   if (cart.length === 0) { window.location.href = 'menu.html'; return; }
@@ -117,7 +101,6 @@ document.addEventListener('DOMContentLoaded', () => {
   renderItems(cart);
   renderSummary(cart);
 });
-
 function renderItems(cart) {
   document.getElementById('order-items').innerHTML = cart.length === 0
     ? '<div class="empty-state"><div class="icon"><i class="fas fa-shopping-cart"></i></div><h3>Cart is empty</h3></div>'
@@ -136,7 +119,6 @@ function renderItems(cart) {
         <div class="order-row-price">${formatCurrency(item.price * item.quantity)}</div>
         <button class="del-btn" onclick="removeItem('${item._id}','${item.name}')"><i class="fas fa-trash"></i></button>
       </div>`).join('');
-  
   setTimeout(() => {
     document.querySelectorAll('.order-row-img img').forEach(img => {
       img.onerror = function() {
@@ -147,20 +129,16 @@ function renderItems(cart) {
     });
   }, 0);
 }
-
 function renderSummary(cart) {
   const orderType = Session.getOrderType() || 'dine-in';
   const tableNum = Session.getTable();
   const total = Cart.total();
-
   document.getElementById('order-info').innerHTML = `
     <div class="info-chip"><i class="fas fa-chair"></i> ${orderType === 'dine-in' ? `Dine-In ${tableNum ? '— Table ' + tableNum : ''}` : 'Take-Out'}</div>`;
-
   document.getElementById('price-breakdown').innerHTML = `
     <div class="summary-row"><span>Items (${Cart.count()})</span><span>${formatCurrency(total)}</span></div>
     <div class="summary-row total"><span>Total</span><span>${formatCurrency(total)}</span></div>`;
 }
-
 function changeQty(id, qty, name) {
   Cart.updateQty(id, qty, name);
   const cart = Cart.get();
@@ -173,24 +151,20 @@ function removeItem(id, name) {
   if (cart.length === 0) { window.location.href = 'menu.html'; return; }
   renderItems(cart); renderSummary(cart);
 }
-
 async function placeOrder() {
   const cart = Cart.get();
   if (cart.length === 0) return;
   const btn = document.getElementById('place-btn');
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span> Placing order...';
-
   const total = Cart.total();
   const items = cart.map(i => ({ menuItem: i._id, name: i.name, price: i.price, quantity: i.quantity, image: i.image || '' }));
-
   try {
     const tableStr = sessionStorage.getItem('tableNumber');
     console.log('DEBUG cart.html: tableStr from sessionStorage:', tableStr);
     const tableNumber = tableStr ? parseInt(tableStr, 10) : null;
     console.log('DEBUG cart.html: parsed tableNumber:', tableNumber);
     console.log('DEBUG cart.html: orderType:', sessionStorage.getItem('orderType'));
-    
     const data = await apiFetch('/orders', {
       method: 'POST',
       body: JSON.stringify({
