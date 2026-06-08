@@ -415,7 +415,6 @@ if (isTakeOutQR) {
 } else if (tableNum) {
   document.getElementById('table-badge').style.display = 'inline-flex';
   document.getElementById('table-display').textContent = tableNum;
-  // Set table number in sessionStorage immediately on page load for table QRs
   sessionStorage.setItem('tableNumber', tableNum);
 }
 

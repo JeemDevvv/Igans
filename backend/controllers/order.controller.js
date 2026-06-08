@@ -95,23 +95,3 @@ exports.updateStatus = async (req, res) => {
     res.status(500).json({ success: false, msg: err.message });
   }
 };
-
-exports.markAsPaid = async (req, res) => {
-  try {
-    const order = await Order.findById(req.params.id);
-    if (!order) return res.status(404).json({ success: false, msg: 'Order not found' });
-    
-    // Prevent marking cancelled orders as paid
-    if (order.status === 'cancelled') {
-      return res.status(400).json({ success: false, msg: 'Cannot mark a cancelled order as paid' });
-    }
-    
-    order.paid = true;
-    order.updatedAt = new Date();
-    await order.save();
-    
-    res.json({ success: true, data: order });
-  } catch (err) {
-    res.status(500).json({ success: false, msg: err.message });
-  }
-};

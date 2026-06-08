@@ -11,6 +11,7 @@ if (fs.existsSync(configPath)) {
 const express = require('express');
 const cors = require('cors');
 const connectDB = require('./config/db');
+const { getActiveCount, updateCustomer } = require('./utils/activeCustomers');
 
 connectDB();
 
@@ -18,6 +19,17 @@ const app = express();
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
+
+// Active customers tracking endpoints
+app.post('/api/customer/heartbeat', (req, res) => {
+  const { sessionId } = req.body;
+  updateCustomer(sessionId);
+  res.json({ success: true });
+});
+
+app.get('/api/customer/active-count', (req, res) => {
+  res.json({ success: true, count: getActiveCount() });
+});
 
 // Serve static files from frontend
 app.use(express.static(path.join(__dirname, '../frontend')));

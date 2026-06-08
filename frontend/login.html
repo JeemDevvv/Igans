@@ -60,119 +60,6 @@ body {
 .demo-item:hover { color: var(--accent); }
 .demo-item code { background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; color: #FFF; }
 
-/* Forgot Password Styles */
-.forgot-link {
-  color: var(--accent);
-  text-align: right;
-  font-size: 0.9rem;
-  cursor: pointer;
-  margin-top: -8px;
-  margin-bottom: 24px;
-  transition: opacity 0.2s;
-}
-.forgot-link:hover { opacity: 0.8; }
-
-.back-link {
-  color: var(--text-muted);
-  font-size: 0.9rem;
-  cursor: pointer;
-  margin-bottom: 24px;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  transition: color 0.2s;
-}
-.back-link:hover { color: var(--accent); }
-
-.masked-email {
-  background: rgba(255,255,255,0.05);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 16px;
-  text-align: center;
-  margin-bottom: 24px;
-}
-.masked-email p:first-child {
-  color: var(--text-muted);
-  font-size: 0.9rem;
-  margin-bottom: 8px;
-}
-.masked-email .email {
-  color: #FFF;
-  font-size: 1.2rem;
-  font-weight: 600;
-}
-
-.otp-inputs {
-  display: flex;
-  gap: 12px;
-  justify-content: center;
-  margin-bottom: 24px;
-}
-.otp-inputs input {
-  width: 48px;
-  height: 56px;
-  text-align: center;
-  font-size: 1.5rem;
-  font-weight: 700;
-  background: rgba(255,255,255,0.05);
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius-sm);
-  color: #FFF;
-  outline: none;
-  transition: border-color 0.2s;
-}
-.otp-inputs input:focus {
-  border-color: var(--accent);
-}
-
-.timer {
-  color: var(--text-muted);
-  font-size: 0.9rem;
-  text-align: center;
-  margin-bottom: 16px;
-}
-
-.resend-btn {
-  background: transparent;
-  border: 1px solid var(--border);
-  color: var(--accent);
-  padding: 10px 20px;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  font-size: 0.9rem;
-  width: 100%;
-  transition: all 0.2s;
-}
-.resend-btn:hover:not(:disabled) {
-  border-color: var(--accent);
-  background: rgba(233,196,106,0.05);
-}
-.resend-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.password-strength {
-  margin-top: -12px;
-  margin-bottom: 16px;
-  font-size: 0.8rem;
-}
-.password-strength .bar {
-  height: 4px;
-  background: rgba(255,255,255,0.1);
-  border-radius: 2px;
-  margin-top: 4px;
-  overflow: hidden;
-}
-.password-strength .bar-fill {
-  height: 100%;
-  transition: width 0.3s, background-color 0.3s;
-}
-.password-strength .text {
-  color: var(--text-muted);
-}
-
 @media (max-width: 992px) {
   .split-left { display: none; }
   .split-right { width: 100%; padding: 48px 24px; border-left: none; }
@@ -185,170 +72,50 @@ body {
     <div class="brand-big">Igan's<br><span>Budbod House</span></div>
     <div class="brand-tag">The home of the original Budbod. Experience authentic flavors, served fresh and warm.</div>
     <div class="features">
-      <div class="feature">Scan QR to start ordering</div>
+      <!-- <div class="feature">Scan QR to start ordering</div>
       <div class="feature">Browse our signature Budbod meals</div>
       <div class="feature">Fast and seamless experience</div>
-      <div class="feature">Glass-smooth interface</div>
+      <div class="feature">Glass-smooth interface</div> -->
     </div>
   </div>
 </div>
 
 <div class="split-right">
-  <!-- Login Form -->
-  <div id="login-form">
-    <h1 class="login-title">Welcome back</h1>
-    <p class="login-sub">Staff and administrator portal</p>
+  <h1 class="login-title">Welcome back</h1>
+  <p class="login-sub">Staff and administrator portal</p>
 
-    <div class="role-selector" style="grid-template-columns: repeat(3, 1fr);">
-      <div class="role-btn active" data-role="staff" onclick="selectRole(this)">
-        <div class="role-name">Staff</div>
-        <div class="role-desc">Service</div>
-      </div>
-      <div class="role-btn" data-role="kitchen" onclick="selectRole(this)">
-        <div class="role-name">Kitchen</div>
-        <div class="role-desc">Kitchen</div>
-      </div>
-      <div class="role-btn" data-role="admin" onclick="selectRole(this)">
-        <div class="role-name">Admin</div>
-        <div class="role-desc">Admin</div>
-      </div>
+  <div class="role-selector" style="grid-template-columns: repeat(3, 1fr);">
+    <div class="role-btn active" data-role="staff" onclick="selectRole(this)">
+      <div class="role-name">Staff</div>
+      <div class="role-desc">Service</div>
     </div>
-
-    <div id="alert-box" class="alert alert-error alert-hidden" style="margin-bottom:16px;"></div>
-
-    <div class="form-group">
-      <label class="form-label">Username</label>
-      <input type="text" id="username" class="form-control" placeholder="Enter your username" autocomplete="username">
+    <div class="role-btn" data-role="kitchen" onclick="selectRole(this)">
+      <div class="role-name">Kitchen</div>
+      <div class="role-desc">Kitchen</div>
     </div>
-    <div class="form-group">
-      <label class="form-label">Password</label>
-      <input type="password" id="password" class="form-control" placeholder="Enter your password" autocomplete="current-password">
-    </div>
-
-    <div class="forgot-link" onclick="showForgotPassword()">Forgot Password?</div>
-
-    <button class="btn btn-primary btn-block btn-lg" id="login-btn" onclick="doLogin()">Sign In</button>
-  </div>
-
-  <!-- Forgot Password - Step 1: Send OTP -->
-  <div id="forgot-step1" style="display:none;">
-    <div class="back-link" onclick="showLogin()">
-      <span>←</span> Back to Login
-    </div>
-    <h1 class="login-title">Reset Password</h1>
-    <p class="login-sub">Enter your username to receive a verification code</p>
-
-    <div class="role-selector" style="grid-template-columns: repeat(3, 1fr);">
-      <div class="role-btn active" data-role="staff" onclick="selectForgotRole(this)">
-        <div class="role-name">Staff</div>
-        <div class="role-desc">Service</div>
-      </div>
-      <div class="role-btn" data-role="kitchen" onclick="selectForgotRole(this)">
-        <div class="role-name">Kitchen</div>
-        <div class="role-desc">Kitchen</div>
-      </div>
-      <div class="role-btn" data-role="admin" onclick="selectForgotRole(this)">
-        <div class="role-name">Admin</div>
-        <div class="role-desc">Admin</div>
-      </div>
-    </div>
-
-    <div id="forgot-alert-box" class="alert alert-error alert-hidden" style="margin-bottom:16px;"></div>
-
-    <div class="form-group">
-      <label class="form-label">Username</label>
-      <input type="text" id="forgot-username" class="form-control" placeholder="Enter your username" autocomplete="username">
-    </div>
-
-    <button class="btn btn-primary btn-block btn-lg" id="initiate-btn" onclick="initiateForgotPassword()">Continue</button>
-  </div>
-
-  <!-- Forgot Password - Step 2: Masked Email & Send OTP -->
-  <div id="forgot-step2" style="display:none;">
-    <div class="back-link" onclick="showForgotPassword()">
-      <span>←</span> Back
-    </div>
-    <h1 class="login-title">Reset Password</h1>
-    <p class="login-sub">We'll send a verification code to your email</p>
-
-    <div id="forgot-alert-box2" class="alert alert-error alert-hidden" style="margin-bottom:16px;"></div>
-
-    <div class="masked-email">
-      <p>Verification code will be sent to:</p>
-      <div class="email" id="masked-email-display">******@example.com</div>
-    </div>
-
-    <button class="btn btn-primary btn-block btn-lg" id="send-otp-btn" onclick="sendOTP()">Send OTP Code</button>
-  </div>
-
-  <!-- Forgot Password - Step 3: Verify OTP -->
-  <div id="forgot-step3" style="display:none;">
-    <div class="back-link" onclick="showForgotStep2()">
-      <span>←</span> Back
-    </div>
-    <h1 class="login-title">Verify OTP</h1>
-    <p class="login-sub">Enter the code sent to your email</p>
-
-    <div id="forgot-alert-box3" class="alert alert-error alert-hidden" style="margin-bottom:16px;"></div>
-
-    <div class="otp-inputs">
-      <input type="text" maxlength="1" data-index="0" oninput="handleOTPInput(this)" onkeydown="handleOTPKeydown(event, this)">
-      <input type="text" maxlength="1" data-index="1" oninput="handleOTPInput(this)" onkeydown="handleOTPKeydown(event, this)">
-      <input type="text" maxlength="1" data-index="2" oninput="handleOTPInput(this)" onkeydown="handleOTPKeydown(event, this)">
-      <input type="text" maxlength="1" data-index="3" oninput="handleOTPInput(this)" onkeydown="handleOTPKeydown(event, this)">
-      <input type="text" maxlength="1" data-index="4" oninput="handleOTPInput(this)" onkeydown="handleOTPKeydown(event, this)">
-      <input type="text" maxlength="1" data-index="5" oninput="handleOTPInput(this)" onkeydown="handleOTPKeydown(event, this)">
-    </div>
-
-    <div class="timer" id="timer-display"></div>
-
-    <button class="btn btn-primary btn-block btn-lg" id="verify-otp-btn" onclick="verifyOTP()">Verify</button>
-
-    <div style="margin-top:16px;">
-      <button class="resend-btn" id="resend-btn" onclick="resendOTP()" disabled>Resend OTP</button>
+    <div class="role-btn" data-role="admin" onclick="selectRole(this)">
+      <div class="role-name">Admin</div>
+      <div class="role-desc">Admin</div>
     </div>
   </div>
 
-  <!-- Forgot Password - Step 4: Reset Password -->
-  <div id="forgot-step4" style="display:none;">
-    <div class="back-link" onclick="showLogin()">
-      <span>←</span> Back to Login
-    </div>
-    <h1 class="login-title">Set New Password</h1>
-    <p class="login-sub">Enter your new password</p>
+  <div id="alert-box" class="alert alert-error alert-hidden" style="margin-bottom:16px;"></div>
 
-    <div id="forgot-alert-box4" class="alert alert-error alert-hidden" style="margin-bottom:16px;"></div>
-
-    <div class="form-group">
-      <label class="form-label">New Password</label>
-      <input type="password" id="new-password" class="form-control" placeholder="Enter new password" oninput="checkPasswordStrength()">
-      <div class="password-strength">
-        <div class="bar"><div class="bar-fill" id="password-strength-bar"></div></div>
-        <div class="text" id="password-strength-text"></div>
-      </div>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Confirm Password</label>
-      <input type="password" id="confirm-password" class="form-control" placeholder="Confirm new password">
-    </div>
-
-    <button class="btn btn-primary btn-block btn-lg" id="reset-password-btn" onclick="resetPassword()">Reset Password</button>
+  <div class="form-group">
+    <label class="form-label">Email address</label>
+    <input type="email" id="email" class="form-control" placeholder="Enter your email" autocomplete="email">
   </div>
+  <div class="form-group">
+    <label class="form-label">Password</label>
+    <input type="password" id="password" class="form-control" placeholder="Enter your password" autocomplete="current-password">
+  </div>
+
+  <button class="btn btn-primary btn-block btn-lg" id="login-btn" onclick="doLogin()">Sign In</button>
 </div>
 
 <script src="js/auth.js"></script>
 <script>
 let selectedRole = 'staff';
-let forgotSelectedRole = 'staff';
-let forgotState = {
-  email: '',
-  userId: '',
-  maskedEmail: '',
-  resetToken: '',
-  expiryMinutes: 10,
-  timerInterval: null,
-  timerSeconds: 0
-};
 
 function selectRole(el) {
   document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
@@ -356,32 +123,16 @@ function selectRole(el) {
   selectedRole = el.dataset.role;
 }
 
-function selectForgotRole(el) {
-  document.querySelectorAll('#forgot-step1 .role-btn').forEach(b => b.classList.remove('active'));
-  el.classList.add('active');
-  forgotSelectedRole = el.dataset.role;
-}
-
-function fillDemo(username, pass, role) {
-  document.getElementById('username').value = username;
-  document.getElementById('password').value = pass;
-  document.querySelectorAll('.role-btn').forEach(b => {
-    b.classList.remove('active');
-    if (b.dataset.role === role) b.classList.add('active');
-  });
-  selectedRole = role;
-}
-
 async function doLogin() {
-  const username = document.getElementById('username').value.trim();
+  const email = document.getElementById('email').value.trim();
   const password = document.getElementById('password').value;
   const alertBox = document.getElementById('alert-box');
   const btn = document.getElementById('login-btn');
 
   alertBox.className = 'alert alert-hidden';
-  if (!username || !password) {
+  if (!email || !password) {
     alertBox.className = 'alert alert-error';
-    alertBox.textContent = 'Please enter username and password.';
+    alertBox.textContent = 'Please enter email and password.';
     return;
   }
 
@@ -391,7 +142,7 @@ async function doLogin() {
   try {
     const data = await apiFetch('/auth/login', {
       method: 'POST',
-      body: JSON.stringify({ username, password, role: selectedRole })
+      body: JSON.stringify({ email, password, role: selectedRole })
     });
     Session.setAuth(data.token, data.user);
     const routes = { customer: 'order-type.html', staff: 'staff.html', kitchen: 'kitchen.html', admin: 'admin/dashboard.html' };
@@ -402,277 +153,6 @@ async function doLogin() {
     alertBox.textContent = err.message;
     btn.disabled = false;
     btn.innerHTML = 'Sign In';
-  }
-}
-
-function showLogin() {
-  document.getElementById('login-form').style.display = 'block';
-  document.getElementById('forgot-step1').style.display = 'none';
-  document.getElementById('forgot-step2').style.display = 'none';
-  document.getElementById('forgot-step3').style.display = 'none';
-  document.getElementById('forgot-step4').style.display = 'none';
-  clearForgotTimer();
-}
-
-async function showForgotPassword() {
-  const loginRole = selectedRole;
-  
-  // First sync forgotSelectedRole with selectedRole
-  forgotSelectedRole = selectedRole;
-  // Apply role selection to forgot-step1's role buttons
-  document.querySelectorAll('#forgot-step1 .role-btn').forEach(btn => {
-    btn.classList.remove('active');
-    if (btn.dataset.role === forgotSelectedRole) {
-      btn.classList.add('active');
-    }
-  });
-  
-  // Show step 1 directly, clear fields
-  document.getElementById('login-form').style.display = 'none';
-  document.getElementById('forgot-step1').style.display = 'block';
-  document.getElementById('forgot-step2').style.display = 'none';
-  document.getElementById('forgot-step3').style.display = 'none';
-  document.getElementById('forgot-step4').style.display = 'none';
-  document.getElementById('forgot-alert-box').className = 'alert alert-hidden';
-  document.getElementById('forgot-username').value = '';
-}
-
-function showForgotStep2() {
-  document.getElementById('login-form').style.display = 'none';
-  document.getElementById('forgot-step1').style.display = 'none';
-  document.getElementById('forgot-step2').style.display = 'block';
-  document.getElementById('forgot-step3').style.display = 'none';
-  document.getElementById('forgot-step4').style.display = 'none';
-  clearForgotTimer();
-}
-
-async function initiateForgotPassword() {
-  const username = document.getElementById('forgot-username').value.trim();
-  const alertBox = document.getElementById('forgot-alert-box');
-  const btn = document.getElementById('initiate-btn');
-
-  alertBox.className = 'alert alert-hidden';
-  if (!username) {
-    alertBox.className = 'alert alert-error';
-    alertBox.textContent = 'Please enter your username.';
-    return;
-  }
-
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span> Checking...';
-
-  try {
-    const data = await apiFetch('/auth/forgot-password/initiate', {
-      method: 'POST',
-      body: JSON.stringify({ username, role: forgotSelectedRole })
-    });
-    forgotState.email = data.email;
-    forgotState.userId = data.userId;
-    forgotState.maskedEmail = data.maskedEmail;
-    document.getElementById('masked-email-display').textContent = data.maskedEmail;
-    document.getElementById('forgot-step1').style.display = 'none';
-    document.getElementById('forgot-step2').style.display = 'block';
-  } catch (err) {
-    alertBox.className = 'alert alert-error';
-    alertBox.textContent = err.message;
-    btn.disabled = false;
-    btn.innerHTML = 'Continue';
-  }
-}
-
-async function sendOTP() {
-  const alertBox = document.getElementById('forgot-alert-box2');
-  const btn = document.getElementById('send-otp-btn');
-
-  alertBox.className = 'alert alert-hidden';
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span> Sending...';
-
-  try {
-    const data = await apiFetch('/auth/forgot-password/send-otp', {
-      method: 'POST',
-      body: JSON.stringify({ email: forgotState.email, userId: forgotState.userId })
-    });
-    forgotState.expiryMinutes = data.expiryMinutes;
-    showToast('OTP sent successfully!');
-    startForgotTimer(forgotState.expiryMinutes * 60);
-    document.getElementById('forgot-step2').style.display = 'none';
-    document.getElementById('forgot-step3').style.display = 'block';
-    clearOTPInputs();
-  } catch (err) {
-    alertBox.className = 'alert alert-error';
-    alertBox.textContent = err.message;
-    btn.disabled = false;
-    btn.innerHTML = 'Send OTP Code';
-  }
-}
-
-function handleOTPInput(input) {
-  const index = parseInt(input.dataset.index);
-  const value = input.value;
-  if (value.length === 1 && index < 5) {
-    const nextInput = document.querySelector(`[data-index="${index + 1}"]`);
-    nextInput.focus();
-  }
-}
-
-function handleOTPKeydown(e, input) {
-  const index = parseInt(input.dataset.index);
-  if (e.key === 'Backspace' && input.value === '' && index > 0) {
-    const prevInput = document.querySelector(`[data-index="${index - 1}"]`);
-    prevInput.focus();
-  }
-}
-
-function getOTP() {
-  const inputs = document.querySelectorAll('.otp-inputs input');
-  let otp = '';
-  inputs.forEach(input => otp += input.value);
-  return otp;
-}
-
-function clearOTPInputs() {
-  const inputs = document.querySelectorAll('.otp-inputs input');
-  inputs.forEach(input => {
-    input.value = '';
-  });
-  inputs[0].focus();
-}
-
-function startForgotTimer(seconds) {
-  forgotState.timerSeconds = seconds;
-  updateTimerDisplay();
-  document.getElementById('resend-btn').disabled = true;
-  forgotState.timerInterval = setInterval(() => {
-    forgotState.timerSeconds--;
-    updateTimerDisplay();
-    if (forgotState.timerSeconds <= 0) {
-      clearForgotTimer();
-      document.getElementById('resend-btn').disabled = false;
-    }
-  }, 1000);
-}
-
-function updateTimerDisplay() {
-  const minutes = Math.floor(forgotState.timerSeconds / 60);
-  const seconds = forgotState.timerSeconds % 60;
-  document.getElementById('timer-display').textContent = 
-    `Expires in ${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-}
-
-function clearForgotTimer() {
-  if (forgotState.timerInterval) {
-    clearInterval(forgotState.timerInterval);
-    forgotState.timerInterval = null;
-  }
-}
-
-async function resendOTP() {
-  await sendOTP();
-}
-
-async function verifyOTP() {
-  const otp = getOTP();
-  const alertBox = document.getElementById('forgot-alert-box3');
-  const btn = document.getElementById('verify-otp-btn');
-
-  alertBox.className = 'alert alert-hidden';
-  if (otp.length !== 6) {
-    alertBox.className = 'alert alert-error';
-    alertBox.textContent = 'Please enter the 6-digit OTP.';
-    return;
-  }
-
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span> Verifying...';
-
-  try {
-    const data = await apiFetch('/auth/forgot-password/verify-otp', {
-      method: 'POST',
-      body: JSON.stringify({ email: forgotState.email, otp, userId: forgotState.userId })
-    });
-    forgotState.resetToken = data.resetToken;
-    showToast('OTP verified!');
-    document.getElementById('forgot-step3').style.display = 'none';
-    document.getElementById('forgot-step4').style.display = 'block';
-  } catch (err) {
-    alertBox.className = 'alert alert-error';
-    alertBox.textContent = err.message;
-    btn.disabled = false;
-    btn.innerHTML = 'Verify';
-  }
-}
-
-function checkPasswordStrength() {
-  const password = document.getElementById('new-password').value;
-  const bar = document.getElementById('password-strength-bar');
-  const text = document.getElementById('password-strength-text');
-
-  let strength = 0;
-  if (password.length >= 6) strength += 25;
-  if (password.length >= 8) strength += 25;
-  if (/[A-Z]/.test(password)) strength += 25;
-  if (/[0-9]/.test(password)) strength += 25;
-
-  let color = '#ef4444';
-  let textStr = 'Weak';
-  if (strength >= 75) {
-    color = '#22c55e';
-    textStr = 'Strong';
-  } else if (strength >= 50) {
-    color = '#eab308';
-    textStr = 'Medium';
-  }
-
-  bar.style.width = `${strength}%`;
-  bar.style.backgroundColor = color;
-  text.textContent = textStr;
-}
-
-async function resetPassword() {
-  const newPassword = document.getElementById('new-password').value;
-  const confirmPassword = document.getElementById('confirm-password').value;
-  const alertBox = document.getElementById('forgot-alert-box4');
-  const btn = document.getElementById('reset-password-btn');
-
-  alertBox.className = 'alert alert-hidden';
-  if (!newPassword || !confirmPassword) {
-    alertBox.className = 'alert alert-error';
-    alertBox.textContent = 'Please fill in all fields.';
-    return;
-  }
-  if (newPassword !== confirmPassword) {
-    alertBox.className = 'alert alert-error';
-    alertBox.textContent = 'Passwords do not match.';
-    return;
-  }
-  if (newPassword.length < 6) {
-    alertBox.className = 'alert alert-error';
-    alertBox.textContent = 'Password must be at least 6 characters long.';
-    return;
-  }
-
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span> Resetting...';
-
-  try {
-    await apiFetch('/auth/forgot-password/reset', {
-      method: 'POST',
-      body: JSON.stringify({ 
-        resetToken: forgotState.resetToken, 
-        newPassword, 
-        confirmPassword 
-      })
-    });
-    showToast('Password reset successfully!');
-    setTimeout(() => {
-      showLogin();
-    }, 1500);
-  } catch (err) {
-    alertBox.className = 'alert alert-error';
-    alertBox.textContent = err.message;
-    btn.disabled = false;
-    btn.innerHTML = 'Reset Password';
   }
 }
 

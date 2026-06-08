@@ -154,16 +154,10 @@ function renderTable(orders) {
         </td>
         <td style="color:var(--text-muted);font-size:0.82rem;">${o.items.length} item${o.items.length!==1?'s':''}</td>
         <td><strong>${formatCurrency(o.totalAmount)}</strong></td>
-        <td>
-          ${statusBadge(o.status)}
-          ${o.paid 
-            ? `<span class="badge badge-success"><i class="fas fa-check"></i> Paid</span>` 
-            : `<span class="badge badge-warning"><i class="fas fa-hourglass-half"></i> Unpaid</span>`}
-        </td>
+        <td>${statusBadge(o.status)}</td>
         <td style="font-size:0.8rem;color:var(--text-muted);">${formatDate(o.createdAt)}</td>
         <td>
           <button class="btn btn-ghost btn-sm" onclick="viewOrder('${o._id}')">View</button>
-          ${!o.paid && o.status !== 'cancelled' ? `<button class="btn btn-success btn-sm" onclick="markAsPaid('${o._id}')">Mark as Paid</button>` : ''}
         </td>
       </tr>`).join('');
 }
@@ -220,16 +214,6 @@ async function applyStatusChange() {
     closeOrderModal();
     loadOrders();
   } catch(e) { showToast(e.message, 'error'); }
-}
-
-async function markAsPaid(orderId) {
-  try {
-    await apiFetch(`/orders/${orderId}/paid`, { method: 'PATCH' });
-    showToast('Order marked as paid!');
-    loadOrders();
-  } catch(e) {
-    showToast(e.message, 'error');
-  }
 }
 
 function closeOrderModal() { document.getElementById('order-modal').classList.remove('active'); }

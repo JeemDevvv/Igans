@@ -43,10 +43,17 @@ async function apiFetch(path, options = {}) {
   const token = Session.getToken();
   const headers = { 'Content-Type': 'application/json', ...options.headers };
   if (token) headers['Authorization'] = `Bearer ${token}`;
-  const res = await fetch(API + path, { ...options, headers });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.msg || `HTTP ${res.status}`);
-  return data;
+  try {
+    const res = await fetch(API + path, { ...options, headers });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.msg || `HTTP ${res.status}`);
+    return data;
+  } catch (err) {
+    if (err.message === 'Failed to fetch') {
+      throw new Error('Unable to connect to server. Please check your connection.');
+    }
+    throw err;
+  }
 }
 
 // ── Role guard ────────────────────────────────────────────────────────────
@@ -187,4 +194,50 @@ function statusBadge(status) {
 }
 
 // Auto-render nav user on DOM load
-document.addEventListener('DOMContentLoaded', () => { renderNavUser(); Cart.updateBadge(); });
+document.addEventListener('DOMContentLoaded', () => { renderNavUser(); Cart.updateBadge(); startCustomerHeartbeat(); });
+
+// Customer heartbeat for active customers tracking
+let heartbeatInterval = null;
+function startCustomerHeartbeat() {
+  // Check if current page is a customer page (not admin/staff/kitchen)
+  const path = window.location.pathname.toLowerCase();
+  const isCustomerPage = !path.includes('/admin/') && !path.includes('login.html') && !path.includes('staff.html') && !path.includes('kitchen.html');
+  
+  if (isCustomerPage) {
+    // Send initial heartbeat
+    sendHeartbeat();
+    // Send heartbeat every 10 seconds
+    heartbeatInterval = setInterval(sendHeartbeat, 10000);
+    
+    // Stop heartbeat when page is hidden or unloaded
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        stopHeartbeat();
+      } else {
+        sendHeartbeat();
+        if (!heartbeatInterval) {
+          heartbeatInterval = setInterval(sendHeartbeat, 10000);
+        }
+      }
+    });
+    
+    window.addEventListener('beforeunload', stopHeartbeat);
+  }
+}
+
+function sendHeartbeat() {
+  const sessionId = Session.getSessionId();
+  fetch(API + '/customer/heartbeat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ sessionId }),
+    keepalive: true
+  }).catch(() => {});
+}
+
+function stopHeartbeat() {
+  if (heartbeatInterval) {
+    clearInterval(heartbeatInterval);
+    heartbeatInterval = null;
+  }
+}

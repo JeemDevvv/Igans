@@ -191,7 +191,7 @@ async function loadOrders() {
       ? '/orders?status=served'
       : `/orders?status=${currentFilter}`;
     const data = await apiFetch(url);
-    allOrders = data.data.filter(o => o.paid); // Only show paid orders
+    allOrders = data.data;
     renderOrders(allOrders);
     updateStats(allOrders);
   } catch (e) { showToast(e.message, 'error'); }

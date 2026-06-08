@@ -1,6 +1,7 @@
 const Order = require('../models/Order');
 const User = require('../models/User');
 const MenuItem = require('../models/MenuItem');
+const { getActiveCount } = require('../utils/activeCustomers');
 
 exports.getStats = async (req, res) => {
   try {
@@ -55,6 +56,7 @@ exports.getStats = async (req, res) => {
         todayRevenue: parseFloat(todayRevenue.toFixed(2)),
         totalRevenue: parseFloat(totalRevenue.toFixed(2)),
         totalOrders: allOrders.length,
+        totalCustomers: getActiveCount(),
         topItems,
         dailySales,
         reports,
@@ -102,8 +104,7 @@ async function generateGeneralReports() {
 
 exports.getUsers = async (req, res) => {
   try {
-    // Only get staff/kitchen/admin users
-    const users = await User.find({ role: { $in: ['staff', 'kitchen', 'admin'] } }).sort({ createdAt: -1 });
+    const users = await User.find().sort({ createdAt: -1 });
     res.json({ success: true, data: users });
   } catch (err) {
     res.status(500).json({ success: false, msg: err.message });
@@ -114,6 +115,28 @@ exports.deleteUser = async (req, res) => {
   try {
     await User.findByIdAndDelete(req.params.id);
     res.json({ success: true, msg: 'User deleted' });
+  } catch (err) {
+    res.status(500).json({ success: false, msg: err.message });
+  }
+};
+
+exports.updateUser = async (req, res) => {
+  try {
+    const { name, email, password, role } = req.body;
+    const updateData = { name, email, role };
+    
+    if (password && password.length >= 6) {
+      const bcrypt = require('bcryptjs');
+      updateData.password = await bcrypt.hash(password, 12);
+    }
+    
+    const updatedUser = await User.findByIdAndUpdate(
+      req.params.id,
+      updateData,
+      { new: true, runValidators: true }
+    );
+    
+    res.json({ success: true, data: updatedUser });
   } catch (err) {
     res.status(500).json({ success: false, msg: err.message });
   }

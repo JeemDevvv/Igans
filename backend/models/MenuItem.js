@@ -13,10 +13,6 @@ const MenuItemSchema = new mongoose.Schema({
   orderCount: { type: Number, default: 0 },
   avgRating: { type: Number, default: 0 },
   reviewCount: { type: Number, default: 0 },
-  // Nutrition info
-  calories: { type: Number, default: 0, min: 0 },
-  protein: { type: Number, default: 0, min: 0 }, // grams
-  prepTime: { type: String, default: '' }, // can be things like "15" or "10-20"
   // Drink size options
   hasSizes: { type: Boolean, default: false },
   sizes: [{

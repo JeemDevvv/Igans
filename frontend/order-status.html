@@ -391,10 +391,7 @@ async function loadOrder() {
     currentOrderData = order;
     orderCreatedAt = order.createdAt;
     renderOrder(order);
-    // Only start timer if order is paid
-    if (order.paid) {
-      startTimer();
-    }
+    startTimer();
   } catch (e) {
     document.getElementById('loading').innerHTML = `<div class="empty-state"><div class="icon"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg></div><h3>Could not load order</h3><p>${e.message}</p></div>`;
   }
@@ -405,54 +402,29 @@ function renderOrder(order) {
   document.getElementById('loading').style.display = 'none';
   document.getElementById('order-content').style.display = 'block';
 
-  // Show receipt button if order is placed
   document.getElementById('receipt-btn').style.display = 'inline-flex';
 
-  // Show review section if served and not yet reviewed
   if (order.status === 'served') {
     checkIfReviewed();
   }
 
   document.getElementById('order-num-display').textContent = order.orderNumber;
-  
-  let cfg;
-  if (!order.paid) {
-    // Not paid: show pending status with payment message
-    cfg = {
-      hero: STATUS_CONFIG.pending.hero,
-      text: 'Order Received',
-      sub: 'Pay the order first!',
-      trackPct: '0%'
-    };
-  } else {
-    cfg = STATUS_CONFIG[order.status] || STATUS_CONFIG.pending;
-  }
-  
+  const cfg = STATUS_CONFIG[order.status] || STATUS_CONFIG.pending;
   document.getElementById('status-hero').innerHTML = cfg.hero;
   document.getElementById('status-text').textContent = cfg.text;
   document.getElementById('status-sub').textContent = cfg.sub;
   document.getElementById('prog-track').style.width = cfg.trackPct;
 
-  // Update step circles
-  const statusIdx = !order.paid ? 0 : STEPS.indexOf(order.status);
+  const statusIdx = STEPS.indexOf(order.status);
   STEPS.forEach((s, i) => {
     const circle = document.getElementById(`sc-${s}`);
     const label = document.querySelector(`#step-${s} .step-label`);
-    if (i < statusIdx) { 
-      circle.className = 'step-circle done'; 
-      circle.innerHTML = '<i class="fas fa-circle-check"></i>'; 
-      label.className = 'step-label done'; 
-    } else if (i === statusIdx) { 
-      circle.className = 'step-circle active'; 
-      label.className = 'step-label active'; 
-    } else { 
-      circle.className = 'step-circle'; 
-      label.className = 'step-label'; 
-    }
+    if (i < statusIdx) { circle.className = 'step-circle done'; circle.innerHTML = '<i class="fas fa-circle-check"></i>'; label.className = 'step-label done'; }
+    else if (i === statusIdx) { circle.className = 'step-circle active'; label.className = 'step-label active'; }
+    else { circle.className = 'step-circle'; label.className = 'step-label'; }
   });
 
-  // Ready pulse
-  if (order.status === 'ready' && order.paid) {
+  if (order.status === 'ready') {
     document.querySelector('.order-card').classList.add('pulse-ready');
   }
 
@@ -461,52 +433,23 @@ function renderOrder(order) {
     `<div class="order-item-row"><span>${i.quantity}× ${i.name}</span><span>${formatCurrency(i.price * i.quantity)}</span></div>`
   ).join('');
   document.getElementById('total-display').textContent = formatCurrency(order.totalAmount);
-  
-  // Show/hide timer based on payment status
-  const timerDisplay = document.querySelector('.timer-display');
-  if (timerDisplay) {
-    timerDisplay.style.display = order.paid ? 'block' : 'none';
-  }
-  
-  // Add/remove payment message
-  let paymentMsgEl = document.getElementById('payment-message');
-  if (!order.paid) {
-    if (!paymentMsgEl) {
-      paymentMsgEl = document.createElement('div');
-      paymentMsgEl.id = 'payment-message';
-      paymentMsgEl.style.cssText = 'margin-top: 16px; padding: 16px; background: rgba(233,196,106,0.08); border: 1px solid rgba(233,196,106,0.15); border-radius: var(--radius-sm);';
-      paymentMsgEl.innerHTML = `
-        <div style="font-size: 0.85rem; color: var(--accent); margin-bottom: 6px; font-weight: 600; text-transform: uppercase;">Total Amount</div>
-        <div style="font-size: 2.2rem; font-weight: 800; color: #FFF; font-family: var(--font-display);">${formatCurrency(order.totalAmount)}</div>
-      `;
-      const statusSub = document.getElementById('status-sub');
-      statusSub.parentNode.insertBefore(paymentMsgEl, statusSub.nextSibling);
-    }
-  } else {
-    if (paymentMsgEl) {
-      paymentMsgEl.remove();
-    }
-  }
 }
 
 function startTimer() {
   if (timerInterval) clearInterval(timerInterval);
-  // Only start timer if timer-val exists (i.e., order is paid)
-  if (!document.getElementById('timer-val')) return;
-  
   timerInterval = setInterval(() => {
     if (!orderCreatedAt) return;
-    const timerEl = document.getElementById('timer-val');
-    if (!timerEl) return;
     const diff = Math.floor((Date.now() - new Date(orderCreatedAt)) / 1000);
     const m = Math.floor(diff / 60), s = diff % 60;
-    timerEl.textContent = `${m}:${s.toString().padStart(2, '0')}`;
+    document.getElementById('timer-val').textContent = `${m}:${s.toString().padStart(2, '0')}`;
   }, 1000);
 }
 
 async function refreshOrder() {
-  // We don't have refresh-icon anymore in the payment message, so just load order
+  const icon = document.getElementById('refresh-icon');
+  icon.classList.add('spinning');
   await loadOrder();
+  setTimeout(() => icon.classList.remove('spinning'), 800);
 }
 </script>
 </body>

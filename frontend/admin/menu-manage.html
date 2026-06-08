@@ -113,26 +113,6 @@
           <input type="checkbox" id="item-has-sizes" onchange="toggleSizeOptions()"> Has Sizes (Drink)
         </label>
       </div>
-      <!-- Nutrition Info -->
-      <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">
-        <label class="form-label" style="font-weight:600;">Nutrition Information (optional)</label>
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label">Calories (kcal)</label>
-            <input type="number" id="item-calories" class="form-control" placeholder="e.g. 350" min="0">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Prep Time (min)</label>
-            <input type="number" id="item-prep-time" class="form-control" placeholder="e.g. 15" min="0">
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label">Protein (g)</label>
-            <input type="number" id="item-protein" class="form-control" placeholder="e.g. 25" min="0">
-          </div>
-        </div>
-      </div>
       <div id="size-options" style="margin-top:16px;display:none;">
         <label class="form-label">Size Options</label>
         <div id="sizes-list" style="margin-bottom:12px;"></div>
@@ -334,9 +314,6 @@ function openItemModal(prefill = null) {
   document.getElementById('item-featured').checked = false;
   document.getElementById('item-bestseller').checked = false;
   document.getElementById('item-has-sizes').checked = false;
-  document.getElementById('item-calories').value = '';
-  document.getElementById('item-prep-time').value = '';
-  document.getElementById('item-protein').value = '';
   currentSizes = [];
   document.getElementById('size-options').style.display = 'none';
   renderSizeOptions();
@@ -348,9 +325,6 @@ function closeItemModal() { document.getElementById('item-modal').classList.remo
 async function editItem(id) {
   const item = allItems.find(i => i._id === id);
   console.log('Editing item:', item);
-  console.log('Item calories:', item.calories);
-  console.log('Item prepTime:', item.prepTime);
-  console.log('Item protein:', item.protein);
   if (!item) return;
   document.getElementById('item-id').value = item._id;
   document.getElementById('modal-title').textContent = 'Edit Menu Item';
@@ -363,9 +337,6 @@ async function editItem(id) {
   document.getElementById('item-featured').checked = item.isFeatured;
   document.getElementById('item-bestseller').checked = item.isBestSeller;
   document.getElementById('item-has-sizes').checked = item.hasSizes || false;
-  document.getElementById('item-calories').value = item.calories || '';
-  document.getElementById('item-prep-time').value = item.prepTime || '';
-  document.getElementById('item-protein').value = item.protein || '';
   
   currentSizes = item.sizes ? [...item.sizes] : [];
   console.log('Current sizes set to:', currentSizes);
@@ -385,12 +356,6 @@ async function editItem(id) {
 async function saveItem() {
   const id = document.getElementById('item-id').value;
   const hasSizes = document.getElementById('item-has-sizes').checked;
-  
-  console.log('Reading form values:');
-  console.log('item-calories:', document.getElementById('item-calories').value);
-  console.log('item-prep-time:', document.getElementById('item-prep-time').value);
-  console.log('item-protein:', document.getElementById('item-protein').value);
-  
   const payload = {
     name: document.getElementById('item-name').value.trim(),
     description: document.getElementById('item-desc').value.trim(),
@@ -402,25 +367,15 @@ async function saveItem() {
     isFeatured: document.getElementById('item-featured').checked,
     isBestSeller: document.getElementById('item-bestseller').checked,
     hasSizes: hasSizes,
-    sizes: hasSizes ? currentSizes.filter(s => s.name && s.price > 0) : [],
-    calories: parseFloat(document.getElementById('item-calories').value) || 0,
-    prepTime: document.getElementById('item-prep-time').value.trim(),
-    protein: parseFloat(document.getElementById('item-protein').value) || 0
+    sizes: hasSizes ? currentSizes.filter(s => s.name && s.price > 0) : []
   };
   console.log('Payload to send:', payload);
   if (!payload.name || !payload.price) { showToast('Name and price are required', 'error'); return; }
   const btn = document.getElementById('save-item-btn');
   btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Saving...';
   try {
-    let data;
-    if (id) {
-      console.log('Updating item with id:', id);
-      data = await apiFetch(`/menu/${id}`, { method: 'PUT', body: JSON.stringify(payload) });
-    } else {
-      console.log('Creating new item');
-      data = await apiFetch('/menu', { method: 'POST', body: JSON.stringify(payload) });
-    }
-    console.log('Response from server:', data);
+    if (id) await apiFetch(`/menu/${id}`, { method: 'PUT', body: JSON.stringify(payload) });
+    else await apiFetch('/menu', { method: 'POST', body: JSON.stringify(payload) });
     showToast(id ? 'Item updated!' : 'Item added!');
     closeItemModal();
     await loadItems();

@@ -1,5 +1,5 @@
 const PublicQR = require('../models/PublicQR');
-const generateQRCode = require('../utils/customQrGenerator');
+const QRCode = require('qrcode');
 
 exports.createPublicQR = async (req, res) => {
   try {
@@ -13,9 +13,9 @@ exports.createPublicQR = async (req, res) => {
     
     const qr = new PublicQR({ name: name || 'Take-Out QR' });
     
-    // Generate QR code using our custom generator
+    // Generate QR code
     const qrUrl = `${baseUrl}/verify.html?type=takeout&id=${qr._id}`;
-    const qrImage = generateQRCode(qrUrl, 300);
+    const qrImage = await QRCode.toDataURL(qrUrl, { width: 300, margin: 2 });
     
     qr.qrCodeValue = qrUrl;
     qr.qrCodeImage = qrImage;

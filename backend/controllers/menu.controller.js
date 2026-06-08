@@ -48,24 +48,11 @@ exports.create = async (req, res) => {
 
 exports.update = async (req, res) => {
   try {
-    console.log('=== UPDATE START ===');
-    console.log('Request body:', req.body);
-    console.log('Item ID:', req.params.id);
-    // First, let's find the original item first
-    const originalItem = await MenuItem.findById(req.params.id);
-    console.log('Original item:', originalItem);
-    if (!originalItem) return res.status(404).json({ success: false, msg: 'Item not found' });
-
-    // Update the fields
-    Object.assign(originalItem, req.body);
-    console.log('Item after applying updates:', originalItem);
-
-    // Save to DB
-    const item = await originalItem.save();
-    console.log('Saved/Updated item:', item);
-
+    console.log('Update menu item request body:', req.body);
+    const item = await MenuItem.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+    console.log('Updated menu item:', item);
+    if (!item) return res.status(404).json({ success: false, msg: 'Item not found' });
     res.json({ success: true, data: item });
-    console.log('=== UPDATE END ===');
   } catch (err) {
     console.error('Update menu item error:', err);
     res.status(400).json({ success: false, msg: err.message });

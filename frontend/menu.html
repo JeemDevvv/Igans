@@ -1261,7 +1261,6 @@ async function loadCategories() {
         <div class="cat-pill-text">All</div>
       </div>
     `;
-    // Add all other categories
     html += data.data.map(c =>
       `<div class="cat-pill" data-id="${c._id}" onclick="filterCategory('${c._id}', this)">
         <div class="cat-pill-icon">${c.icon}</div>
@@ -1604,10 +1603,12 @@ function openMenuDetail(itemId) {
   const drawer = document.getElementById('menu-detail-drawer');
   const content = document.getElementById('menu-detail-content');
 
-  // Get nutrition data from item
-  const calories = item.calories || 0;
-  const protein = item.protein || 0;
-  const waitTime = item.prepTime || '';
+  // Generate random nutrition data (placeholder for now)
+  const calories = Math.floor(Math.random() * 400) + 200;
+  const protein = Math.floor(Math.random() * 30) + 10;
+  const fat = Math.floor(Math.random() * 20) + 5;
+  const carbs = Math.floor(Math.random() * 50) + 20;
+  const waitTime = Math.floor(Math.random() * 15) + 10;
 
   // Check if it has sizes (from backend)
   const hasSizes = item.hasSizes && item.sizes && item.sizes.length > 0;
@@ -1646,24 +1647,36 @@ function openMenuDetail(itemId) {
             </div>`
           : ''
         }
-        ${calories > 0 ? `
         <div class="menu-detail-meta-item">
           <i class="fas fa-fire menu-detail-meta-icon"></i>
           <span class="menu-detail-meta-text">${calories} kcal</span>
-        </div>` : ''}
-        ${waitTime ? `
+        </div>
         <div class="menu-detail-meta-item">
           <i class="fas fa-clock menu-detail-meta-icon"></i>
-          <span class="menu-detail-meta-text">${waitTime} min</span>
-        </div>` : ''}
-        ${protein > 0 ? `
-        <div class="menu-detail-meta-item">
-          <i class="fas fa-drumstick-bite menu-detail-meta-icon"></i>
-          <span class="menu-detail-meta-text">${protein}g protein</span>
-        </div>` : ''}
+          <span class="menu-detail-meta-text">${waitTime}-${waitTime+5} min</span>
+        </div>
       </div>
       
       <div class="menu-detail-desc">${item.description || 'A delicious Filipino dish'}</div>
+      
+      <div class="menu-detail-nutrition">
+        <div class="menu-detail-nutrition-item">
+          <div class="menu-detail-nutrition-label">Protein</div>
+          <div class="menu-detail-nutrition-value">${protein}g</div>
+        </div>
+        <div class="menu-detail-nutrition-item">
+          <div class="menu-detail-nutrition-label">Fat</div>
+          <div class="menu-detail-nutrition-value">${fat}g</div>
+        </div>
+        <div class="menu-detail-nutrition-item">
+          <div class="menu-detail-nutrition-label">Carbohydrates</div>
+          <div class="menu-detail-nutrition-value">${carbs}g</div>
+        </div>
+        <div class="menu-detail-nutrition-item">
+          <div class="menu-detail-nutrition-label">Fiber</div>
+          <div class="menu-detail-nutrition-value">${Math.floor(Math.random() * 10) + 2}g</div>
+        </div>
+      </div>
       
       ${hasSizes ? `
         <div class="menu-detail-size-section" id="drink-size-section">

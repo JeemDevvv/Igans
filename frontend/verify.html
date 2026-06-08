@@ -480,7 +480,6 @@ if (qrType === 'takeout' && qrId) {
   document.getElementById('table-label').textContent = 'Order Type';
   document.getElementById('table-num').textContent = 'Take-Out';
   
-  // Auto redirect after showing status for a second
   const btn = document.getElementById('verify-btn');
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span> Redirecting...';

@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const generateQRCode = require('../utils/customQrGenerator');
+const QRCode = require('qrcode');
 const Table = require('../models/Table');
 const { protect } = require('../middleware/auth.middleware');
 const { allow } = require('../middleware/role.middleware');
@@ -15,7 +15,9 @@ const updateTableQR = async (req, table) => {
 
   if (!table.qrCodeValue || !table.qrCodeValue.startsWith(currentBaseUrl)) {
     const newUrl = `${currentBaseUrl}/verify.html?table=${table.tableNumber}`;
-    const newQrImage = generateQRCode(newUrl, 300);
+    const newQrImage = await QRCode.toDataURL(newUrl, { 
+      width: 300, margin: 2, color: { dark: '#1a1a1a', light: '#ffffff' } 
+    });
     
     table.qrCodeValue = newUrl;
     table.qrCodeImage = newQrImage;
@@ -55,7 +57,7 @@ router.post('/', protect, allow('admin'), async (req, res) => {
     }
     
     const url = `${baseUrl}/verify.html?table=${tableNumber}`;
-    const qrCodeImage = generateQRCode(url, 300);
+    const qrCodeImage = await QRCode.toDataURL(url, { width: 300, margin: 2, color: { dark: '#1a1a1a', light: '#ffffff' } });
     const table = await Table.create({ tableNumber, capacity: capacity || 4, qrCodeValue: url, qrCodeImage });
     res.status(201).json({ success: true, data: table });
   } catch (err) { res.status(400).json({ success: false, msg: err.message }); }
