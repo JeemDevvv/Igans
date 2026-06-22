@@ -390,7 +390,8 @@ tbody tr:hover { background: #FDFAF6; }
   border: 1px solid rgba(255,255,255,0.15);
   border-radius: 12px; color: #FFF; cursor: pointer;
   transition: all 0.3s ease;
-  z-index: 10;
+  z-index: 200;
+  pointer-events: auto;
 }
 .notification-btn:hover { 
   background: rgba(255,255,255,0.15); 

@@ -88,6 +88,8 @@ body.page-exiting {
   -webkit-backdrop-filter: blur(10px);
   flex-wrap: wrap;
   gap: 12px;
+  z-index: 50;
+  position: relative;
 }
 .admin-page-title { font-size: 1.8rem; color: #FFF; margin-bottom: 4px; font-family: var(--font-display); }
 .admin-page-sub { font-size: 0.95rem; color: var(--accent); font-weight: 500; }
