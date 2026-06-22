@@ -65,8 +65,8 @@ exports.sendOTP = async (req, res) => {
       expires: Date.now() + 10 * 60 * 1000 // 10 minutes
     };
 
-    // Development fallback: log OTP to console instead of sending email
-    if (process.env.NODE_ENV === 'development' || !process.env.SMTP_PASS) {
+    // If no SMTP_PASS, fallback to console OTP
+    if (!process.env.SMTP_PASS) {
       console.log(`[DEV MODE] OTP for ${user.email} (${username}): ${otp}`);
       return res.json({ success: true, msg: 'OTP sent to email (check server console for OTP)' });
     }
