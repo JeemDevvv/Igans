@@ -185,8 +185,7 @@ async function loadReports() {
       <div class="kpi-card"><div class="kpi-icon"><i class="fas fa-credit-card"></i></div><div class="kpi-body"><div class="kpi-num">${formatCurrency(d.todayRevenue)}</div><div class="kpi-label">Today's Revenue</div></div></div>
       <div class="kpi-card"><div class="kpi-icon"><i class="fas fa-clipboard-list"></i></div><div class="kpi-body"><div class="kpi-num">${d.todayOrders}</div><div class="kpi-label">Today's Orders</div></div></div>
       <div class="kpi-card"><div class="kpi-icon"><i class="fas fa-dollar-sign"></i></div><div class="kpi-body"><div class="kpi-num">${formatCurrency(d.totalRevenue)}</div><div class="kpi-label">All-Time Revenue</div></div></div>
-      <div class="kpi-card"><div class="kpi-icon"><i class="fas fa-box"></i></div><div class="kpi-body"><div class="kpi-num">${d.totalOrders}</div><div class="kpi-label">Total Orders</div></div></div>
-      <div class="kpi-card"><div class="kpi-icon"><i class="fa-solid fa-user"></i></div><div class="kpi-body"><div class="kpi-num">${d.totalCustomers}</div><div class="kpi-label">Customers</div></div></div>`;
+      <div class="kpi-card"><div class="kpi-icon"><i class="fas fa-box"></i></div><div class="kpi-body"><div class="kpi-num">${d.totalOrders}</div><div class="kpi-label">Total Orders</div></div></div>`;
     const colors = ['#C8440A','#F5A623','#2E7D4F','#1E40AF','#9333EA'];
     // Monthly Chart
     destroyChart('monthly');

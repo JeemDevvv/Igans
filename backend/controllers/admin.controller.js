@@ -1,7 +1,6 @@
 const Order = require('../models/Order');
 const User = require('../models/User');
 const MenuItem = require('../models/MenuItem');
-const { getActiveCount } = require('../utils/activeCustomers');
 exports.getStats = async (req, res) => {
   try {
     const today = new Date(); today.setHours(0, 0, 0, 0);
@@ -46,7 +45,6 @@ exports.getStats = async (req, res) => {
         todayRevenue: parseFloat(todayRevenue.toFixed(2)),
         totalRevenue: parseFloat(totalRevenue.toFixed(2)),
         totalOrders: allOrders.length,
-        totalCustomers: getActiveCount(),
         topItems,
         dailySales,
         reports,

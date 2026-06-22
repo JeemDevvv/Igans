@@ -101,14 +101,118 @@ body {
     <input type="password" id="password" class="form-control" placeholder="Enter your password" autocomplete="current-password">
   </div>
   <button class="btn btn-primary btn-block btn-lg" id="login-btn" onclick="doLogin()">Sign In</button>
+  <div style="text-align:center;margin-top:16px;">
+    <button class="btn btn-ghost" style="font-size:0.85rem;" onclick="toggleForgotPassword()">Forgot Password?</button>
+  </div>
+</div>
+
+<!-- Forgot Password Modal -->
+<div class="modal-overlay" id="forgot-modal" style="display:none;">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-header">
+      <h2 id="fp-title">Forgot Password</h2>
+      <button class="modal-close" onclick="toggleForgotPassword()"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <div id="fp-step1">
+        <div class="role-selector" style="grid-template-columns: repeat(3, 1fr);margin-bottom:20px;">
+          <div class="role-btn active" data-role="staff" onclick="fpSelectRole(this)">
+            <div class="role-name">Staff</div>
+            <div class="role-desc">Service</div>
+          </div>
+          <div class="role-btn" data-role="kitchen" onclick="fpSelectRole(this)">
+            <div class="role-name">Kitchen</div>
+            <div class="role-desc">Kitchen</div>
+          </div>
+          <div class="role-btn" data-role="admin" onclick="fpSelectRole(this)">
+            <div class="role-name">Admin</div>
+            <div class="role-desc">Admin</div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Username</label>
+          <input type="text" id="fp-username" class="form-control" placeholder="Enter username">
+        </div>
+        <button class="btn btn-primary btn-block" id="fp-submit" onclick="doForgotPassword()">Find Account</button>
+      </div>
+      <div id="fp-step2" style="display:none;text-align:center;">
+        <div style="font-size:3rem;margin-bottom:12px;"><i class="fas fa-envelope" style="color: #2E7D4F"></i></div>
+        <h3 style="color:#FFF;margin-bottom:8px;">Account Found!</h3>
+        <p style="color:var(--text-muted);margin-bottom:16px;">The registered email for this account is:</p>
+        <div style="padding:12px;background:rgba(255,255,255,0.08);border-radius:8px;border:1px solid var(--border);font-weight:600;color:var(--accent);margin-bottom:20px;" id="fp-email"></div>
+        <button class="btn btn-primary btn-block" onclick="toggleForgotPassword()">Close</button>
+      </div>
+      <div id="fp-error" class="alert alert-error" style="display:none;margin-top:16px;"></div>
+    </div>
+  </div>
 </div>
 <script src="js/auth.js"></script>
 <script>
 let selectedRole = 'staff';
+let fpSelectedRole = 'staff';
+
 function selectRole(el) {
   document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
   el.classList.add('active');
   selectedRole = el.dataset.role;
+}
+
+function toggleForgotPassword() {
+  const modal = document.getElementById('forgot-modal');
+  if (modal.style.display === 'block') {
+    modal.style.display = 'none';
+    // Reset
+    document.getElementById('fp-step1').style.display = 'block';
+    document.getElementById('fp-step2').style.display = 'none';
+    document.getElementById('fp-username').value = '';
+    document.getElementById('fp-error').style.display = 'none';
+    // Reset active role
+    fpSelectedRole = 'staff';
+    const fpBtns = document.querySelectorAll('#forgot-modal .role-btn');
+    fpBtns.forEach(b => { if (b.dataset.role === 'staff') b.classList.add('active'); else b.classList.remove('active'); });
+  } else {
+    modal.style.display = 'block';
+  }
+}
+
+function fpSelectRole(el) {
+  const fpBtns = document.querySelectorAll('#forgot-modal .role-btn');
+  fpBtns.forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  fpSelectedRole = el.dataset.role;
+}
+
+async function doForgotPassword() {
+  const username = document.getElementById('fp-username').value.trim();
+  const errorDiv = document.getElementById('fp-error');
+  const btn = document.getElementById('fp-submit');
+  errorDiv.style.display = 'none';
+  
+  if (!username) {
+    errorDiv.style.display = 'block';
+    errorDiv.textContent = 'Please enter username';
+    return;
+  }
+  
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Finding...';
+  
+  try {
+    const data = await apiFetch('/auth/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ username, role: fpSelectedRole })
+    });
+    // Success
+    document.getElementById('fp-step1').style.display = 'none';
+    document.getElementById('fp-step2').style.display = 'block';
+    document.getElementById('fp-email').textContent = data.email;
+  } catch (err) {
+    errorDiv.style.display = 'block';
+    errorDiv.textContent = err.message;
+  }
+  
+  btn.disabled = false;
+  btn.innerHTML = 'Find Account';
 }
 async function doLogin() {
   const username = document.getElementById('username').value.trim();

@@ -49,3 +49,15 @@ exports.getMe = async (req, res) => {
     res.status(500).json({ success: false, msg: err.message });
   }
 };
+
+exports.forgotPassword = async (req, res) => {
+  try {
+    const { username, role } = req.body;
+    if (!username || !role) return res.status(400).json({ success: false, msg: 'Username and role required' });
+    const user = await User.findOne({ username, role });
+    if (!user) return res.status(404).json({ success: false, msg: 'User not found' });
+    res.json({ success: true, email: user.email, name: user.name });
+  } catch (err) {
+    res.status(500).json({ success: false, msg: err.message });
+  }
+};
