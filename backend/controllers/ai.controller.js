@@ -1,11 +1,6 @@
 const MenuItem = require('../models/MenuItem');
 const ChatLog = require('../models/ChatLog');
-let Groq;
-try {
-  Groq = require('groq-sdk');
-} catch (e) {
-  console.warn('groq-sdk not installed; AI recommendations will use fallback logic');
-}
+const Groq = require('groq-sdk');
 const isGreeting = (msg) => {
   const m = msg.toLowerCase().trim();
   const greetings = ['hi', 'hello', 'hey', 'good morning', 'good afternoon', 'good evening', 'kumusta', 'kamusta', 'yo', 'sup'];
@@ -76,7 +71,7 @@ exports.recommend = async (req, res) => {
   }
   try {
     const apiKey = process.env.GROQ_API_KEY;
-    if (apiKey && apiKey.startsWith('gsk_') && Groq) {
+    if (apiKey && apiKey.startsWith('gsk_')) {
       const groq = new Groq({ apiKey });
       const menu = await MenuItem.find({ available: true });
       const menuContext = menu.map(i => `- ${i.name} (₱${i.price}): ${i.description || 'Delicious Filipino dish'}`).join('\n');

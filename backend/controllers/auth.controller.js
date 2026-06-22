@@ -1,5 +1,10 @@
 const jwt = require('jsonwebtoken');
+const nodemailer = require('nodemailer');
 const User = require('../models/User');
+
+// In-memory storage for OTPs (in production, use Redis with expiry)
+const otpStore = {};
+
 const signToken = (user) => {
   const secret = process.env.JWT_SECRET || 'fallback_secret_for_dev_only';
   const expire = process.env.JWT_EXPIRE || '7d';
@@ -9,6 +14,113 @@ const signToken = (user) => {
     { expiresIn: expire }
   );
 };
+
+// Configure nodemailer transporter
+const createTransporter = () => {
+  return nodemailer.createTransport({
+    host: process.env.SMTP_HOST || 'smtp.gmail.com',
+    port: parseInt(process.env.SMTP_PORT) || 587,
+    secure: process.env.SMTP_SECURE === 'true',
+    auth: {
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS
+    }
+  });
+};
+
+// Generate 6-digit OTP
+const generateOTP = () => {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+};
+
+// Step 1: Verify user by role and username, return email
+exports.verifyUserForReset = async (req, res) => {
+  try {
+    const { username, role } = req.body;
+    if (!username || !role) {
+      return res.status(400).json({ success: false, msg: 'Username and role required' });
+    }
+    const user = await User.findOne({ username, role });
+    if (!user) {
+      return res.status(404).json({ success: false, msg: 'User not found for this role' });
+    }
+    res.json({ success: true, email: user.email });
+  } catch (err) {
+    res.status(500).json({ success: false, msg: err.message });
+  }
+};
+
+// Step 2: Send OTP to user's email
+exports.sendOTP = async (req, res) => {
+  try {
+    const { username, role } = req.body;
+    const user = await User.findOne({ username, role });
+    if (!user) {
+      return res.status(404).json({ success: false, msg: 'User not found' });
+    }
+    const otp = generateOTP();
+    otpStore[user.email] = {
+      otp,
+      expires: Date.now() + 10 * 60 * 1000 // 10 minutes
+    };
+
+    // Send email
+    const transporter = createTransporter();
+    await transporter.sendMail({
+      from: process.env.SMTP_FROM || process.env.SMTP_USER,
+      to: user.email,
+      subject: 'Password Reset OTP — Igan\'s Budbod House',
+      text: `Your OTP for password reset is: ${otp}. It will expire in 10 minutes.`
+    });
+
+    res.json({ success: true, msg: 'OTP sent to email' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, msg: err.message });
+  }
+};
+
+// Step 3: Verify OTP
+exports.verifyOTP = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+    const stored = otpStore[email];
+    if (!stored) {
+      return res.status(400).json({ success: false, msg: 'OTP expired or invalid' });
+    }
+    if (Date.now() > stored.expires) {
+      delete otpStore[email];
+      return res.status(400).json({ success: false, msg: 'OTP expired' });
+    }
+    if (stored.otp !== otp) {
+      return res.status(400).json({ success: false, msg: 'Incorrect OTP' });
+    }
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ success: false, msg: err.message });
+  }
+};
+
+// Step 4: Reset password
+exports.resetPassword = async (req, res) => {
+  try {
+    const { email, newPassword } = req.body;
+    if (!email || !newPassword || newPassword.length < 6) {
+      return res.status(400).json({ success: false, msg: 'Email and valid password required' });
+    }
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ success: false, msg: 'User not found' });
+    }
+    user.password = newPassword;
+    await user.save();
+    delete otpStore[email];
+    res.json({ success: true, msg: 'Password reset successfully' });
+  } catch (err) {
+    res.status(500).json({ success: false, msg: err.message });
+  }
+};
+
 exports.register = async (req, res) => {
   try {
     const { name, username, email, password, role } = req.body;
@@ -45,18 +157,6 @@ exports.getMe = async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
     res.json({ success: true, user });
-  } catch (err) {
-    res.status(500).json({ success: false, msg: err.message });
-  }
-};
-
-exports.forgotPassword = async (req, res) => {
-  try {
-    const { username, role } = req.body;
-    if (!username || !role) return res.status(400).json({ success: false, msg: 'Username and role required' });
-    const user = await User.findOne({ username, role });
-    if (!user) return res.status(404).json({ success: false, msg: 'User not found' });
-    res.json({ success: true, email: user.email, name: user.name });
   } catch (err) {
     res.status(500).json({ success: false, msg: err.message });
   }
