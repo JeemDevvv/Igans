@@ -22,13 +22,20 @@ router.get('/', async (req, res) => {
 });
 router.put('/', protect, allow('admin'), async (req, res) => {
   try {
+    console.log('DEBUG settings route: req.body =', req.body);
+    console.log('DEBUG settings route: req.user =', req.user);
+    
     let settings = await RestaurantSettings.findOne();
     if (!settings) settings = new RestaurantSettings();
     
     // Track changes for notification
     const oldSettings = settings.toObject();
+    console.log('DEBUG settings route: oldSettings =', oldSettings);
+    
     Object.assign(settings, req.body);
     await settings.save();
+    
+    console.log('DEBUG settings route: newSettings =', settings.toObject());
     
     // Build notification message
     const adminName = req.user?.name || 'Admin';
@@ -39,17 +46,26 @@ router.put('/', protect, allow('admin'), async (req, res) => {
     if (oldSettings.address !== settings.address) changes.push('address');
     if (oldSettings.phone !== settings.phone) changes.push('phone');
     
+    console.log('DEBUG settings route: changes detected =', changes);
+    
     if (changes.length > 0) {
       let changeText = changes.join(', ');
-      await createNotification(
+      console.log('DEBUG settings route: creating notification for changes:', changeText);
+      const notification = await createNotification(
         'Settings Updated',
         `${adminName} changed restaurant settings: ${changeText}`,
         'system',
         { changes: changes }
       );
+      console.log('DEBUG settings route: notification created =', notification);
+    } else {
+      console.log('DEBUG settings route: no changes detected');
     }
     
     res.json({ success: true, data: settings });
-  } catch (err) { res.status(400).json({ success: false, msg: err.message }); }
+  } catch (err) {
+    console.error('DEBUG settings route: error =', err);
+    res.status(400).json({ success: false, msg: err.message });
+  }
 });
 module.exports = router;
