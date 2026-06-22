@@ -1465,12 +1465,6 @@ function openMenuDetail(itemId) {
   const overlay = document.getElementById('menu-detail-overlay');
   const drawer = document.getElementById('menu-detail-drawer');
   const content = document.getElementById('menu-detail-content');
-  // Generate random nutrition data (placeholder for now)
-  const calories = Math.floor(Math.random() * 400) + 200;
-  const protein = Math.floor(Math.random() * 30) + 10;
-  const fat = Math.floor(Math.random() * 20) + 5;
-  const carbs = Math.floor(Math.random() * 50) + 20;
-  const waitTime = Math.floor(Math.random() * 15) + 10;
   // Check if it has sizes (from backend)
   const hasSizes = item.hasSizes && item.sizes && item.sizes.length > 0;
   const drinkSizes = hasSizes ? item.sizes : [];
@@ -1503,34 +1497,26 @@ function openMenuDetail(itemId) {
             </div>`
           : ''
         }
-        <div class="menu-detail-meta-item">
-          <i class="fas fa-fire menu-detail-meta-icon"></i>
-          <span class="menu-detail-meta-text">${calories} kcal</span>
-        </div>
-        <div class="menu-detail-meta-item">
-          <i class="fas fa-clock menu-detail-meta-icon"></i>
-          <span class="menu-detail-meta-text">${waitTime}-${waitTime+5} min</span>
-        </div>
+        ${item.calories ? `
+          <div class="menu-detail-meta-item">
+            <i class="fas fa-fire menu-detail-meta-icon"></i>
+            <span class="menu-detail-meta-text">${item.calories} kcal</span>
+          </div>
+        ` : ''}
+        ${item.prepTime ? `
+          <div class="menu-detail-meta-item">
+            <i class="fas fa-clock menu-detail-meta-icon"></i>
+            <span class="menu-detail-meta-text">${item.prepTime} min</span>
+          </div>
+        ` : ''}
+        ${item.protein ? `
+          <div class="menu-detail-meta-item">
+            <i class="fas fa-drumstick-bite menu-detail-meta-icon"></i>
+            <span class="menu-detail-meta-text">${item.protein}g protein</span>
+          </div>
+        ` : ''}
       </div>
       <div class="menu-detail-desc">${item.description || 'A delicious Filipino dish'}</div>
-      <div class="menu-detail-nutrition">
-        <div class="menu-detail-nutrition-item">
-          <div class="menu-detail-nutrition-label">Protein</div>
-          <div class="menu-detail-nutrition-value">${protein}g</div>
-        </div>
-        <div class="menu-detail-nutrition-item">
-          <div class="menu-detail-nutrition-label">Fat</div>
-          <div class="menu-detail-nutrition-value">${fat}g</div>
-        </div>
-        <div class="menu-detail-nutrition-item">
-          <div class="menu-detail-nutrition-label">Carbohydrates</div>
-          <div class="menu-detail-nutrition-value">${carbs}g</div>
-        </div>
-        <div class="menu-detail-nutrition-item">
-          <div class="menu-detail-nutrition-label">Fiber</div>
-          <div class="menu-detail-nutrition-value">${Math.floor(Math.random() * 10) + 2}g</div>
-        </div>
-      </div>
       ${hasSizes ? `
         <div class="menu-detail-size-section" id="drink-size-section">
           <div class="menu-detail-size-title">

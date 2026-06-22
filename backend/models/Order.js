@@ -22,6 +22,7 @@ const OrderSchema = new mongoose.Schema({
   },
   paid: { type: Boolean, default: false },
   specialRequests: { type: String, default: '' },
+  orderSource: { type: String, enum: ['qr', 'staff'], default: 'qr' },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
 }, { collection: 'orders' });

@@ -1,5 +1,7 @@
 const MenuItem = require('../models/MenuItem');
 const Category = require('../models/Category');
+const { createNotification } = require('./notification.controller');
+
 exports.getAll = async (req, res) => {
   try {
     const { category, search, available, featured, bestSeller, sort } = req.query;
@@ -36,6 +38,16 @@ exports.create = async (req, res) => {
   try {
     console.log('Create menu item request body:', req.body);
     const item = await MenuItem.create(req.body);
+    
+    // Send notification
+    const userName = req.user?.name || 'Admin';
+    await createNotification(
+      'New Menu Item Added',
+      `${userName} added item "${item.name}"`,
+      'system',
+      { itemId: item._id, itemName: item.name }
+    );
+    
     res.status(201).json({ success: true, data: item });
   } catch (err) {
     console.error('Create menu item error:', err);

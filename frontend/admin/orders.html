@@ -20,21 +20,27 @@
       </div>
     </div>
     <nav class="sidebar-nav">
-      <a href="dashboard.html" class="nav-item">Dashboard</a>
-      <a href="orders.html" class="nav-item active">Orders</a>
-      <a href="menu-manage.html" class="nav-item">Menu</a>
-      <a href="users.html" class="nav-item">Users</a>
-      <a href="tables.html" class="nav-item">Tables & QR</a>
-      <a href="reports.html" class="nav-item">Reports</a>
-      <a href="reviews.html" class="nav-item">Reviews</a>
-      <a href="settings.html" class="nav-item">Settings</a>
+      <a href="dashboard.html" class="nav-item"><i class="fas fa-home"></i> Dashboard</a>
+      <a href="orders.html" class="nav-item active"><i class="fas fa-clipboard-list"></i> Orders</a>
+      <a href="menu-manage.html" class="nav-item"><i class="fas fa-utensils"></i> Menu</a>
+      <a href="users.html" class="nav-item"><i class="fas fa-users"></i> Users</a>
+      <a href="tables.html" class="nav-item"><i class="fas fa-table"></i> Tables & QR</a>
+      <a href="reports.html" class="nav-item"><i class="fas fa-chart-line"></i> Reports</a>
+      <a href="reviews.html" class="nav-item"><i class="fas fa-star"></i> Reviews</a>
+      <a href="settings.html" class="nav-item"><i class="fas fa-cog"></i> Settings</a>
     </nav>
     <div class="sidebar-footer"><button class="btn btn-ghost btn-sm btn-block" onclick="logout()">Sign Out</button></div>
   </aside>
   <main class="admin-main">
     <div class="admin-topbar">
       <div><h1 class="admin-page-title">All Orders</h1><p class="admin-page-sub">View and manage every order</p></div>
-      <button class="btn btn-outline btn-sm" onclick="loadOrders()">↻ Refresh</button>
+      <div style="display:flex;gap:10px;align-items:center;">
+        <button class="notification-btn" id="notification-btn" onclick="toggleNotificationDrawer()">
+          <i class="fas fa-bell"></i>
+          <span class="notification-badge" id="notification-badge"></span>
+        </button>
+        <button class="btn btn-outline btn-sm" onclick="loadOrders()">↻ Refresh</button>
+      </div>
     </div>
     <div class="admin-table-wrap" style="padding-top:24px;">
       <div class="table-toolbar">
@@ -66,6 +72,7 @@
           <thead>
             <tr>
               <th>Order #</th>
+              <th>Source</th>
               <th>Type</th>
               <th>Table</th>
               <th>Items</th>
@@ -78,6 +85,7 @@
           <tbody id="orders-tbody"></tbody>
         </table>
       </div>
+      <div id="orders-totals" style="margin-top:16px;padding:16px;background:var(--bg-tertiary);border-radius:8px;display:flex;gap:24px;flex-wrap:wrap;"></div>
     </div>
   </main>
 </div>
@@ -101,7 +109,27 @@
       </select>
       <button class="btn btn-primary" onclick="applyStatusChange()">Apply</button>
     </div>
+  </main>
+  
+  <!-- Notification Drawer -->
+  <div class="notification-drawer-overlay" id="notification-drawer-overlay" onclick="closeNotificationDrawer()"></div>
+  <div class="notification-drawer" id="notification-drawer">
+    <div class="notification-drawer-header">
+      <h3><i class="fas fa-bell"></i> Notifications</h3>
+      <button class="notification-drawer-close" onclick="closeNotificationDrawer()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="notification-drawer-actions">
+      <button class="btn-mark-all-read" onclick="markAllNotificationsAsRead()">
+        <i class="fas fa-check-double"></i> Mark all as read
+      </button>
+    </div>
+    <div class="notifications-list" id="notifications-list">
+      <!-- Notifications will be loaded here -->
+    </div>
   </div>
+
 </div>
 <script src="../js/auth.js"></script>
 <script>
@@ -112,12 +140,16 @@ async function loadOrders() {
     const status = document.getElementById('status-filter').value;
     const type = document.getElementById('type-filter').value;
     const date = document.getElementById('date-filter').value;
-    let url = '/orders?';
+    let url = '/orders/totals?';
     if (status) url += `&status=${status}`;
     if (type) url += `&orderType=${type}`;
     if (date) url += `&date=${date}`;
     const data = await apiFetch(url);
     allOrders = data.data;
+    document.getElementById('orders-totals').innerHTML = `
+      <div><strong>Total Items:</strong> ${data.totals.totalItems}</div>
+      <div><strong>Total Amount:</strong> ${formatCurrency(data.totals.totalAmount)}</div>
+    `;
     filterOrders();
   } catch(e) { showToast(e.message, 'error'); }
 }
@@ -134,11 +166,12 @@ function filterOrders() {
 }
 function renderTable(orders) {
   document.getElementById('orders-tbody').innerHTML = orders.length === 0
-    ? `<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text-muted);">No orders found</td></tr>`
+    ? `<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--text-muted);">No orders found</td></tr>`
     : orders.map(o => `
       <tr>
         <td><strong style="color:var(--primary);">${o.orderNumber}</strong></td>
-        <td><span class="badge ${o.orderType==='dine-in'?'badge-primary':'badge-accent'}"><i class="fas fa-chair"></i> ${o.orderType==='dine-in'?'Dine-In':'Take-Out'}</span></td>
+        <td><span class="badge ${o.orderSource==='staff'?'badge-info':'badge-secondary'}">${o.orderSource==='staff'?'Staff Assisted':'QR Order'}</span></td>
+        <td><span class="badge ${o.orderType==='dine-in'?'badge-dine-in':'badge-take-out'}"><i class="fas fa-chair"></i> ${o.orderType==='dine-in'?'Dine-In':'Take-Out'}</span></td>
         <td>
           ${o.tableNumber ? `Table ${o.tableNumber}` : '—'}
           ${o.sessionId ? `<div style="font-size:0.75rem;color:var(--text-muted);margin-top:2px;">Session: ${o.sessionId.slice(-8)}</div>` : ''}
@@ -215,14 +248,140 @@ async function applyStatusChange() {
   } catch(e) { showToast(e.message, 'error'); }
 }
 function closeOrderModal() { document.getElementById('order-modal').classList.remove('active'); }
+
+// Notification functions
+let notifications = [];
+
+async function loadNotifications() {
+  try {
+    const res = await apiFetch('/notifications');
+    notifications = res.data || [];
+    renderNotifications();
+    updateNotificationBadge();
+  } catch (err) {
+    console.error('Error loading notifications:', err);
+  }
+}
+
+function renderNotifications() {
+  const container = document.getElementById('notifications-list');
+  if (!notifications || notifications.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state" style="padding: 40px 0;">
+        <div class="icon"><i class="fas fa-bell-slash"></i></div>
+        <h3>No notifications</h3>
+        <p>You'll see notifications here when orders are placed or payments are received</p>
+      </div>
+    `;
+    return;
+  }
+  container.innerHTML = notifications.map(n => {
+    let iconClass = '';
+    let icon = '';
+    if (n.type === 'payment') {
+      iconClass = 'payment';
+      icon = '<i class="fas fa-credit-card"></i>';
+    } else if (n.type === 'order') {
+      iconClass = 'order';
+      icon = '<i class="fas fa-receipt"></i>';
+    } else {
+      iconClass = 'system';
+      icon = '<i class="fas fa-bell"></i>';
+    }
+    return `
+      <div class="notification-item ${n.read ? '' : 'unread'}">
+        <div class="notification-item-icon ${iconClass}">${icon}</div>
+        <div class="notification-item-content">
+          <div class="notification-item-title">${n.title}</div>
+          <div class="notification-item-message">${n.message}</div>
+          <div class="notification-item-time">${formatTimeAgo(n.createdAt)}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function updateNotificationBadge() {
+  const badge = document.getElementById('notification-badge');
+  const unreadCount = notifications.filter(n => !n.read).length;
+  if (unreadCount > 0) {
+    badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+    badge.classList.add('show');
+  } else {
+    badge.classList.remove('show');
+  }
+}
+
+function toggleNotificationDrawer() {
+  console.log('🔔 toggleNotificationDrawer called in orders.html');
+  const overlay = document.getElementById('notification-drawer-overlay');
+  const drawer = document.getElementById('notification-drawer');
+  console.log('🔔 overlay:', overlay, 'drawer:', drawer);
+  overlay.classList.toggle('open');
+  drawer.classList.toggle('open');
+  if (drawer.classList.contains('open')) {
+    loadNotifications();
+  }
+}
+
+function closeNotificationDrawer() {
+  document.getElementById('notification-drawer-overlay').classList.remove('open');
+  document.getElementById('notification-drawer').classList.remove('open');
+}
+
+async function markAllNotificationsAsRead() {
+  try {
+    await apiFetch('/notifications/read-all', { method: 'PATCH' });
+    await loadNotifications();
+  } catch (err) {
+    console.error('Error marking all as read:', err);
+  }
+}
+
+function formatTimeAgo(dateStr) {
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diffMs = now - date;
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMins / 60);
+  const diffDays = Math.floor(diffHours / 24);
+  
+  if (diffMins < 1) return 'Just now';
+  if (diffMins < 60) return `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`;
+  if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+  return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+}
+
 function toggleSidebar() {
   document.getElementById('sidebar').classList.toggle('open');
 }
+// Smooth navigation handler
+function setupSmoothNavigation() {
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', (e) => {
+      const href = item.getAttribute('href');
+      if (href && !href.startsWith('#')) {
+        e.preventDefault();
+        document.body.classList.add('page-exiting');
+        setTimeout(() => {
+          window.location.href = href;
+        }, 200);
+      }
+    });
+  });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+  // Add page loaded class for transition
+  document.body.classList.add('page-loaded');
+  // Setup smooth navigation
+  setupSmoothNavigation();
   // Set today as default date filter
   document.getElementById('date-filter').value = new Date().toISOString().split('T')[0];
   loadOrders();
+  loadNotifications();
   setInterval(loadOrders, 15000);
+  setInterval(loadNotifications, 30000);
 });
 </script>
 </body>

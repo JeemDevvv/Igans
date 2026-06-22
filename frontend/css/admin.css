@@ -2,6 +2,36 @@
   display: block;
   min-height: 100vh;
 }
+
+/* Page transition */
+body {
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+}
+
+body.page-loaded {
+  opacity: 1;
+}
+
+body.page-exiting {
+  opacity: 0;
+}
+
+/* Smooth content load */
+.admin-main {
+  animation: fadeInUp 0.3s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 .sidebar {
   background: rgba(15, 8, 4, 0.6);
   backdrop-filter: blur(15px);
@@ -66,7 +96,7 @@
 
 .kpi-grid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 20px;
   padding: 32px 32px 0;
 }

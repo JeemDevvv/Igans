@@ -33,6 +33,7 @@ app.use('/api/settings', require('./routes/settings.routes'));
 app.use('/api/ai',       require('./routes/ai.routes'));
 app.use('/api/admin',    require('./routes/admin.routes'));
 app.use('/api/reviews',  require('./routes/review.routes'));
+app.use('/api/notifications', require('./routes/notification.routes'));
 app.get('/api/health', (req, res) => res.json({ status: 'ok', time: new Date() }));
 app.get('*', (req, res) => {
   const requestedFile = path.join(__dirname, '../frontend', req.path);

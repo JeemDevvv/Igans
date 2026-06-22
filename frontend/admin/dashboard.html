@@ -21,14 +21,14 @@
       </div>
     </div>
     <nav class="sidebar-nav">
-      <a href="dashboard.html" class="nav-item active">Dashboard</a>
-      <a href="orders.html" class="nav-item">Orders</a>
-      <a href="menu-manage.html" class="nav-item">Menu</a>
-      <a href="users.html" class="nav-item">Users</a>
-      <a href="tables.html" class="nav-item">Tables & QR</a>
-      <a href="reports.html" class="nav-item">Reports</a>
-      <a href="reviews.html" class="nav-item">Reviews</a>
-      <a href="settings.html" class="nav-item">Settings</a>
+      <a href="dashboard.html" class="nav-item active"><i class="fas fa-home"></i> Dashboard</a>
+      <a href="orders.html" class="nav-item"><i class="fas fa-clipboard-list"></i> Orders</a>
+      <a href="menu-manage.html" class="nav-item"><i class="fas fa-utensils"></i> Menu</a>
+      <a href="users.html" class="nav-item"><i class="fas fa-users"></i> Users</a>
+      <a href="tables.html" class="nav-item"><i class="fas fa-table"></i> Tables & QR</a>
+      <a href="reports.html" class="nav-item"><i class="fas fa-chart-line"></i> Reports</a>
+      <a href="reviews.html" class="nav-item"><i class="fas fa-star"></i> Reviews</a>
+      <a href="settings.html" class="nav-item"><i class="fas fa-cog"></i> Settings</a>
     </nav>
     <div class="sidebar-footer">
       <div id="sidebar-user"></div>
@@ -43,6 +43,10 @@
       </div>
       <div style="display:flex;gap:10px;align-items:center;">
         <span id="last-updated" style="font-size:0.78rem;color:var(--text-muted);"></span>
+        <button class="notification-btn" id="notification-btn" onclick="toggleNotificationDrawer()">
+          <i class="fas fa-bell"></i>
+          <span class="notification-badge" id="notification-badge"></span>
+        </button>
         <button class="btn btn-outline btn-sm" onclick="loadDashboard()"><i class="fas fa-rotate-right"></i> Refresh</button>
       </div>
     </div>
@@ -86,6 +90,25 @@
       </div>
     </div>
   </main>
+  
+  <!-- Notification Drawer -->
+  <div class="notification-drawer-overlay" id="notification-drawer-overlay" onclick="closeNotificationDrawer()"></div>
+  <div class="notification-drawer" id="notification-drawer">
+    <div class="notification-drawer-header">
+      <h3><i class="fas fa-bell"></i> Notifications</h3>
+      <button class="notification-drawer-close" onclick="closeNotificationDrawer()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="notification-drawer-actions">
+      <button class="btn-mark-all-read" onclick="markAllNotificationsAsRead()">
+        <i class="fas fa-check-double"></i> Mark all as read
+      </button>
+    </div>
+    <div class="notifications-list" id="notifications-list">
+      <!-- Notifications will be loaded here -->
+    </div>
+  </div>
 </div>
 <script src="../js/auth.js"></script>
 <script>
@@ -179,13 +202,146 @@ async function loadDashboard() {
         </div>`).join('');
   } catch (e) { console.error(e); }
 }
-document.addEventListener('DOMContentLoaded', () => {
-  loadDashboard();
-  setInterval(loadDashboard, 30000);
-});
 function toggleSidebar() {
   document.getElementById('sidebar').classList.toggle('open');
 }
+
+// Notification functions
+let notifications = [];
+
+async function loadNotifications() {
+  try {
+    const res = await apiFetch('/notifications');
+    notifications = res.data || [];
+    renderNotifications();
+    updateNotificationBadge();
+  } catch (err) {
+    console.error('Error loading notifications:', err);
+  }
+}
+
+function renderNotifications() {
+  const container = document.getElementById('notifications-list');
+  if (!container) {
+    console.error('notifications-list element not found!');
+    return;
+  }
+  
+  if (!notifications || notifications.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state" style="padding: 40px 0;">
+        <div class="icon"><i class="fas fa-bell-slash"></i></div>
+        <h3>No notifications</h3>
+        <p>You'll see notifications here when orders are placed or payments are received</p>
+      </div>
+    `;
+    return;
+  }
+  container.innerHTML = notifications.map(n => {
+    let iconClass = '';
+    let icon = '';
+    if (n.type === 'payment') {
+      iconClass = 'payment';
+      icon = '<i class="fas fa-credit-card"></i>';
+    } else if (n.type === 'order') {
+      iconClass = 'order';
+      icon = '<i class="fas fa-receipt"></i>';
+    } else {
+      iconClass = 'system';
+      icon = '<i class="fas fa-bell"></i>';
+    }
+    return `
+      <div class="notification-item ${n.read ? '' : 'unread'}">
+        <div class="notification-item-icon ${iconClass}">${icon}</div>
+        <div class="notification-item-content">
+          <div class="notification-item-title">${n.title}</div>
+          <div class="notification-item-message">${n.message}</div>
+          <div class="notification-item-time">${formatTimeAgo(n.createdAt)}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function updateNotificationBadge() {
+  const badge = document.getElementById('notification-badge');
+  const unreadCount = notifications.filter(n => !n.read).length;
+  if (unreadCount > 0) {
+    badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+    badge.classList.add('show');
+  } else {
+    badge.classList.remove('show');
+  }
+}
+
+function toggleNotificationDrawer() {
+  console.log('🔔 toggleNotificationDrawer called in dashboard.html');
+  const overlay = document.getElementById('notification-drawer-overlay');
+  const drawer = document.getElementById('notification-drawer');
+  console.log('🔔 overlay:', overlay, 'drawer:', drawer);
+  overlay.classList.toggle('open');
+  drawer.classList.toggle('open');
+  // Load notifications when opening
+  if (drawer.classList.contains('open')) {
+    loadNotifications();
+  }
+}
+
+function closeNotificationDrawer() {
+  document.getElementById('notification-drawer-overlay').classList.remove('open');
+  document.getElementById('notification-drawer').classList.remove('open');
+}
+
+async function markAllNotificationsAsRead() {
+  try {
+    await apiFetch('/notifications/read-all', { method: 'PATCH' });
+    await loadNotifications();
+  } catch (err) {
+    console.error('Error marking all as read:', err);
+  }
+}
+
+function formatTimeAgo(dateStr) {
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diffMs = now - date;
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMins / 60);
+  const diffDays = Math.floor(diffHours / 24);
+  
+  if (diffMins < 1) return 'Just now';
+  if (diffMins < 60) return `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`;
+  if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+  return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+}
+
+// Smooth navigation handler
+function setupSmoothNavigation() {
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', (e) => {
+      const href = item.getAttribute('href');
+      if (href && !href.startsWith('#')) {
+        e.preventDefault();
+        document.body.classList.add('page-exiting');
+        setTimeout(() => {
+          window.location.href = href;
+        }, 200);
+      }
+    });
+  });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  // Add page loaded class for transition
+  document.body.classList.add('page-loaded');
+  // Setup smooth navigation
+  setupSmoothNavigation();
+  loadDashboard();
+  loadNotifications();
+  setInterval(loadDashboard, 30000);
+  // Poll for new notifications every 30 seconds
+  setInterval(loadNotifications, 30000);
+});
 </script>
 </body>
 </html>

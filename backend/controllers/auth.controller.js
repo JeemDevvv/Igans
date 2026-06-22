@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 const User = require('../models/User');
+const { createNotification } = require('./notification.controller');
 
 // In-memory storage for OTPs (in production, use Redis with expiry)
 const otpStore = {};
@@ -130,6 +131,16 @@ exports.register = async (req, res) => {
     if (existingUsername) return res.status(400).json({ success: false, msg: 'Username already registered' });
     const safeRole = ['staff', 'kitchen', 'admin'].includes(role) ? role : 'staff';
     const user = await User.create({ name, username, email, password, role: safeRole });
+    
+    // Send notification
+    const adminName = req.user?.name || 'Admin';
+    await createNotification(
+      'New Account Created',
+      `${adminName} added an account for "${user.name}" (${user.role})`,
+      'system',
+      { userId: user._id, userName: user.name, userRole: user.role }
+    );
+    
     const token = signToken(user);
     res.status(201).json({ success: true, token, user: { id: user._id, name: user.name, username: user.username, email: user.email, role: user.role } });
   } catch (err) {

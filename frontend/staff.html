@@ -83,7 +83,7 @@
   font-weight: 700;
 }
 .table-group-orders {
-  padding: 16px;
+  padding: 10px;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 16px;
@@ -151,7 +151,10 @@
       <div class="ftab" onclick="setFilter('ready',this)">Ready</div>
       <div class="ftab" onclick="setFilter('served',this)">Served</div>
     </div>
-    <button class="btn btn-outline btn-sm" onclick="loadOrders()">Refresh</button>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-primary btn-sm" onclick="openWalkInModal()"><i class="fas fa-plus-circle"></i> Create Walk-in Order</button>
+      <button class="btn btn-outline btn-sm" onclick="loadOrders()">Refresh</button>
+    </div>
   </div>
   <div id="orders-grid" class="orders-grid"></div>
   <div id="empty-staff" class="empty-state" style="display:none;">
@@ -162,11 +165,76 @@
     <p>No orders in this category right now.</p>
   </div>
 </div>
+<!-- Walk-in Order Modal -->
+<div class="modal-overlay" id="walkin-modal">
+  <div class="modal" style="max-width:800px;">
+    <div class="modal-header">
+      <h2 id="walkin-modal-title">Create Walk-in Order</h2>
+      <button class="modal-close" onclick="closeWalkInModal()"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="modal-body" id="walkin-modal-body">
+      <div style="display:flex;flex-direction:column;gap:16px;">
+        <!-- Order Type -->
+        <div>
+          <div class="form-label">Order Type</div>
+          <div style="display:flex;gap:12px;">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+              <input type="radio" name="walkin-order-type" value="dine-in" checked onchange="updateWalkInUI()">
+              <span>Dine-In</span>
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+              <input type="radio" name="walkin-order-type" value="take-out" onchange="updateWalkInUI()">
+              <span>Take-Out</span>
+            </label>
+          </div>
+        </div>
+        <!-- Table Number (only for dine-in) -->
+        <div id="table-number-container">
+          <div class="form-label">Table Number</div>
+          <input type="number" id="walkin-table-number" class="form-control" min="1" placeholder="Enter table number" oninput="clearTableNumberError()">
+        </div>
+        <!-- Customer Name (optional) -->
+        <div>
+          <div class="form-label">Customer Name (optional)</div>
+          <input type="text" id="walkin-customer-name" class="form-control" placeholder="Enter customer name">
+        </div>
+        <!-- Special Requests -->
+        <div>
+          <div class="form-label">Special Requests (optional)</div>
+          <textarea id="walkin-special-requests" class="form-control" rows="3" placeholder="Add any special requests here"></textarea>
+        </div>
+        <!-- Menu Items -->
+        <div>
+          <div class="form-label">Select Items</div>
+          <div id="walkin-items-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;max-height:300px;overflow-y:auto;padding:8px;"></div>
+        </div>
+        <!-- Selected Items Summary -->
+        <div id="walkin-selected-items" style="display:none;">
+          <div class="form-label">Selected Items</div>
+          <div id="walkin-selected-list" style="display:flex;flex-direction:column;gap:8px;"></div>
+        </div>
+        <!-- Total -->
+        <div id="walkin-total-container" style="display:none;">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;border-top:1px solid var(--border);margin-top:12px;">
+            <span style="font-weight:700;">Total:</span>
+            <span id="walkin-total" style="font-weight:800;font-size:1.2rem;color:var(--primary);"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeWalkInModal()">Cancel</button>
+      <button class="btn btn-primary" id="walkin-submit-btn" onclick="submitWalkInOrder()" disabled>Submit Order</button>
+    </div>
+  </div>
+</div>
 <script src="js/auth.js"></script>
 <script>
 requireRole('staff', 'admin');
 let currentFilter = 'all';
 let allOrders = [];
+let walkInItems = []; // All menu items
+let walkInSelectedItems = []; // Selected items with quantity
 async function loadOrders() {
   try {
     const url = currentFilter === 'all' || currentFilter === 'All Active'
@@ -175,7 +243,7 @@ async function loadOrders() {
       ? '/orders?status=served'
       : `/orders?status=${currentFilter}`;
     const data = await apiFetch(url);
-    allOrders = data.data.filter(o => o.paid);
+    allOrders = data.data; // Show all orders, even unpaid, for staff to mark as paid
     renderOrders(allOrders);
     updateStats(allOrders);
   } catch (e) { showToast(e.message, 'error'); }
@@ -192,71 +260,37 @@ function renderOrders(orders) {
   const empty = document.getElementById('empty-staff');
   if (orders.length === 0) { grid.innerHTML = ''; empty.style.display = 'block'; return; }
   empty.style.display = 'none';
-  // Group orders: first by table (dine-in), then take-out as separate group
-  const groups = {};
-  const takeOutOrders = [];
-  orders.forEach(order => {
-    if (order.orderType === 'dine-in' && order.tableNumber) {
-      const key = `table-${order.tableNumber}`;
-      if (!groups[key]) {
-        groups[key] = {
-          type: 'table',
-          tableNumber: order.tableNumber,
-          orders: []
-        };
-      }
-      groups[key].orders.push(order);
-    } else {
-      takeOutOrders.push(order);
-    }
-  });
-  // If there are take-out orders, add them as a group
-  if (takeOutOrders.length > 0) {
-    groups['takeout'] = {
-      type: 'takeout',
-      orders: takeOutOrders
-    };
-  }
-  // Render all groups
-  grid.innerHTML = Object.values(groups).map(group => {
-    if (group.type === 'table') {
-      return `
-        <div class="table-group">
-          <div class="table-group-header">
-            <div class="table-group-title">
-              <i class="fas fa-utensils"></i> Table ${group.tableNumber}
-              <span class="table-group-count">${group.orders.length} order${group.orders.length !== 1 ? 's' : ''}</span>
-            </div>
-          </div>
-          <div class="table-group-orders">
-            ${group.orders.map(order => renderOrderCard(order)).join('')}
-          </div>
+  // Render all orders in a single group, sorted by time (newest first)
+  const sortedOrders = [...orders].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  grid.innerHTML = `
+    <div class="table-group" style="width:100%;">
+      <div class="table-group-header">
+        <div class="table-group-title">
+          <i class="fas fa-list"></i> All Orders
+          <span class="table-group-count">${sortedOrders.length} order${sortedOrders.length !== 1 ? 's' : ''}</span>
         </div>
-      `;
-    } else {
-      return `
-        <div class="table-group">
-          <div class="table-group-header">
-            <div class="table-group-title">
-              <i class="fas fa-shopping-bag"></i> Take-Out Orders
-              <span class="table-group-count">${group.orders.length} order${group.orders.length !== 1 ? 's' : ''}</span>
-            </div>
-          </div>
-          <div class="table-group-orders">
-            ${group.orders.map(order => renderOrderCard(order)).join('')}
-          </div>
-        </div>
-      `;
-    }
-  }).join('');
+      </div>
+      <div class="table-group-orders">
+        ${sortedOrders.map(order => renderOrderCard(order)).join('')}
+      </div>
+    </div>
+  `;
 }
 function renderOrderCard(order) {
   const itemsSummary = order.items.map(i => `${i.quantity}× ${i.name}`).join(', ');
-  const actions = order.status === 'ready'
-    ? `<button class="btn btn-success btn-sm" onclick="markServed('${order._id}')"><i class="fas fa-check-circle"></i> Mark Served</button>`
-    : order.status === 'pending'
-    ? `<button class="btn btn-outline btn-sm" onclick="markStatus('${order._id}','preparing')">→ Preparing</button>`
-    : '';
+  const actions = [];
+  if (!order.paid && order.status !== 'cancelled') {
+    actions.push(`<button class="btn btn-success btn-sm" onclick="markPaid('${order._id}')"><i class="fas fa-money-bill"></i> Paid</button>`);
+  }
+  if (order.status === 'ready') {
+    actions.push(`<button class="btn btn-success btn-sm" onclick="markServed('${order._id}')"><i class="fas fa-check-circle"></i> Mark Served</button>`);
+  } else if (order.status === 'pending') {
+    actions.push(`<button class="btn btn-outline btn-sm" onclick="markStatus('${order._id}','preparing')">→ Preparing</button>`);
+  }
+  if (order.status !== 'served' && order.status !== 'cancelled') {
+    actions.push(`<button class="btn btn-danger btn-sm" onclick="markStatus('${order._id}','cancelled')">Cancel</button>`);
+  }
+  actions.push(`<button class="btn btn-ghost btn-sm" onclick="viewOrder('${order._id}')">View Details</button>`);
   return `<div class="staff-order-card fade-in">
     <div class="soc-header">
       <span class="soc-id">#${order.orderNumber}</span>
@@ -264,7 +298,8 @@ function renderOrderCard(order) {
     </div>
     <div class="soc-meta">
       ${statusBadge(order.status)}
-      <span class="badge ${order.orderType==='dine-in'?'badge-primary':'badge-accent'}">${order.orderType==='dine-in'?'<i class="fas fa-chair"></i> Dine-In':'<i class="fas fa-box"></i> Take-Out'}</span>
+      <span class="badge ${order.orderType==='dine-in'?'badge-dine-in':'badge-take-out'}">${order.orderType==='dine-in'?'<i class="fas fa-chair"></i> Dine-In':'<i class="fas fa-box"></i> Take-Out'}</span>
+      <span class="badge ${order.orderSource==='staff'?'badge-info':'badge-secondary'}">${order.orderSource==='staff'?'Staff Assisted':'QR Order'}</span>
       ${order.tableNumber ? `<span class="badge badge-accent">Table ${order.tableNumber}</span>` : ''}
       ${order.sessionId ? `<span class="badge" style="background: rgba(139,92,246,0.1); border: 1px solid rgba(139,92,246,0.3); color: #A78BFA;">Session ${order.sessionId.slice(-8)}</span>` : ''}
     </div>
@@ -273,8 +308,7 @@ function renderOrderCard(order) {
     ${order.specialRequests ? `<div style="font-size:0.8rem;color:var(--warning);background:var(--warning-bg);padding:6px 10px;border-radius:6px;margin-bottom:8px;"><i class="fas fa-note-sticky"></i> ${order.specialRequests}</div>` : ''}
     <div class="soc-total">${formatCurrency(order.totalAmount)}</div>
     <div class="soc-actions">
-      ${actions}
-      <button class="btn btn-ghost btn-sm" onclick="viewOrder('${order._id}')">View Details</button>
+      ${actions.join('')}
     </div>
   </div>`;
 }
@@ -288,6 +322,13 @@ function setFilter(f, el) {
   document.querySelectorAll('.ftab').forEach(t => t.classList.remove('active'));
   el.classList.add('active');
   loadOrders();
+}
+async function markPaid(id) {
+  try {
+    await apiFetch(`/orders/${id}/paid`, { method: 'PATCH' });
+    showToast('Order marked as paid!');
+    loadOrders();
+  } catch (e) { showToast(e.message, 'error'); }
 }
 async function markServed(id) {
   try {
@@ -304,6 +345,165 @@ async function markStatus(id, status) {
   } catch (e) { showToast(e.message, 'error'); }
 }
 function viewOrder(id) { window.open(`order-status.html?id=${id}`, '_blank'); }
+
+// Walk-in Order Functions
+async function openWalkInModal() {
+  // Load menu items
+  try {
+    const data = await apiFetch('/menu');
+    walkInItems = data.data;
+    renderWalkInItems();
+  } catch (e) {
+    showToast('Failed to load menu items', 'error');
+    return;
+  }
+  walkInSelectedItems = [];
+  updateWalkInSelectedList();
+  document.getElementById('walkin-modal').classList.add('active');
+}
+function closeWalkInModal() {
+  document.getElementById('walkin-modal').classList.remove('active');
+}
+function clearTableNumberError() {
+  const tableInput = document.getElementById('walkin-table-number');
+  tableInput.style.borderColor = '';
+  const existingError = document.getElementById('table-number-error');
+  if (existingError) existingError.remove();
+}
+function updateWalkInUI() {
+  const orderType = document.querySelector('input[name="walkin-order-type"]:checked').value;
+  const tableContainer = document.getElementById('table-number-container');
+  const tableInput = document.getElementById('walkin-table-number');
+  
+  // Reset validation styles
+  tableInput.style.borderColor = '';
+  const existingError = document.getElementById('table-number-error');
+  if (existingError) existingError.remove();
+  
+  if (orderType === 'dine-in') {
+    tableContainer.style.display = 'block';
+  } else {
+    tableContainer.style.display = 'none';
+    tableInput.value = '';
+  }
+}
+function renderWalkInItems() {
+  const grid = document.getElementById('walkin-items-grid');
+  grid.innerHTML = walkInItems.map(item => `
+    <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px;cursor:pointer;transition:border-color 0.2s;" onclick="toggleWalkInItem('${item._id}')" id="item-${item._id}">
+      <div style="font-weight:700;margin-bottom:4px;">${item.name}</div>
+      <div style="color:var(--text-muted);font-size:0.85rem;margin-bottom:8px;">${formatCurrency(item.price)}</div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <button class="btn btn-sm btn-outline" onclick="event.stopPropagation();changeWalkInQuantity('${item._id}',-1)" style="padding:4px 10px;">-</button>
+        <span id="qty-${item._id}" style="font-weight:700;">0</span>
+        <button class="btn btn-sm btn-outline" onclick="event.stopPropagation();changeWalkInQuantity('${item._id}',1)" style="padding:4px 10px;">+</button>
+      </div>
+    </div>
+  `).join('');
+}
+function toggleWalkInItem(itemId) {
+  changeWalkInQuantity(itemId, 1);
+}
+function changeWalkInQuantity(itemId, delta) {
+  const item = walkInItems.find(i => i._id === itemId);
+  const existingIndex = walkInSelectedItems.findIndex(i => i._id === itemId);
+  if (existingIndex >= 0) {
+    walkInSelectedItems[existingIndex].quantity += delta;
+    if (walkInSelectedItems[existingIndex].quantity <= 0) {
+      walkInSelectedItems.splice(existingIndex, 1);
+    }
+  } else if (delta > 0) {
+    walkInSelectedItems.push({ ...item, quantity: 1 });
+  }
+  document.getElementById(`qty-${itemId}`).textContent = walkInSelectedItems.find(i => i._id === itemId)?.quantity || 0;
+  updateWalkInSelectedList();
+}
+function updateWalkInSelectedList() {
+  const selectedContainer = document.getElementById('walkin-selected-items');
+  const totalContainer = document.getElementById('walkin-total-container');
+  const selectedList = document.getElementById('walkin-selected-list');
+  const submitBtn = document.getElementById('walkin-submit-btn');
+  if (walkInSelectedItems.length === 0) {
+    selectedContainer.style.display = 'none';
+    totalContainer.style.display = 'none';
+    submitBtn.disabled = true;
+    return;
+  }
+  selectedContainer.style.display = 'block';
+  totalContainer.style.display = 'block';
+  submitBtn.disabled = false;
+  selectedList.innerHTML = walkInSelectedItems.map(item => `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px;background:var(--bg);border:1px solid var(--border);border-radius:8px;">
+      <div>
+        <span style="font-weight:600;">${item.name}</span>
+        <span style="color:var(--text-muted);margin-left:8px;">× ${item.quantity}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span>${formatCurrency(item.price * item.quantity)}</span>
+        <button class="btn btn-sm btn-ghost" onclick="changeWalkInQuantity('${item._id}', -1)" style="padding:4px 8px;">-</button>
+        <button class="btn btn-sm btn-ghost" onclick="changeWalkInQuantity('${item._id}', 1)" style="padding:4px 8px;">+</button>
+      </div>
+    </div>
+  `).join('');
+  const total = walkInSelectedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  document.getElementById('walkin-total').textContent = formatCurrency(total);
+}
+async function submitWalkInOrder() {
+  const orderType = document.querySelector('input[name="walkin-order-type"]:checked').value;
+  const tableInput = document.getElementById('walkin-table-number');
+  const tableValue = tableInput.value.trim();
+  
+  // Reset validation styles first
+  tableInput.style.borderColor = '';
+  const existingError = document.getElementById('table-number-error');
+  if (existingError) existingError.remove();
+  
+  if (orderType === 'dine-in') {
+    if (!tableValue || parseInt(tableValue) < 1) {
+      // Show validation error
+      tableInput.style.borderColor = 'var(--danger)';
+      const errorDiv = document.createElement('div');
+      errorDiv.id = 'table-number-error';
+      errorDiv.style.color = 'var(--danger)';
+      errorDiv.style.fontSize = '0.85rem';
+      errorDiv.style.marginTop = '4px';
+      errorDiv.textContent = 'Please input a valid table number';
+      tableInput.parentNode.appendChild(errorDiv);
+      tableInput.focus();
+      return;
+    }
+  }
+  
+  const tableNumber = orderType === 'dine-in' ? parseInt(tableValue) : null;
+  const customerName = document.getElementById('walkin-customer-name').value.trim();
+  const specialRequests = document.getElementById('walkin-special-requests').value.trim();
+  const items = walkInSelectedItems.map(item => ({
+    menuItem: item._id,
+    name: item.name,
+    price: item.price,
+    quantity: item.quantity,
+    image: item.image || ''
+  }));
+  try {
+    await apiFetch('/orders', {
+      method: 'POST',
+      body: JSON.stringify({
+        tableNumber,
+        orderType,
+        items,
+        specialRequests,
+        customerName,
+        orderSource: 'staff'
+      })
+    });
+    showToast('Walk-in order created successfully!');
+    closeWalkInModal();
+    loadOrders();
+  } catch (e) {
+    showToast(e.message, 'error');
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   loadOrders();
   loadStats();

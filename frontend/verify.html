@@ -415,7 +415,25 @@ const qrType = urlParams.get('type');
 const qrId = urlParams.get('id');
 console.log('DEBUG verify.html: urlParams:', Object.fromEntries(urlParams.entries()));
 console.log('DEBUG verify.html: tableNum:', tableNum, 'qrType:', qrType, 'qrId:', qrId);
+
+// Send QR scan notification
+async function sendQrScanNotification() {
+  try {
+    await fetch(`${API}/notifications/qr-scan`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        tableNumber: tableNum,
+        type: qrType
+      })
+    });
+  } catch (err) {
+    console.error('Error sending QR scan notification:', err);
+  }
+}
+
 if (qrType === 'takeout' && qrId) {
+  sendQrScanNotification();
   sessionStorage.setItem('qrType', 'takeout');
   sessionStorage.setItem('takeoutQrId', qrId);
   sessionStorage.setItem('isTakeOutQR', 'true');
@@ -431,6 +449,7 @@ if (qrType === 'takeout' && qrId) {
   showStatus('success', 'Take-Out QR verified! Redirecting to order page...');
   setTimeout(() => { window.location.href = 'order-type.html'; }, 1500);
 } else if (tableNum) {
+  sendQrScanNotification();
   sessionStorage.setItem('tableNumber', tableNum);
   sessionStorage.setItem('qrType', 'table');
   sessionStorage.removeItem('isTakeOutQR');

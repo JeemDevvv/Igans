@@ -157,6 +157,9 @@ function timeAgo(d) {
   if (diff < 3600) return `${Math.floor(diff/60)}m ago`;
   return `${Math.floor(diff/3600)}h ago`;
 }
+function formatTimeAgo(d) {
+  return timeAgo(d);
+}
 function minutesAgo(d) { return Math.floor((Date.now() - new Date(d)) / 60000); }
 function statusBadge(status) {
   const dots = { pending: 'dot-pending', preparing: 'dot-preparing', ready: 'dot-ready', served: 'dot-served', cancelled: '' };

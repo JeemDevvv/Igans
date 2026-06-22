@@ -172,6 +172,7 @@ function renderCard(order, status) {
     </div>
     <div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;">
       <span class="order-type-badge ${order.orderType==='dine-in'?'type-dinein':'type-takeout'}">${order.orderType==='dine-in'?'<i class="fas fa-chair"></i> Dine-In':'<i class="fas fa-box"></i> Take-Out'}</span>
+      <span style="font-size:0.75rem;padding:3px 8px;border-radius:6px;background:rgba(156,163,175,0.1);color:#9CA3AF;border:1px solid rgba(156,163,175,0.3);font-weight:600;">${order.orderSource==='staff'?'Staff Assisted':'QR Order'}</span>
       ${order.sessionId ? `<span style="font-size:0.75rem;padding:3px 8px;border-radius:6px;background:rgba(139,92,246,0.1);color:#A78BFA;border:1px solid rgba(139,92,246,0.3);font-weight:600;">Session ${order.sessionId.slice(-8)}</span>` : ''}
       ${order.customerName ? `<span style="font-size:0.75rem;padding:3px 8px;border-radius:6px;background:rgba(96,165,250,0.1);color:#93C5FD;font-weight:600;"><i class="fas fa-user"></i> ${order.customerName}</span>` : ''}
     </div>

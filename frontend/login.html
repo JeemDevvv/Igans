@@ -60,7 +60,7 @@ body {
   color: var(--accent);
   cursor: pointer;
   font-size: 0.9rem;
-  margin-top: 8px;
+  margin-top: 15px;
   margin-bottom: 20px;
   transition: opacity 0.2s;
 }
@@ -73,6 +73,7 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  margin-bottom: 15px;
 }
 .back-link:hover { color: #FFF; }
 @media (max-width: 992px) {
@@ -122,8 +123,8 @@ body {
       <label class="form-label">Password</label>
       <input type="password" id="password" class="form-control" placeholder="Enter your password" autocomplete="current-password">
     </div>
-    <div class="forgot-link" onclick="showForgotStep()">Forgot password?</div>
     <button class="btn btn-primary btn-block btn-lg" id="login-btn" onclick="doLogin()">Sign In</button>
+    <div class="forgot-link" onclick="showForgotStep()">Forgot password?</div>
   </div>
 
   <!-- Step 2: Verify User -->

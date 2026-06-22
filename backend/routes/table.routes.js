@@ -4,6 +4,8 @@ const QRCode = require('qrcode');
 const Table = require('../models/Table');
 const { protect } = require('../middleware/auth.middleware');
 const { allow } = require('../middleware/role.middleware');
+const { createNotification } = require('../controllers/notification.controller');
+
 const updateTableQR = async (req, table) => {
   let currentBaseUrl = process.env.BASE_URL;
   if (!currentBaseUrl || currentBaseUrl.includes('localhost')) {
@@ -51,6 +53,16 @@ router.post('/', protect, allow('admin'), async (req, res) => {
     const url = `${baseUrl}/verify.html?table=${tableNumber}`;
     const qrCodeImage = await QRCode.toDataURL(url, { width: 300, margin: 2, color: { dark: '#1a1a1a', light: '#ffffff' } });
     const table = await Table.create({ tableNumber, capacity: capacity || 4, qrCodeValue: url, qrCodeImage });
+    
+    // Send notification
+    const adminName = req.user?.name || 'Admin';
+    await createNotification(
+      'New Table Added',
+      `${adminName} added Table ${table.tableNumber}`,
+      'system',
+      { tableId: table._id, tableNumber: table.tableNumber }
+    );
+    
     res.status(201).json({ success: true, data: table });
   } catch (err) { res.status(400).json({ success: false, msg: err.message }); }
 });
