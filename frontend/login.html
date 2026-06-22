@@ -107,7 +107,7 @@ body {
 </div>
 
 <!-- Forgot Password Modal -->
-<div class="modal-overlay" id="forgot-modal" style="display:none;">
+<div class="modal-overlay" id="forgot-modal">
   <div class="modal" style="max-width:420px;">
     <div class="modal-header">
       <h2 id="fp-title">Forgot Password</h2>
@@ -159,8 +159,8 @@ function selectRole(el) {
 
 function toggleForgotPassword() {
   const modal = document.getElementById('forgot-modal');
-  if (modal.style.display === 'block') {
-    modal.style.display = 'none';
+  if (modal.classList.contains('active')) {
+    modal.classList.remove('active');
     // Reset
     document.getElementById('fp-step1').style.display = 'block';
     document.getElementById('fp-step2').style.display = 'none';
@@ -171,7 +171,7 @@ function toggleForgotPassword() {
     const fpBtns = document.querySelectorAll('#forgot-modal .role-btn');
     fpBtns.forEach(b => { if (b.dataset.role === 'staff') b.classList.add('active'); else b.classList.remove('active'); });
   } else {
-    modal.style.display = 'block';
+    modal.classList.add('active');
   }
 }
 
