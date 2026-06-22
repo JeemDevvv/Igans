@@ -54,7 +54,7 @@ router.post('/', protect, allow('admin'), async (req, res) => {
       baseUrl = `${protocol}://${host}`;
     }
     const url = `${baseUrl}/verify.html?table=${tableNumber}`;
-    const qrCodeImage = await QRCode.toDataURL(url, { width: 300, margin: 2, color: { dark: '#1a1a1a', light: '#ffffff' });
+    const qrCodeImage = await QRCode.toDataURL(url, { width: 300, margin: 2, color: { dark: '#1a1a1a', light: '#ffffff' } });
     const table = await Table.create({ tableNumber, capacity: capacity || 4, qrCodeValue: url, qrCodeImage });
     
     // Send notification (non-blocking)
