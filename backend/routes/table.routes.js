@@ -44,6 +44,9 @@ router.get('/:tableNum', async (req, res) => {
 router.post('/', protect, allow('admin'), async (req, res) => {
   try {
     const { tableNumber, capacity } = req.body;
+    if (!tableNumber) {
+      return res.status(400).json({ success: false, msg: 'Table number is required' });
+    }
     let baseUrl = process.env.BASE_URL;
     if (!baseUrl || baseUrl.includes('localhost')) {
       const protocol = req.headers['x-forwarded-proto'] || req.protocol;
@@ -51,20 +54,27 @@ router.post('/', protect, allow('admin'), async (req, res) => {
       baseUrl = `${protocol}://${host}`;
     }
     const url = `${baseUrl}/verify.html?table=${tableNumber}`;
-    const qrCodeImage = await QRCode.toDataURL(url, { width: 300, margin: 2, color: { dark: '#1a1a1a', light: '#ffffff' } });
+    const qrCodeImage = await QRCode.toDataURL(url, { width: 300, margin: 2, color: { dark: '#1a1a1a', light: '#ffffff' });
     const table = await Table.create({ tableNumber, capacity: capacity || 4, qrCodeValue: url, qrCodeImage });
     
-    // Send notification
+    // Send notification (non-blocking)
     const adminName = req.user?.name || 'Admin';
-    await createNotification(
-      'New Table Added',
-      `${adminName} added Table ${table.tableNumber}`,
-      'system',
-      { tableId: table._id, tableNumber: table.tableNumber }
-    );
+    try {
+      await createNotification(
+        'New Table Added',
+        `${adminName} added Table ${table.tableNumber}`,
+        'system',
+        { tableId: table._id, tableNumber: table.tableNumber }
+      );
+    } catch (notificationErr) {
+      console.error('Failed to create notification for new table:', notificationErr);
+    }
     
     res.status(201).json({ success: true, data: table });
-  } catch (err) { res.status(400).json({ success: false, msg: err.message }); }
+  } catch (err) { 
+      console.error('Create table error:', err);
+      res.status(400).json({ success: false, msg: err.message }); 
+    }
 });
 router.get('/qr/:tableNum', protect, allow('admin'), async (req, res) => {
   try {

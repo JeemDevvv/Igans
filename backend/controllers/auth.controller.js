@@ -137,6 +137,9 @@ exports.resetPassword = async (req, res) => {
 exports.register = async (req, res) => {
   try {
     const { name, username, email, password, role } = req.body;
+    if (!name || !username || !email || !password) {
+      return res.status(400).json({ success: false, msg: 'All fields are required' });
+    }
     const existingEmail = await User.findOne({ email });
     const existingUsername = await User.findOne({ username });
     if (existingEmail) return res.status(400).json({ success: false, msg: 'Email already registered' });
@@ -146,16 +149,21 @@ exports.register = async (req, res) => {
     
     // Send notification
     const adminName = req.user?.name || 'Admin';
-    await createNotification(
-      'New Account Created',
-      `${adminName} added an account for "${user.name}" (${user.role})`,
-      'system',
-      { userId: user._id, userName: user.name, userRole: user.role }
-    );
+    try {
+      await createNotification(
+        'New Account Created',
+        `${adminName} added an account for "${user.name}" (${user.role})`,
+        'system',
+        { userId: user._id, userName: user.name, userRole: user.role }
+      );
+    } catch (notificationErr) {
+      console.error('Failed to create notification:', notificationErr);
+    }
     
     const token = signToken(user);
     res.status(201).json({ success: true, token, user: { id: user._id, name: user.name, username: user.username, email: user.email, role: user.role } });
   } catch (err) {
+    console.error('Register error:', err);
     res.status(500).json({ success: false, msg: err.message });
   }
 };
