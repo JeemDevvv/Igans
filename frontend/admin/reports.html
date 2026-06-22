@@ -376,10 +376,8 @@ function updateNotificationBadge() {
 }
 
 function toggleNotificationDrawer() {
-  console.log('🔔 toggleNotificationDrawer called in reports.html');
   const overlay = document.getElementById('notification-drawer-overlay');
   const drawer = document.getElementById('notification-drawer');
-  console.log('🔔 overlay:', overlay, 'drawer:', drawer);
   overlay.classList.toggle('open');
   drawer.classList.toggle('open');
   if (drawer.classList.contains('open')) {

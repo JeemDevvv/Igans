@@ -242,12 +242,9 @@ textarea.form-control { resize: vertical; min-height: 100px; }
 .badge-cancelled{ background: var(--danger-bg); color: #FFF; border: 1px solid var(--danger); }
 .badge-primary  { background: rgba(214,40,40,0.2); color: var(--primary-light); }
 .badge-accent   { background: rgba(233,196,106,0.2); color: var(--accent); }
-.badge-dine-in  { background: var(--success-bg); color: #FFF; border: 1px solid var(--success); }
 .badge-take-out { background: var(--danger-bg); color: #FFF; border: 1px solid var(--danger); }
 .badge-info     { background: var(--info-bg); color: #FFF; border: 1px solid var(--info); }
-.badge-secondary{ background: rgba(255,255,255,0.1); color: #FFF; border: 1px solid rgba(255,255,255,0.2); }
-.badge-success  { background: var(--success-bg); color: #FFF; border: 1px solid var(--success); }
-.badge-warning  { background: var(--warning-bg); color: #FFF; border: 1px solid var(--warning); }
+
 
 .status-dot {
   width: 10px; height: 10px; border-radius: 50%; display: inline-block;
@@ -493,8 +490,8 @@ tbody tr:hover { background: #FDFAF6; }
 .notification-item.unread::before {
   content: '';
   position: absolute;
-  left: 12px;
-  top: 50%;
+  left: 9px;
+  top: 40%;
   transform: translateY(-50%);
   width: 10px;
   height: 10px;

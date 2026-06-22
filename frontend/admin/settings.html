@@ -121,25 +121,27 @@ function useMyLocation() {
 async function saveSettings() {
   const btn = document.getElementById('save-btn');
   btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Saving...';
-  const alertEl = document.getElementById('settings-alert');
+  
   try {
+    const payload = {
+      restaurantName:     document.getElementById('s-name').value.trim(),
+      phone:              document.getElementById('s-phone').value.trim(),
+      address:            document.getElementById('s-address').value.trim(),
+      openHours:          document.getElementById('s-hours').value.trim(),
+      currency:           document.getElementById('s-currency').value.trim(),
+      latitude:           parseFloat(document.getElementById('s-lat').value),
+      longitude:          parseFloat(document.getElementById('s-lon').value),
+      allowedRadiusMeters:parseInt(document.getElementById('s-radius').value)
+    };
+    
     await apiFetch('/settings', {
       method: 'PUT',
-      body: JSON.stringify({
-        restaurantName:     document.getElementById('s-name').value.trim(),
-        phone:              document.getElementById('s-phone').value.trim(),
-        address:            document.getElementById('s-address').value.trim(),
-        openHours:          document.getElementById('s-hours').value.trim(),
-        currency:           document.getElementById('s-currency').value.trim(),
-        latitude:           parseFloat(document.getElementById('s-lat').value),
-        longitude:          parseFloat(document.getElementById('s-lon').value),
-        allowedRadiusMeters:parseInt(document.getElementById('s-radius').value)
-      })
+      body: JSON.stringify(payload)
     });
+    
     showToast('Settings saved!');
   } catch(e) {
-    alertEl.className = 'alert alert-error';
-    alertEl.textContent = '<i class="fas fa-xmark"></i> ' + e.message;
+    showToast('Error saving settings: ' + e.message, 'error');
   }
   btn.disabled = false; btn.innerHTML = 'Save All Settings';
 }
@@ -208,10 +210,8 @@ function updateNotificationBadge() {
 }
 
 function toggleNotificationDrawer() {
-  console.log('🔔 toggleNotificationDrawer called in settings.html');
   const overlay = document.getElementById('notification-drawer-overlay');
   const drawer = document.getElementById('notification-drawer');
-  console.log('🔔 overlay:', overlay, 'drawer:', drawer);
   overlay.classList.toggle('open');
   drawer.classList.toggle('open');
   if (drawer.classList.contains('open')) {
