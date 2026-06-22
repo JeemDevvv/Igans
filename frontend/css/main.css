@@ -293,7 +293,8 @@ textarea.form-control { resize: vertical; min-height: 100px; }
 .modal-body { padding: 32px; }
 .modal-footer {
   padding: 24px 32px 32px;
-  display: flex; gap: 16px; justify-content: flex-end;
+  display: flex; gap: 16px; 
+  justify-content: center;
 }
 
 .spinner {
@@ -492,7 +493,7 @@ tbody tr:hover { background: #FDFAF6; }
   position: absolute;
   left: 9px;
   top: 40%;
-  transform: translateY(-50%);
+  transform: translateY(-40%);
   width: 10px;
   height: 10px;
   border-radius: 50%;
