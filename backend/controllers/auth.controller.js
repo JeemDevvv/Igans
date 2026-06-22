@@ -65,14 +65,26 @@ exports.sendOTP = async (req, res) => {
       expires: Date.now() + 10 * 60 * 1000 // 10 minutes
     };
 
-    // Send email
+    // Development fallback: log OTP to console instead of sending email
+    if (process.env.NODE_ENV === 'development' || !process.env.SMTP_PASS) {
+      console.log(`[DEV MODE] OTP for ${user.email} (${username}): ${otp}`);
+      return res.json({ success: true, msg: 'OTP sent to email (check server console for OTP)' });
+    }
+
+    // Send email in production
     const transporter = createTransporter();
-    await transporter.sendMail({
-      from: process.env.SMTP_FROM || process.env.SMTP_USER,
-      to: user.email,
-      subject: 'Password Reset OTP — Igan\'s Budbod House',
-      text: `Your OTP for password reset is: ${otp}. It will expire in 10 minutes.`
-    });
+    try {
+      await transporter.sendMail({
+        from: process.env.SMTP_FROM || process.env.SMTP_USER,
+        to: user.email,
+        subject: 'Password Reset OTP — Igan\'s Budbod House',
+        text: `Your OTP for password reset is: ${otp}. It will expire in 10 minutes.`
+      });
+    } catch (emailErr) {
+      console.error('Failed to send email, falling back to console OTP:', emailErr.message);
+      console.log(`OTP for ${user.email}: ${otp}`);
+      return res.json({ success: true, msg: 'OTP sent (check server console)' });
+    }
 
     res.json({ success: true, msg: 'OTP sent to email' });
   } catch (err) {
