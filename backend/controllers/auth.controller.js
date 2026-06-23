@@ -170,17 +170,28 @@ exports.register = async (req, res) => {
 exports.login = async (req, res) => {
   try {
     const { username, password, role } = req.body;
+    console.log('[Login Attempt] Username:', username, 'Role:', role);
     if (!username || !password) return res.status(400).json({ success: false, msg: 'Username and password required' });
     const user = await User.findOne({ username }).select('+password');
-    if (!user || !(await user.matchPassword(password))) {
+    if (!user) {
+      console.log('[Login Failed] User not found for username:', username);
+      return res.status(401).json({ success: false, msg: 'Invalid credentials' });
+    }
+    console.log('[Login Found User] User:', user._id, 'Role:', user.role);
+    const passwordMatch = await user.matchPassword(password);
+    if (!passwordMatch) {
+      console.log('[Login Failed] Password mismatch');
       return res.status(401).json({ success: false, msg: 'Invalid credentials' });
     }
     if (role && user.role !== role) {
+      console.log('[Login Failed] Role mismatch:', role, 'vs', user.role);
       return res.status(403).json({ success: false, msg: `Invalid role for this account` });
     }
     const token = signToken(user);
+    console.log('[Login Success] User:', user._id, 'Token generated');
     res.json({ success: true, token, user: { id: user._id, name: user.name, username: user.username, email: user.email, role: user.role } });
   } catch (err) {
+    console.error('[Login Error]', err);
     res.status(500).json({ success: false, msg: err.message });
   }
 };
