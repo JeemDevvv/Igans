@@ -24,7 +24,18 @@ const limiter = rateLimit({
 app.use('/api/', limiter);
 
 // Security headers with Helmet
-app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "https://cdnjs.cloudflare.com"],
+      styleSrc: ["'self'", "https://cdnjs.cloudflare.com", "'unsafe-inline'"], // unsafe-inline for style attributes if needed
+      fontSrc: ["'self'", "https://cdnjs.cloudflare.com"],
+      imgSrc: ["'self'", "data:"],
+      connectSrc: ["'self'"],
+    },
+  },
+}));
 
 // Secure CORS configuration
 const allowedOrigins = process.env.ALLOWED_ORIGINS 
@@ -52,7 +63,11 @@ app.post('/api/customer/heartbeat', (req, res) => {
 app.get('/api/customer/active-count', (req, res) => {
   res.json({ success: true, count: getActiveCount() });
 });
-app.use(express.static(path.join(__dirname, '../frontend')));
+const isProduction = process.env.NODE_ENV === 'production';
+const staticPath = isProduction 
+  ? path.join(__dirname, '../frontend/dist') 
+  : path.join(__dirname, '../frontend');
+app.use(express.static(staticPath));
 app.use('/api/auth',     require('./routes/auth.routes'));
 app.use('/api/menu',     require('./routes/menu.routes'));
 app.use('/api/orders',   require('./routes/order.routes'));

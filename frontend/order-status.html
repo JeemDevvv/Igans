@@ -341,7 +341,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 async function loadOrder() {
   try {
-    const data = await apiFetch(`/orders/${orderId}`);
+    const sessionId = Session.getSessionId();
+    const data = await apiFetch(`/orders/${orderId}?sessionId=${encodeURIComponent(sessionId)}`);
     const order = data.data;
     currentOrderData = order;
     orderCreatedAt = order.createdAt;

@@ -4,11 +4,29 @@ const MenuItem = require('../models/MenuItem');
 exports.createReview = async (req, res) => {
   try {
     const { orderId, rating, comment, sessionId } = req.body;
+
+    // Validate input
+    if (!orderId) {
+      return res.status(400).json({ success: false, msg: 'Order ID is required' });
+    }
+    const parsedRating = parseInt(rating, 10);
+    if (isNaN(parsedRating) || parsedRating < 1 || parsedRating > 5) {
+      return res.status(400).json({ success: false, msg: 'Rating must be a number between 1 and 5' });
+    }
+
     const order = await Order.findById(orderId);
     if (!order) return res.status(404).json({ success: false, msg: 'Order not found' });
     if (order.status !== 'served') {
       return res.status(400).json({ success: false, msg: 'Only served orders can be reviewed' });
     }
+
+    // Check if user is authorized to review this order
+    const isOrderOwner = req.user?.id && order.customer?.toString() === req.user.id;
+    const hasValidSession = !req.user?.id && sessionId && order.sessionId === sessionId;
+    if (!isOrderOwner && !hasValidSession) {
+      return res.status(403).json({ success: false, msg: 'Not authorized to review this order' });
+    }
+
     const existingReview = await Review.findOne({ order: orderId });
     if (existingReview) {
       return res.status(400).json({ success: false, msg: 'This order has already been reviewed' });
@@ -17,8 +35,8 @@ exports.createReview = async (req, res) => {
       order: orderId,
       customer: req.user?.id || null,
       sessionId: sessionId || req.user?.id || 'guest',
-      rating,
-      comment
+      rating: parsedRating,
+      comment: comment?.trim() || ''
     });
     for (const item of order.items) {
       if (item.menuItem) {

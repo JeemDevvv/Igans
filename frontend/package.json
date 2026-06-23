@@ -1,0 +1,15 @@
+{
+  "name": "igans-restaurant-frontend",
+  "version": "1.0.0",
+  "description": "Frontend build process for production security",
+  "scripts": {
+    "build": "node build.js",
+    "dev": "echo 'Development mode - no build needed'"
+  },
+  "devDependencies": {
+    "terser": "^5.34.0",
+    "cssnano": "^6.1.2",
+    "postcss": "^8.4.38",
+    "postcss-cli": "^11.0.0"
+  }
+}

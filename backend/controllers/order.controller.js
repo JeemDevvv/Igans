@@ -91,6 +91,16 @@ exports.getOrder = async (req, res) => {
   try {
     const order = await Order.findById(req.params.id).populate('customer', 'name email');
     if (!order) return res.status(404).json({ success: false, msg: 'Order not found' });
+
+    // Check if user is authorized: admin/staff/kitchen OR order owner (customer) OR has matching sessionId
+    const isAuthorizedStaff = req.user && ['admin', 'staff', 'kitchen'].includes(req.user.role);
+    const isOrderOwner = req.user?.id && order.customer?.id === req.user.id;
+    const hasValidSession = !req.user?.id && req.query.sessionId && order.sessionId === req.query.sessionId;
+
+    if (!isAuthorizedStaff && !isOrderOwner && !hasValidSession) {
+      return res.status(403).json({ success: false, msg: 'Not authorized to access this order' });
+    }
+
     res.json({ success: true, data: order });
   } catch (err) {
     res.status(500).json({ success: false, msg: err.message });
