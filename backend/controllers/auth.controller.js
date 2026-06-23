@@ -1,8 +1,7 @@
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 const User = require('../models/User');
-// Temporarily disable notifications to debug
-const createNotification = () => Promise.resolve();
+const { createNotification } = require('./notification.controller');
 
 // In-memory storage for OTPs (in production, use Redis with expiry)
 const otpStore = {};
