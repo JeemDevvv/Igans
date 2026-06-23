@@ -4,7 +4,7 @@ const RestaurantSettings = require('../models/RestaurantSettings');
 const { protect } = require('../middleware/auth.middleware');
 const { allow } = require('../middleware/role.middleware');
 const { createNotification } = require('../controllers/notification.controller');
-router.get('/', protect, allow('admin', 'staff', 'kitchen'), async (req, res) => {
+router.get('/', async (req, res) => {
   try {
     let settings = await RestaurantSettings.findOne();
     if (!settings) {
