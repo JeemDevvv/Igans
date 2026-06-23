@@ -36,12 +36,14 @@ async function apiFetch(path, options = {}) {
   try {
     const res = await fetch(API + path, { ...options, headers });
     const data = await res.json().catch(() => ({}));
-    if (res.status === 401) {
-      Session.clear();
-      window.location.href = getRootPath('login.html');
-      throw new Error(data.msg || 'Unauthorized');
+    if (!res.ok) {
+      if (res.status === 401) {
+        // Unauthorized - log out user
+        Session.clear();
+        window.location.href = getRootPath('login.html');
+      }
+      throw new Error(data.msg || `HTTP ${res.status}`);
     }
-    if (!res.ok) throw new Error(data.msg || `HTTP ${res.status}`);
     return data;
   } catch (err) {
     if (err.message === 'Failed to fetch') {
@@ -170,7 +172,18 @@ function statusBadge(status) {
   const dots = { pending: 'dot-pending', preparing: 'dot-preparing', ready: 'dot-ready', served: 'dot-served', cancelled: '' };
   return `<span class="badge badge-${status}"><span class="status-dot ${dots[status]||''}"></span>${status.charAt(0).toUpperCase()+status.slice(1)}</span>`;
 }
-document.addEventListener('DOMContentLoaded', () => { renderNavUser(); Cart.updateBadge(); startCustomerHeartbeat(); });
+document.addEventListener('DOMContentLoaded', () => { 
+  renderNavUser(); 
+  Cart.updateBadge(); 
+  startCustomerHeartbeat();
+  // Verify session on page load for non-login pages
+  const path = window.location.pathname.toLowerCase();
+  if (!path.includes('login.html') && Session.getToken()) {
+    apiFetch('/auth/me').catch(() => {
+      // Error will be handled by apiFetch's 401 check
+    });
+  }
+});
 let heartbeatInterval = null;
 function startCustomerHeartbeat() {
   const path = window.location.pathname.toLowerCase();

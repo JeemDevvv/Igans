@@ -207,6 +207,9 @@ exports.login = async (req, res) => {
 exports.getMe = async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(401).json({ success: false, msg: 'User no longer exists' });
+    }
     res.json({ success: true, user });
   } catch (err) {
     res.status(500).json({ success: false, msg: err.message });
