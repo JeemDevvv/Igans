@@ -21,7 +21,7 @@ app.set('trust proxy', 1);
 // Rate limiting to prevent brute force attacks
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 1000, // limit each IP to 1000 requests per windowMs (increased for normal use)
+  max: 100000, // limit each IP to 100,000 requests per windowMs (effectively disabled for dev)
   message: 'Too many requests from this IP, please try again later'
 });
 app.use('/api/', limiter);
