@@ -8,7 +8,12 @@ exports.protect = async (req, res, next) => {
   if (!token) return res.status(401).json({ success: false, msg: 'Not authorized, no token' });
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded;
+    // Verify the user still exists in the database
+    const user = await User.findById(decoded.id);
+    if (!user) {
+      return res.status(401).json({ success: false, msg: 'User no longer exists' });
+    }
+    req.user = { id: user._id, name: user.name, email: user.email, role: user.role };
     next();
   } catch (err) {
     return res.status(401).json({ success: false, msg: 'Token invalid or expired' });

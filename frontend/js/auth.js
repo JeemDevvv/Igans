@@ -36,6 +36,11 @@ async function apiFetch(path, options = {}) {
   try {
     const res = await fetch(API + path, { ...options, headers });
     const data = await res.json().catch(() => ({}));
+    if (res.status === 401) {
+      Session.clear();
+      window.location.href = getRootPath('login.html');
+      throw new Error(data.msg || 'Unauthorized');
+    }
     if (!res.ok) throw new Error(data.msg || `HTTP ${res.status}`);
     return data;
   } catch (err) {
