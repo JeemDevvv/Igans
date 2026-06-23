@@ -15,6 +15,9 @@ const { getActiveCount, updateCustomer } = require('./utils/activeCustomers');
 connectDB();
 const app = express();
 
+// Trust proxy for Render/X-Forwarded-For
+app.set('trust proxy', 1);
+
 // Rate limiting to prevent brute force attacks
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -41,14 +44,18 @@ app.use(helmet({
   },
 }));
 
-// Secure CORS configuration
+// Secure CORS configuration - allow Render origin and localhost
 const allowedOrigins = process.env.ALLOWED_ORIGINS 
   ? process.env.ALLOWED_ORIGINS.split(',') 
-  : ['http://localhost:5000', 'http://localhost:3000'];
+  : [
+      'http://localhost:5000', 
+      'http://localhost:3000', 
+      'https://igansbudbodhouse.onrender.com'
+    ];
 
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin) || origin.includes('localhost')) {
+    if (!origin || allowedOrigins.includes(origin) || origin.includes('localhost') || origin.includes('onrender.com')) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
