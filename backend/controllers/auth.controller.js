@@ -171,14 +171,23 @@ exports.login = async (req, res) => {
   try {
     const { username, password, role } = req.body;
     console.log('[Login Attempt] Username:', username, 'Role:', role);
-    if (!username || !password) return res.status(400).json({ success: false, msg: 'Username and password required' });
+    if (!username || !password) {
+      return res.status(400).json({ success: false, msg: 'Username and password required' });
+    }
     const user = await User.findOne({ username }).select('+password');
     if (!user) {
       console.log('[Login Failed] User not found for username:', username);
       return res.status(401).json({ success: false, msg: 'Invalid credentials' });
     }
-    console.log('[Login Found User] User:', user._id, 'Role:', user.role);
-    const passwordMatch = await user.matchPassword(password);
+    console.log('[Login Found User] User:', user._id, 'Role:', user.role, 'Has Password:', !!user.password);
+    if (!user.password) {
+      console.log('[Login Failed] User has no password field');
+      return res.status(401).json({ success: false, msg: 'Invalid credentials' });
+    }
+    const passwordMatch = await user.matchPassword(password).catch((e) => {
+      console.log('[Login Error] matchPassword threw:', e);
+      return false;
+    });
     if (!passwordMatch) {
       console.log('[Login Failed] Password mismatch');
       return res.status(401).json({ success: false, msg: 'Invalid credentials' });
@@ -191,7 +200,7 @@ exports.login = async (req, res) => {
     console.log('[Login Success] User:', user._id, 'Token generated');
     res.json({ success: true, token, user: { id: user._id, name: user.name, username: user.username, email: user.email, role: user.role } });
   } catch (err) {
-    console.error('[Login Error]', err);
+    console.error('[Login Error] Full:', err);
     res.status(500).json({ success: false, msg: err.message });
   }
 };
