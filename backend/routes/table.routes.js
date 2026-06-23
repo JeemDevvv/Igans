@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const QRCode = require('qrcode');
 const Table = require('../models/Table');
-const { protect } = require('../middleware/auth.middleware');
+const { protect, optionalAuth } = require('../middleware/auth.middleware');
 const { allow } = require('../middleware/role.middleware');
 const { createNotification } = require('../controllers/notification.controller');
 
@@ -24,7 +24,7 @@ const updateTableQR = async (req, table) => {
   }
   return table;
 };
-router.get('/', async (req, res) => {
+router.get('/', protect, allow('admin', 'staff', 'kitchen'), async (req, res) => {
   try {
     let tables = await Table.find().sort({ tableNumber: 1 });
     for (let table of tables) {
@@ -33,7 +33,7 @@ router.get('/', async (req, res) => {
     res.json({ success: true, data: tables });
   } catch (err) { res.status(500).json({ success: false, msg: err.message }); }
 });
-router.get('/:tableNum', async (req, res) => {
+router.get('/:tableNum', optionalAuth, async (req, res) => {
   try {
     let table = await Table.findOne({ tableNumber: req.params.tableNum });
     if (!table) return res.status(404).json({ success: false, msg: 'Table not found' });
